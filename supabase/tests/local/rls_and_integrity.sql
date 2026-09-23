@@ -280,6 +280,168 @@ select t.expect_count('select * from public.supplier_offer_observation', 0, 'B c
 select t.expect_count('select * from public.supplier_terms', 0, 'B cannot see A''s terms');
 
 -- ===========================================================================
+-- 4b. Retention: raw payloads vs normalized supplier observations
+--     Raw payload retention and observation retention are independent.
+--     Purging a raw payload must never delete or alter normalized
+--     observations. Cleanup jobs are not built yet; this checks the schema.
+-- ===========================================================================
+:as_server
+
+-- (1) An observation created from an API batch whose raw payload is transient.
+insert into public.import_batch (id, organization_id, connection_id, source_type, data_type, status,
+                                 raw_storage_bucket, raw_storage_path, raw_retention, raw_expires_at)
+values ('46000000-0000-0000-0000-0000000000a1', '10000000-0000-0000-0000-0000000000a1',
+        '40000000-0000-0000-0000-0000000000a2', 'api_pull', 'pricing', 'completed',
+        'raw-imports', '10000000-0000-0000-0000-0000000000a1/hlc/pricing-001.json', 'transient',
+        now() - interval '1 hour');
+insert into storage.objects (bucket_id, name)
+values ('raw-imports', '10000000-0000-0000-0000-0000000000a1/hlc/pricing-001.json');
+insert into public.supplier_offer_observation
+  (id, organization_id, supplier_relationship_id, supplier_item_id, supplier_warehouse_id, unit_cost, currency,
+   price_type, available_quantity, availability_status, lead_time_days, observed_at, import_batch_id)
+values ('47000000-0000-0000-0000-0000000000a1', '10000000-0000-0000-0000-0000000000a1',
+        '80000000-0000-0000-0000-0000000000a1', '60000000-0000-0000-0000-000000000001',
+        '21000000-0000-0000-0000-000000000001', 305.25, 'USD', 'customer', 18, 'in_stock', 2,
+        '2026-09-22 14:05:00+00', '46000000-0000-0000-0000-0000000000a1');
+select t.expect_equal(
+  (select import_batch_id::text from public.supplier_offer_observation where id = '47000000-0000-0000-0000-0000000000a1'),
+  '46000000-0000-0000-0000-0000000000a1', 'retention: observation created from an API batch');
+
+create table t.observation_snapshot as
+  select to_jsonb(o) as row_data from public.supplier_offer_observation o
+   where id = '47000000-0000-0000-0000-0000000000a1';
+
+-- (2) Purge the expired raw payload the way the future cleanup job will:
+--     delete the stored file, then mark the batch as purged.
+delete from storage.objects
+ where bucket_id = 'raw-imports' and name = '10000000-0000-0000-0000-0000000000a1/hlc/pricing-001.json';
+update public.import_batch
+   set raw_purged_at = now(), raw_storage_path = null
+ where id = '46000000-0000-0000-0000-0000000000a1' and raw_expires_at < now();
+select t.expect_count($$select * from public.import_batch
+                         where id = '46000000-0000-0000-0000-0000000000a1'
+                           and raw_purged_at is not null and raw_storage_path is null$$,
+                      1, 'retention: raw payload marked purged per its policy');
+select t.expect_count($$select * from storage.objects where bucket_id = 'raw-imports'
+                         and name = '10000000-0000-0000-0000-0000000000a1/hlc/pricing-001.json'$$,
+                      0, 'retention: raw payload file removed');
+
+-- (3) + (4) The observation is untouched: same row, same values, same observed_at.
+select t.expect_equal(
+  (select (to_jsonb(o) = s.row_data)::text
+     from public.supplier_offer_observation o, t.observation_snapshot s
+    where o.id = '47000000-0000-0000-0000-0000000000a1'),
+  'true', 'retention: purging raw payload leaves the observation byte-for-byte unchanged');
+select t.expect_equal(
+  (select unit_cost::text || ' ' || currency || ' | ' || available_quantity::text || ' ' || availability_status
+          || ' | ' || supplier_warehouse_id::text || ' | ' || (observed_at at time zone 'UTC')::text
+     from public.supplier_offer_observation where id = '47000000-0000-0000-0000-0000000000a1'),
+  '305.250000 USD | 18.0000 in_stock | 21000000-0000-0000-0000-000000000001 | 2026-09-22 14:05:00',
+  'retention: normalized values and observed_at retained');
+
+-- (5) Provenance: the batch record survives the purge, so the observation
+--     still traces to its connection and that connection's retention policy.
+select t.expect_equal(
+  (select c.provider || ' / raw=' || c.raw_payload_retention || ' / obs=' || c.observation_retention
+          || ' / purged=' || (b.raw_purged_at is not null)::text
+     from public.supplier_offer_observation o
+     join public.import_batch b on b.id = o.import_batch_id
+     join public.connection c on c.id = b.connection_id
+    where o.id = '47000000-0000-0000-0000-0000000000a1'),
+  'hlc / raw=transient / obs=latest_only / purged=true',
+  'retention: provenance traces observation -> batch -> connection after purge');
+:as_a
+select t.expect_count($$select * from public.supplier_offer_observation where id = '47000000-0000-0000-0000-0000000000a1'$$,
+                      1, 'retention: retailer still sees the observation after purge');
+:as_server
+-- Even if a batch record were removed entirely, the observation survives
+-- (the link is cleared, the observation is not deleted).
+insert into public.import_batch (id, organization_id, connection_id, source_type, data_type, status)
+values ('46000000-0000-0000-0000-0000000000a2', '10000000-0000-0000-0000-0000000000a1',
+        '40000000-0000-0000-0000-0000000000a2', 'api_pull', 'pricing', 'completed');
+insert into public.supplier_offer_observation
+  (id, organization_id, supplier_relationship_id, supplier_item_id, unit_cost, currency, observed_at, import_batch_id)
+values ('47000000-0000-0000-0000-0000000000a2', '10000000-0000-0000-0000-0000000000a1',
+        '80000000-0000-0000-0000-0000000000a1', '60000000-0000-0000-0000-000000000001', 306.00, 'USD',
+        '2026-09-21 09:00:00+00', '46000000-0000-0000-0000-0000000000a2');
+delete from public.import_batch where id = '46000000-0000-0000-0000-0000000000a2';
+select t.expect_equal(
+  (select coalesce(import_batch_id::text, 'null') || ' ' || unit_cost::text
+     from public.supplier_offer_observation where id = '47000000-0000-0000-0000-0000000000a2'),
+  'null 306.000000', 'retention: deleting a batch record keeps the observation');
+
+-- (6) A connection with observation_retention = 'history' keeps every observation.
+insert into public.connection (id, organization_id, connection_type, provider, method, supplier_market_id,
+                               raw_payload_retention, raw_payload_retention_hours, observation_retention,
+                               retention_basis)
+values ('40000000-0000-0000-0000-0000000000b2', '10000000-0000-0000-0000-0000000000b1', 'supplier', 'hlc', 'api',
+        '20000000-0000-0000-0000-000000000001', 'transient', 168, 'history', 'test: history permitted');
+insert into public.import_batch (id, organization_id, connection_id, source_type, data_type, status,
+                                 raw_retention, raw_expires_at)
+values ('46000000-0000-0000-0000-0000000000b1', '10000000-0000-0000-0000-0000000000b1',
+        '40000000-0000-0000-0000-0000000000b2', 'api_pull', 'pricing', 'completed', 'transient', now() - interval '1 day'),
+       ('46000000-0000-0000-0000-0000000000b2', '10000000-0000-0000-0000-0000000000b1',
+        '40000000-0000-0000-0000-0000000000b2', 'api_pull', 'pricing', 'completed', 'transient', now() - interval '1 day'),
+       ('46000000-0000-0000-0000-0000000000b3', '10000000-0000-0000-0000-0000000000b1',
+        '40000000-0000-0000-0000-0000000000b2', 'api_pull', 'pricing', 'completed', 'transient', now() + interval '6 days');
+insert into public.supplier_offer_observation
+  (organization_id, supplier_relationship_id, supplier_item_id, unit_cost, currency, available_quantity,
+   availability_status, observed_at, import_batch_id)
+values ('10000000-0000-0000-0000-0000000000b1', '80000000-0000-0000-0000-0000000000b1', '60000000-0000-0000-0000-000000000001',
+        299.00, 'USD', 50, 'in_stock', '2026-09-01 12:00+00', '46000000-0000-0000-0000-0000000000b1'),
+       ('10000000-0000-0000-0000-0000000000b1', '80000000-0000-0000-0000-0000000000b1', '60000000-0000-0000-0000-000000000001',
+        309.00, 'USD', 12, 'limited', '2026-09-10 12:00+00', '46000000-0000-0000-0000-0000000000b2'),
+       ('10000000-0000-0000-0000-0000000000b1', '80000000-0000-0000-0000-0000000000b1', '60000000-0000-0000-0000-000000000001',
+        314.00, 'USD', 0, 'out_of_stock', '2026-09-20 12:00+00', '46000000-0000-0000-0000-0000000000b3');
+-- Purge the two expired raw payloads.
+update public.import_batch set raw_purged_at = now()
+ where connection_id = '40000000-0000-0000-0000-0000000000b2' and raw_expires_at < now();
+select t.expect_count($$select * from public.import_batch
+                         where connection_id = '40000000-0000-0000-0000-0000000000b2' and raw_purged_at is not null$$,
+                      2, 'retention: expired raw payloads purged on history connection');
+:as_b
+select t.expect_count($$select * from public.supplier_offer_observation
+                         where supplier_item_id = '60000000-0000-0000-0000-000000000001'
+                           and supplier_warehouse_id is null$$,
+                      3, 'retention: history connection keeps all observations of one item over time');
+select t.expect_equal(
+  (select string_agg(unit_cost::text, ',' order by observed_at)
+     from public.supplier_offer_observation
+    where supplier_item_id = '60000000-0000-0000-0000-000000000001' and supplier_warehouse_id is null),
+  '299.000000,309.000000,314.000000', 'retention: price history readable in order after raw purge');
+select t.expect_equal(
+  (select unit_cost::text from public.supplier_offer_observation
+    where supplier_item_id = '60000000-0000-0000-0000-000000000001' and supplier_warehouse_id is null
+    order by observed_at desc limit 1),
+  '314.000000', 'retention: latest observation is still directly queryable');
+
+-- (7) latest_only is not enforced by a uniqueness constraint: the table can
+--     hold several observations for the same item; replacing them is the
+--     future sync job's responsibility.
+:as_server
+select t.expect_count($$select 1 from pg_index i
+                         where i.indrelid = 'public.supplier_offer_observation'::regclass
+                           and i.indisunique and not i.indisprimary$$,
+                      0, 'retention: no uniqueness constraint forces one observation per item');
+insert into public.supplier_offer_observation
+  (organization_id, supplier_relationship_id, supplier_item_id, supplier_warehouse_id, unit_cost, currency,
+   available_quantity, availability_status, observed_at)
+values ('10000000-0000-0000-0000-0000000000a1', '80000000-0000-0000-0000-0000000000a1',
+        '60000000-0000-0000-0000-000000000001', '21000000-0000-0000-0000-000000000001', 307.75, 'USD', 9,
+        'limited', '2026-09-23 08:00:00+00');
+select t.expect_count($$select * from public.supplier_offer_observation
+                         where supplier_relationship_id = '80000000-0000-0000-0000-0000000000a1'
+                           and supplier_item_id = '60000000-0000-0000-0000-000000000001'
+                           and supplier_warehouse_id = '21000000-0000-0000-0000-000000000001'
+                           and unit_cost in (305.25, 307.75)$$,
+                      2, 'retention: latest_only connection is structurally capable of history');
+select t.expect_equal(
+  (select observation_retention from public.connection where id = '40000000-0000-0000-0000-0000000000a2'),
+  'latest_only', 'retention: latest_only is a connection setting, left to the sync job');
+drop table t.observation_snapshot;
+:as_b
+
+-- ===========================================================================
 -- 5. Programs: private uploads, public programs, links
 -- ===========================================================================
 :as_a
