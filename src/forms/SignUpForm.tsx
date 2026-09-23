@@ -16,7 +16,7 @@ export function SignUpForm() {
   const passwordHelp = `At least ${MIN_PASSWORD_LENGTH} characters.`
   return (
     <form action={action} className={styles.form} noValidate>
-      <FormErrorSummary errors={state.formError ? [state.formError] : []} title={state.formError} />
+      <FormErrorSummary errors={state.formError ? [state.formError] : []} />
       <Field id="email" label="Work email" error={e.email}>
         <TextInput id="email" name="email" type="email" autoComplete="email" required
           defaultValue={state.values.email} invalid={Boolean(e.email)} aria-describedby={describedBy('email', { error: e.email })} />

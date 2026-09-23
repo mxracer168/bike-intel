@@ -45,6 +45,16 @@ test('sign-up explains problems in plain words before contacting the server', as
   await expect(page.getByLabel('Work email')).toHaveValue('not-an-email')
 })
 
+test('a sign-in problem is explained once, in plain words', async ({ page }) => {
+  // No Supabase is reachable in this suite, so the server reports a failure.
+  await page.goto('/sign-in')
+  await page.getByLabel('Email').fill('someone@example.com')
+  await page.getByLabel('Password').fill('any-password-at-all')
+  await page.getByRole('button', { name: 'Sign in' }).click()
+  const message = page.getByText('Something went wrong on our side. Please try again.')
+  await expect(message).toHaveCount(1)
+})
+
 test('signed-out visitors are sent to sign in', async ({ page }) => {
   for (const path of ['/today', '/orders', '/onboarding', '/onboarding/business']) {
     await page.goto(path)

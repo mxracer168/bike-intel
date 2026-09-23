@@ -14,7 +14,7 @@ export function SignInForm() {
   const e = state.errors
   return (
     <form action={action} className={styles.form} noValidate>
-      <FormErrorSummary errors={state.formError ? [state.formError] : []} title={state.formError} />
+      <FormErrorSummary errors={state.formError ? [state.formError] : []} />
       <Field id="email" label="Email" error={e.email}>
         <TextInput id="email" name="email" type="email" autoComplete="email" required
           defaultValue={state.values.email} invalid={Boolean(e.email)} aria-describedby={describedBy('email', { error: e.email })} />

@@ -21,7 +21,7 @@ export function AgreementsForm({ presentationId }: { presentationId: string }) {
   return (
     <form action={action} className={styles.form} noValidate>
       <input type="hidden" name="presentationId" value={presentationId} />
-      <FormErrorSummary errors={state.formError ? [state.formError] : []} title={state.formError} />
+      <FormErrorSummary errors={state.formError ? [state.formError] : []} />
 
       <section className={styles.section} aria-labelledby="terms-title">
         <h2 id="terms-title" className={styles.sectionTitle}>{t.title}</h2>

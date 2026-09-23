@@ -33,7 +33,8 @@ test('two retailers cannot read or modify each other’s private records', async
     input.type = 'hidden'
     input.name = 'organizationId'
     input.value = org
-    document.querySelector('form')!.appendChild(input)
+    // The location form, not the header's sign-out form.
+    document.querySelector('main form')!.appendChild(input)
   }, orgB)
   await completeLocation(pageA, 'Alpha Main')
   await completeAgreements(pageA, 'declined')

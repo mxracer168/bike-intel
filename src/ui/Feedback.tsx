@@ -23,17 +23,18 @@ export function Tag({ tone = 'neutral', children }: { tone?: Tone; children: Rea
   return <span className={`${styles.tag} ${styles[tone]}`}>{children}</span>
 }
 
-/** Lists what needs fixing before a form can be saved. */
+/**
+ * Lists what needs fixing before a form can be saved. A single problem is
+ * shown once, as the notice title; several are listed under a general title.
+ */
 export function FormErrorSummary({ title, errors }: { title?: string; errors: string[] }) {
   if (errors.length === 0) return null
+  if (errors.length === 1) return <Notice tone="risk" title={title ?? errors[0]} />
   return (
     <Notice tone="risk" title={title ?? 'Please check the highlighted details.'}>
-      {errors.length > 1 && (
-        <ul className={styles.errorList}>
-          {errors.map((e) => <li key={e}>{e}</li>)}
-        </ul>
-      )}
-      {errors.length === 1 && <p>{errors[0]}</p>}
+      <ul className={styles.errorList}>
+        {errors.map((e) => <li key={e}>{e}</li>)}
+      </ul>
     </Notice>
   )
 }

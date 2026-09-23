@@ -16,7 +16,7 @@ test('a new retailer signs up, confirms their email and completes onboarding', a
   // Unconfirmed accounts cannot sign in yet.
   const early = await page.context().newPage()
   await signIn(early, email)
-  await expect(early.getByText('Please confirm your email first.')).toBeVisible()
+  await expect(early.getByText('Please confirm your email first. The link is in your inbox.')).toHaveCount(1)
   await early.close()
 
   await page.goto(await confirmationLink(email))
@@ -62,10 +62,11 @@ test('submitting the business form twice creates one organization', async ({ pag
   const userId = await createConfirmedUser(email)
   await signIn(page, email)
   await expect(page).toHaveURL(/\/onboarding\/business$/)
-  await page.getByLabel('Business name').fill('Double Submit Bikes')
+  await page.getByLabel('Business name', { exact: true }).fill('Double Submit Bikes')
   await page.getByLabel('Country').selectOption({ label: 'Canada' })
   await page.evaluate(() => {
-    const form = document.querySelector('form')!
+    // The onboarding form, not the header's sign-out form.
+    const form = document.querySelector('main form') as HTMLFormElement
     form.requestSubmit()
     form.requestSubmit()
   })

@@ -75,7 +75,7 @@ export async function signIn(page: Page, email: string) {
 
 export async function completeBusiness(page: Page, name: string) {
   await expect(page).toHaveURL(/\/onboarding\/business$/)
-  await page.getByLabel('Business name').fill(name)
+  await page.getByLabel('Business name', { exact: true }).fill(name)
   await page.getByLabel('Country').selectOption({ label: 'United States' })
   await page.getByRole('button', { name: 'Continue' }).click()
 }

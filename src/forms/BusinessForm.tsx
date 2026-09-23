@@ -22,7 +22,7 @@ export function BusinessForm({ requestId, defaults }: Props) {
   return (
     <form action={action} className={styles.form} noValidate>
       {requestId && <input type="hidden" name="requestId" value={requestId} />}
-      <FormErrorSummary errors={state.formError ? [state.formError] : []} title={state.formError} />
+      <FormErrorSummary errors={state.formError ? [state.formError] : []} />
       <Field id="name" label="Business name" help="The name your customers know you by." error={e.name}>
         <TextInput id="name" name="name" autoComplete="organization" required defaultValue={v.name}
           invalid={Boolean(e.name)} aria-describedby={describedBy('name', { help: true, error: e.name })} />

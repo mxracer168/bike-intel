@@ -28,7 +28,7 @@ export function LocationForm({ defaultCountry }: { defaultCountry: CountryCode }
 
   return (
     <form action={action} className={styles.form} noValidate>
-      <FormErrorSummary errors={state.formError ? [state.formError] : []} title={state.formError} />
+      <FormErrorSummary errors={state.formError ? [state.formError] : []} />
       <div className={styles.row}>
         <Field id="name" label="Location name" help="For example, “Main Street” or “North warehouse”." error={e.name}>
           <TextInput id="name" name="name" required defaultValue={v.name} invalid={Boolean(e.name)}
