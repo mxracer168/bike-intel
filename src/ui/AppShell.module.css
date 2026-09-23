@@ -1,55 +1,118 @@
-.shell { min-height: 100dvh; display: flex; flex-direction: column; }
-.skip { position: absolute; left: var(--sp-4); top: -60px; z-index: 10; background: var(--surface); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm); }
+/* ---------- Application shell: quiet left sidebar + content ---------- */
+/* The sidebar column is painted on the shell so it runs the full page height. */
+.shell {
+  min-height: 100dvh; display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  background: linear-gradient(to right, var(--surface) calc(var(--sidebar-width) - 1px), var(--line) calc(var(--sidebar-width) - 1px), var(--line) var(--sidebar-width), var(--canvas) var(--sidebar-width));
+}
+.skip { position: absolute; left: var(--sp-4); top: -60px; z-index: 30; background: var(--surface); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm); box-shadow: var(--sh-2); }
 .skip:focus { top: var(--sp-2); }
 
-.bar {
-  background: var(--surface); border-bottom: 1px solid var(--line);
-  display: flex; align-items: center; gap: var(--sp-6);
-  min-height: 56px; padding: 0 var(--gutter);
+.sidebar {
+  position: sticky; top: 0; height: 100dvh;
+  background: var(--surface); border-right: 1px solid var(--line);
 }
-.spacer { flex: 1; }
+.main { min-width: 0; }
 
-.logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: var(--ink); text-decoration: none; white-space: nowrap; }
-.logoMark { width: 22px; height: 22px; border-radius: var(--r-sm); background: var(--accent); display: grid; place-items: center; }
+.mobileBar { display: none; }
+
+/* Sidebar content (shared by desktop sidebar and phone panel) */
+.panel { height: 100%; display: flex; flex-direction: column; padding: var(--sp-4) var(--sp-3); gap: var(--sp-5); overflow-y: auto; }
+.panelHead { display: flex; align-items: center; justify-content: space-between; padding: 0 var(--sp-2); min-height: 32px; }
+
+.logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: var(--ink); text-decoration: none; white-space: nowrap; border-radius: var(--r-sm); }
+.logoMark { width: 22px; height: 22px; border-radius: var(--r-sm); background: var(--accent); display: grid; place-items: center; flex: none; }
 .logoMark::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--canvas); }
 
-.nav { display: flex; gap: var(--sp-1); }
+.nav { display: flex; flex-direction: column; gap: var(--sp-5); flex: 1; }
+.section { display: flex; flex-direction: column; gap: 2px; }
+.sectionLabel { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); padding: 0 var(--sp-3); margin-bottom: var(--sp-1); }
 .navLink {
-  font-size: 14px; font-weight: 500; color: var(--ink-2); text-decoration: none;
-  padding: 7px 12px; border-radius: var(--r-sm); white-space: nowrap;
-  transition: background var(--t-fast), color var(--t-fast);
+  display: flex; align-items: center; min-height: 36px; padding: 0 var(--sp-3);
+  font-size: 14px; font-weight: 400; color: var(--ink); text-decoration: none;
+  border-radius: var(--r-sm);
+  transition: background var(--t-fast) var(--ease), color var(--t-fast);
 }
-.navLink:hover { background: var(--subtle); color: var(--ink); }
-.navLink[aria-current='page'] { color: var(--accent); background: var(--accent-soft); }
+.navLink:hover { background: var(--subtle); }
+.navLink[aria-current='page'] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.home { font-size: 15px; }
+
+/* Footer: retailer area, then the person's own account, kept distinct */
+.footer { display: flex; flex-direction: column; gap: var(--sp-2); border-top: 1px solid var(--line); padding-top: var(--sp-3); }
+.footerLabel { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); padding: 0 var(--sp-2); }
+.retailer {
+  display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2);
+  border: 1px solid var(--line); border-radius: var(--r-md); background: var(--canvas);
+}
+.retailerMark {
+  width: 32px; height: 32px; border-radius: var(--r-sm); flex: none;
+  background: var(--accent-soft); color: var(--accent); display: grid; place-items: center;
+  font-size: 13px; font-weight: 600;
+}
+.retailerText { display: flex; flex-direction: column; min-width: 0; }
+.retailerName { font-size: 14px; font-weight: 600; line-height: 20px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.retailerMeta { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
 
 .account { position: relative; }
 .account summary {
   list-style: none; cursor: pointer; display: flex; align-items: center; gap: var(--sp-2);
-  padding: 4px; border-radius: var(--r-md);
+  padding: var(--sp-2); border-radius: var(--r-md); font-size: var(--fs-label); color: var(--ink-2);
 }
 .account summary::-webkit-details-marker { display: none; }
-.account summary:hover { background: var(--subtle); }
+.account summary:hover { background: var(--subtle); color: var(--ink); }
 .avatar {
-  width: 30px; height: 30px; border-radius: 50%; background: var(--sunken);
-  display: grid; place-items: center; font-size: 12px; font-weight: 600; color: var(--ink-2);
+  width: 24px; height: 24px; border-radius: 50%; background: var(--sunken); flex: none;
+  display: grid; place-items: center; font-size: 11px; font-weight: 600; color: var(--ink-2);
 }
+.email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
 .menu {
-  position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 240px;
+  position: absolute; left: 0; right: 0; bottom: calc(100% + 6px); z-index: 20;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--sh-2);
   padding: var(--sp-2); display: flex; flex-direction: column; gap: var(--sp-1);
 }
-.menuMeta { padding: var(--sp-2) var(--sp-3); display: flex; flex-direction: column; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: var(--sp-1); }
-.menuMeta b { font-size: 14px; }
-.menuMeta span { font-size: var(--fs-label); color: var(--ink-2); overflow-wrap: anywhere; }
 .menuItem {
   width: 100%; text-align: left; background: none; border: 0; cursor: pointer;
   font-size: 14px; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm); color: var(--ink);
 }
 .menuItem:hover { background: var(--subtle); }
 
-.main { flex: 1; }
-
-@media (max-width: 760px) {
-  .bar { flex-wrap: wrap; gap: 0 var(--sp-3); padding-top: var(--sp-2); }
-  .nav { order: 3; flex-basis: 100%; overflow-x: auto; padding: var(--sp-2) 0; margin: 0 calc(-1 * var(--sp-2)); }
+/* Phone: slim top bar + slide-in panel (native <dialog>: focus trap + Escape) */
+.menuButton {
+  display: inline-flex; align-items: center; gap: var(--sp-2); min-height: 40px; padding: 0 var(--sp-3);
+  font-size: 14px; font-weight: 500; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line-strong); border-radius: var(--r-md); cursor: pointer;
 }
+.menuButton:hover { background: var(--subtle); }
+.drawer {
+  margin: 0; padding: 0; border: 0; height: 100dvh; max-height: 100dvh;
+  width: min(300px, 86vw); background: var(--surface); color: var(--ink);
+  box-shadow: var(--sh-3);
+}
+.drawerHead { padding: var(--sp-3) var(--sp-3) 0; }
+.drawer[open] { display: flex; flex-direction: column; }
+.drawer .panel { flex: 1; min-height: 0; height: auto; }
+.drawer::backdrop { background: var(--scrim); }
+.closeButton {
+  width: 36px; height: 36px; display: grid; place-items: center; border-radius: var(--r-sm);
+  border: 0; background: transparent; color: var(--ink-2); cursor: pointer;
+}
+.closeButton:hover { background: var(--subtle); color: var(--ink); }
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; background: var(--canvas); }
+  .sidebar { display: none; }
+  .mobileBar {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3);
+    position: sticky; top: 0; z-index: 10; min-height: 56px; padding: 0 var(--gutter);
+    background: var(--surface); border-bottom: 1px solid var(--line);
+  }
+}
+
+/* ---------- Focused shell (sign-in, onboarding): logo only ---------- */
+.focused { min-height: 100dvh; display: flex; flex-direction: column; }
+.bar {
+  background: var(--surface); border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: var(--sp-6);
+  min-height: 56px; padding: 0 var(--gutter);
+}
+.spacer { flex: 1; }
+.focusedMain { flex: 1; }

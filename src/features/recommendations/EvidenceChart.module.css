@@ -1,0 +1,23 @@
+.figure { margin: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.caption { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+.plot { padding-top: 22px; }
+.canvas { position: relative; }
+.canvas svg { display: block; width: 100%; height: auto; overflow: visible; }
+.baseline { stroke: var(--line-strong); stroke-width: 1; }
+.reference { stroke: var(--ink-3); stroke-width: 1; }
+.refLabel { position: absolute; left: 4px; font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); background: var(--surface); padding-right: 6px; pointer-events: none; }
+.axis { display: flex; justify-content: space-between; font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+.bar { fill: var(--accent-muted); transition: fill var(--t-fast); }
+.current { fill: var(--accent); }
+.hit { fill: transparent; cursor: default; }
+.mark { outline: none; }
+.mark:hover .bar, .mark:focus-visible .bar { fill: var(--accent-hover); }
+.mark:focus-visible .hit { stroke: var(--accent); stroke-width: 2; }
+.tooltip {
+  position: absolute; top: 0; transform: translate(-50%, -100%);
+  pointer-events: none; white-space: nowrap;
+  background: var(--inverse); color: var(--on-inverse);
+  border-radius: var(--r-sm); padding: 6px 10px; font-size: var(--fs-label); line-height: var(--lh-label);
+  box-shadow: var(--sh-2);
+}
+.tooltip b { font-weight: 600; margin-right: 6px; }

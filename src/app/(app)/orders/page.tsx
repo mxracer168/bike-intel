@@ -1,15 +1,16 @@
 import type { Metadata } from 'next'
-import { EmptyState } from '@/ui/Feedback'
-import { Page, PageHeader } from '@/ui/Layout'
+import { Placeholder } from '@/features/placeholder/Placeholder'
 
 export const metadata: Metadata = { title: 'Orders' }
 
-/** Temporary placeholder. */
+/** Placeholder until this area is built. */
 export default function OrdersPage() {
   return (
-    <Page>
-      <PageHeader title="Orders" />
-      <EmptyState title="Orders you build here will appear in this list.">When you’re ready to buy, we’ll prepare the order and you’ll approve it.</EmptyState>
-    </Page>
+    <Placeholder
+      eyebrow='Orders'
+      title='No orders yet.'
+      lead='Orders you build here, from draft to sent.'
+      body='When you’re ready to buy, we’ll prepare the order from the recommendations you accept. You review it, change anything, and approve it.'
+    />
   )
 }

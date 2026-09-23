@@ -1,0 +1,34 @@
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+.wide { grid-column: 1 / -1; }
+.facts { margin: 0; display: flex; flex-direction: column; }
+.facts div { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: var(--sp-4); padding: var(--sp-3) 0; border-top: 1px solid var(--line); font-size: 15px; }
+.facts div:first-child { border-top: 0; padding-top: 0; }
+.facts dt { color: var(--ink-2); font-size: 14px; }
+.facts dd { margin: 0; overflow-wrap: anywhere; }
+.missing { color: var(--ink-2); }
+.address { font-style: normal; line-height: 22px; }
+
+.knowHead { display: flex; flex-direction: column; gap: 4px; }
+.knowTitle { font-size: var(--fs-heading); line-height: var(--lh-heading); }
+.knowLead { font-size: 14px; color: var(--ink-2); max-width: 64ch; }
+.groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+.group { display: flex; flex-direction: column; gap: var(--sp-2); }
+.groupTitle { font-size: 14px; font-weight: 600; }
+.beliefs { list-style: none; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+.belief { display: flex; flex-direction: column; gap: 4px; padding: var(--sp-3) var(--sp-4); border-top: 1px solid var(--line); }
+.belief:first-child { border-top: 0; }
+.beliefText { font-size: 15px; }
+.beliefMeta { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; font-size: var(--fs-label); color: var(--ink-2); }
+
+.locations { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+.location { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-3); }
+.locationHead { display: flex; justify-content: space-between; gap: var(--sp-3); align-items: flex-start; }
+.locationName { font-size: 17px; font-weight: 600; }
+.locationType { font-size: var(--fs-label); color: var(--ink-2); }
+.roles { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.small { font-size: 14px; color: var(--ink-2); }
+
+@media (max-width: 860px) {
+  .grid, .groups, .locations { grid-template-columns: minmax(0, 1fr); }
+  .facts div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}

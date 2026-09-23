@@ -1,0 +1,9 @@
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface); overflow: hidden; }
+.stepper button {
+  width: 40px; height: 42px; border: 0; background: transparent; color: var(--ink-2);
+  font-size: 18px; line-height: 1; cursor: pointer;
+}
+.stepper button:hover { background: var(--subtle); color: var(--ink); }
+.stepper button:focus-visible { outline: none; box-shadow: inset var(--focus-ring); }
+.stepper button:disabled { color: var(--ink-3); cursor: not-allowed; background: transparent; }
+.stepper output { min-width: 44px; text-align: center; font-weight: 600; font-size: 16px; font-variant-numeric: tabular-nums; }

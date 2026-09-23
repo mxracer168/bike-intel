@@ -25,3 +25,10 @@ export const getOnboardingStatus = cache(async () => {
   const facts = await loadOnboardingFacts(ctx.db, ctx.organization)
   return { ...ctx, status: computeOnboardingStatus(facts), facts }
 })
+
+/** Signed-in user with a retailer organization; otherwise sends them to onboarding. */
+export async function requireOrganization() {
+  const ctx = await requireUser()
+  if (!ctx.organization) redirect('/onboarding')
+  return { ...ctx, organization: ctx.organization }
+}

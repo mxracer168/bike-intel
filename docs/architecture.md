@@ -69,6 +69,15 @@ email + password and email confirmation.
   conversational onboarding can call the same commands.
 - **Consent** is two separate append-only rows in `organization_agreement`
   (platform terms, industry intelligence) sharing a `presentation_id`.
+- **Shell and routes.** Left sidebar (`content/navigation.ts`): Today; Buying
+  (recommendations, orders, inventory); Suppliers (directory, programs);
+  Insights (performance, opportunities); Business (profile, locations, team).
+- **Presentation shapes, not data models.** `RecommendationView` and
+  `SupplierPresentation` describe what screens render. Real data is mapped
+  into them; they carry no schema commitments. A supplier page is an identity
+  plus an ordered list of typed sections, so it can be sparse or rich.
+- **Example data** lives in `src/demo/`, gated by `DEMO_PREVIEW` (default on
+  only under `next dev`), always visibly marked, never written to the database.
 
 ## Tables (35)
 

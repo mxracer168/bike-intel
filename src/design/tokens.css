@@ -29,6 +29,8 @@
   --risk-line: #E7C3BB;
   /* Inverse surface (toasts) */
   --inverse: #22211F;      --on-inverse: #F6F4F0;   --inverse-link: #B9D0EC;
+  /* Backdrop behind the phone navigation panel */
+  --scrim: rgba(34,33,31,.32);
 
   /* Type: Hanken Grotesk 400/600 (500 for 13px labels) */
   --font: var(--font-hanken), 'Helvetica Neue', Arial, sans-serif;
@@ -46,6 +48,7 @@
   --sp-6: 32px; --sp-7: 48px; --sp-8: 64px; --sp-9: 96px;
   --reading-width: 640px;
   --page-width: 1120px;
+  --sidebar-width: 248px;
   --gutter: 20px;
 
   /* Radius */

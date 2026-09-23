@@ -29,12 +29,17 @@ additions come from the artifact's own component styles: `--accent-pressed`,
 `Button` (primary / secondary / quiet / danger), `SubmitButton`, `Field`,
 `TextInput`, `Select`, `Checkbox`, `ChoiceGroup`, `Page`, `PageHeader`,
 `Stack`, `Card`, `Notice`, `Tag`, `FormErrorSummary`, `Toast`, `EmptyState`,
-`Skeleton`, `Icon`, `AppShell` (top bar, primary navigation, account menu),
-`FocusedShell`.
+`Skeleton`, `Icon`, `AppShell` (left sidebar: primary navigation, current
+retailer, personal account; phone panel via native `<dialog>`), `FocusedShell`,
+`ConfidenceMark`, `QuantityStepper`, `ChoiceChips`, `ExampleMarker` /
+`ExampleRegion`.
 
-Built later with the features that need them: recommendation card, "Why?"
-disclosure, quantity stepper, confidence dots, tables, charts, advisor note,
-dialogs with undo.
+Feature components: `RecommendationCard` (answer → reason → evidence with
+"Why?"), `EvidenceChart` (weekly sales; single series, per-bar tooltip,
+screen-reader table), `SupplierProfile` (identity + ordered typed sections),
+`SupplierDirectory` (instant name search).
+
+Built later with the features that need them: tables, dialogs with undo.
 
 ## Rules (enforced where possible)
 
@@ -47,6 +52,13 @@ dialogs with undo.
 7. Speak like an experienced purchasing advisor. No "AI" labels, no jargon (SKU velocity, ROP, WOS, optimization), no sparkles or robots. *(test)*
 8. Prefer undo over "are you sure?" dialogs. Button labels say exactly what happens. *(test)*
 9. Show uncertainty honestly and ask one question instead of guessing.
-10. Primary navigation: Today, Orders, Programs, Suppliers. Account and settings live in the account menu.
+10. The left sidebar is the primary application navigation (approved change to the
+    original guide, which said "no feature sidebars"). Keep it visually quiet so
+    Today stays the obvious home. Avoid secondary or feature-specific sidebars that
+    make individual screens feel crowded. The current retailer and the person's own
+    account sit at the bottom of the sidebar, kept visually separate.
 11. Works on a phone: no sideways scrolling at 375px. *(E2E test)*
 12. If a screen feels like more work for the retailer, simplify it before adding anything.
+13. Example data is always marked "Example data", lives only in `src/demo/`, is
+    never written to the database, and appears only when `DEMO_PREVIEW` allows it
+    (on by default in development, off elsewhere). *(test: `demo-guard.test.ts`)*

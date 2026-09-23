@@ -23,11 +23,12 @@ test('a new retailer signs up, confirms their email and completes onboarding', a
   await completeBusiness(page, 'Summit Cycles E2E')
   await completeLocation(page, 'Main Street')
   await completeAgreements(page, 'declined')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Summit Cycles E2E is set up.')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Nothing needs your attention yet.')
+  await expect(page.getByRole('region', { name: 'Current retailer' })).toContainText('Summit Cycles E2E')
 
-  // Primary navigation: the four task destinations only.
-  const nav = page.getByRole('navigation', { name: 'Primary' })
-  await expect(nav.getByRole('link')).toHaveText(['Today', 'Orders', 'Programs', 'Suppliers'])
+  // Primary navigation: the sidebar, Today first.
+  const nav = page.getByRole('navigation', { name: 'Primary' }).first()
+  await expect(nav.getByRole('link').first()).toHaveText('Today')
   await nav.getByRole('link', { name: 'Orders' }).click()
   await expect(page).toHaveURL(/\/orders$/)
 

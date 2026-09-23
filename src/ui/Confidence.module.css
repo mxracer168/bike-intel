@@ -1,0 +1,5 @@
+.conf { display: inline-flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); white-space: nowrap; }
+.dots { display: inline-flex; gap: 3px; }
+.dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--line-strong); }
+.dots i.on { background: var(--ink-2); }
+.low .dots i.on { background: var(--con); }
