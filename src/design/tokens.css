@@ -1,0 +1,67 @@
+/* =============================================================================
+   Buying Intelligence Platform · design tokens v0.1
+   Source of truth: "Buying Platform Visual Direction" (approved artifact).
+   North star: Complexity behind the glass. Clarity in front of it.
+
+   Components use these variables only. No raw colors anywhere else
+   (enforced by tests/unit/design-tokens.test.ts).
+   ============================================================================= */
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --canvas: #FAF9F7;       --surface: #FFFFFF;
+  --subtle: #F3F1ED;       --sunken: #ECE9E3;
+  /* Ink */
+  --ink: #22211F;          --ink-2: #615E58;        --ink-3: #8C8880;
+  /* Lines */
+  --line: #E6E2DB;         --line-strong: #D3CEC5;
+  /* Accent: Harbor blue (primary button, links, Why?, focus) */
+  --accent: #3A6EA5;       --accent-hover: #2F5C8C;
+  --accent-soft: #E9F0F8;  --accent-muted: #A9C1DC;
+  --accent-pressed: #28507A;
+  --accent-underline: rgba(58,110,165,.35);
+  --on-accent: #FFFFFF;
+  /* Functional (text on soft background) */
+  --pos: #3A6E4E;          --pos-soft: #E8F1EA;
+  --con: #88590C;          --con-soft: #FAF0DC;
+  --risk: #A33C2A;         --risk-soft: #FAE9E5;
+  --risk-line: #E7C3BB;
+  /* Inverse surface (toasts) */
+  --inverse: #22211F;      --on-inverse: #F6F4F0;   --inverse-link: #B9D0EC;
+
+  /* Type: Hanken Grotesk 400/600 (500 for 13px labels) */
+  --font: var(--font-hanken), 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --fs-display: 40px;  --lh-display: 44px;   /* 600, -0.02em */
+  --fs-title: 28px;    --lh-title: 34px;     /* 600, -0.015em */
+  --fs-answer: 22px;   --lh-answer: 28px;    /* 600, -0.015em */
+  --fs-heading: 17px;  --lh-heading: 24px;   /* 600 */
+  --fs-lead: 17px;     --lh-lead: 26px;      /* 400 */
+  --fs-body: 15px;     --lh-body: 22px;      /* 400 */
+  --fs-label: 13px;    --lh-label: 18px;     /* 500, minimum size */
+
+  /* Spacing (4px base) */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px;
+  --sp-6: 32px; --sp-7: 48px; --sp-8: 64px; --sp-9: 96px;
+  --reading-width: 640px;
+  --page-width: 1120px;
+  --gutter: 20px;
+
+  /* Radius */
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px;
+
+  /* Elevation: borders first, shadows rarely */
+  --sh-1: 0 1px 2px rgba(34,33,31,.05);
+  --sh-2: 0 8px 24px -8px rgba(34,33,31,.12);
+  --sh-3: 0 28px 64px -16px rgba(34,33,31,.22);
+  --focus-ring: 0 0 0 3px rgba(58,110,165,.28);
+
+  /* Motion: quick, quiet, purposeful */
+  --ease: cubic-bezier(.2,.7,.2,1);
+  --t-fast: 120ms; --t-base: 180ms; --t-slow: 260ms;
+}
+
+@media (max-width: 560px) {
+  :root { --gutter: 16px; }
+}

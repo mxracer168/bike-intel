@@ -1,0 +1,4 @@
+.steps { display: flex; gap: var(--sp-2); align-items: center; font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); }
+.bar { display: flex; gap: var(--sp-1); }
+.bar i { width: 28px; height: 4px; border-radius: 2px; background: var(--sunken); }
+.bar i.done { background: var(--accent); }

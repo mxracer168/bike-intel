@@ -46,6 +46,30 @@ work against.
 | Audit | `change_log` via trigger on decision-bearing tables; append-only |
 | Deletion | Users never hard-delete history; server-side cascades exist for data-deletion requests |
 
+## Application (tenant bootstrap + skeleton)
+
+Next.js (App Router, TypeScript) at the repository root; Supabase Auth with
+email + password and email confirmation.
+
+- **Three database access paths.** Server code acting as the signed-in user
+  (`lib/supabase/server.ts`, RLS applies); a server-only admin client
+  (`lib/supabase/admin.ts`, marked `server-only`) used solely for
+  organization bootstrap; and no database access from browser code at all.
+- **Organization bootstrap** is one transaction in the database function
+  `bootstrap_retailer_organization`, callable only with the service role.
+  Duplicate submissions are prevented by a per-request key
+  (`organization.creation_request_id`), not by limiting users to one
+  organization. People may belong to several organizations.
+- **Active organization** is resolved in one place
+  (`domain/organization/active.ts`): the user's earliest active retailer
+  membership until an organization switcher exists.
+- **Onboarding is defined by missing facts** (`domain/onboarding/status.ts`):
+  organization, country, a location, platform terms, industry-intelligence
+  choice. Today's forms are one front end over domain commands; a
+  conversational onboarding can call the same commands.
+- **Consent** is two separate append-only rows in `organization_agreement`
+  (platform terms, industry intelligence) sharing a `presentation_id`.
+
 ## Tables (35)
 
 Visibility key: **G** global/shared · **R** retailer-private ·
@@ -54,7 +78,7 @@ Visibility key: **G** global/shared · **R** retailer-private ·
 
 | Area | Table | Vis. | Purpose |
 |---|---|---|---|
-| Orgs | `organization` | G (suppliers) / R (retailers) | Retailer or supplier company |
+| Orgs | `organization` | G (suppliers) / R (retailers) | Retailer or supplier company; `created_by` + `creation_request_id` for idempotent bootstrap |
 | | `membership` | R | Auth user ↔ organization, role |
 | | `organization_agreement` | R | Append-only consent record; platform terms and industry-intelligence contribution are separate types |
 | | `location` | R | Store / warehouse / office / ship-to; own country + timezone |
@@ -90,7 +114,8 @@ Visibility key: **G** global/shared · **R** retailer-private ·
 | | `purchase_order` | R | draft → approved → submitted, or discarded; POS-origin mirrored |
 | | `purchase_order_line` | R | Recommended / working / approved / submitted values; live validation |
 
-Plus the view `organization_agreement_current` (latest decision per agreement type).
+Plus the view `organization_agreement_current` (latest decision per agreement type)
+and the server-only function `bootstrap_retailer_organization`.
 
 ## Key mechanics
 
@@ -123,6 +148,17 @@ quantities are in ordering units with a frozen `units_per_order_unit`.
 Normalized rows keep their `import_batch_id` after raw data is purged.
 Recommendation lines copy the assumptions they used, so purging an
 observation never breaks an explanation.
+
+## Recorded for later (no schema change yet)
+
+- **Recommendation confidence** becomes structured data in an additive
+  migration when recommendations are built; decide then whether it lives on
+  the line only or on both recommendation and line.
+- **Adjustable buying assumptions** (e.g. weeks of cover): decide the levels
+  (organization, location, category/product, recommendation override,
+  context) when replenishment is built. No generic settings table.
+- **Order undo / recoverability**: decide when order submission and supplier
+  capabilities are understood. No delayed-send status yet.
 
 ## Not built yet (deliberately)
 

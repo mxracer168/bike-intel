@@ -71,6 +71,7 @@ grant execute on all functions in schema t to anon, authenticated, service_role;
 \set as_a 'set role authenticated; select set_config(''request.jwt.claims'', ''{"sub":"00000000-0000-0000-0000-0000000000a1"}'', false) \\g /dev/null'
 \set as_b 'set role authenticated; select set_config(''request.jwt.claims'', ''{"sub":"00000000-0000-0000-0000-0000000000b1"}'', false) \\g /dev/null'
 \set as_server 'reset role; select set_config(''request.jwt.claims'', '''', false) \\g /dev/null'
+\set as_service 'set role service_role; select set_config(''request.jwt.claims'', '''', false) \\g /dev/null'
 \set as_anon 'set role anon; select set_config(''request.jwt.claims'', '''', false) \\g /dev/null'
 
 -- ---------------------------------------------------------------------------
@@ -659,6 +660,63 @@ select t.expect_count('select * from storage.objects', 0, 'B cannot see A''s fil
 :as_anon
 select t.expect_error('select * from public.organization', 'signed-out visitors have no table access');
 select t.expect_error('select * from public.supplier_item', 'signed-out visitors cannot read the catalog');
+
+-- ===========================================================================
+-- 9b. Organization bootstrap (server-only, idempotent per request)
+-- ===========================================================================
+:as_a
+select t.expect_error($$select public.bootstrap_retailer_organization('00000000-0000-0000-0000-0000000000a1',
+                          gen_random_uuid(), 'Sneaky Co', 'US')$$,
+                      'bootstrap: signed-in users cannot call it');
+:as_anon
+select t.expect_error($$select public.bootstrap_retailer_organization('00000000-0000-0000-0000-0000000000a1',
+                          gen_random_uuid(), 'Sneaky Co', 'US')$$,
+                      'bootstrap: signed-out visitors cannot call it');
+:as_service
+select t.expect_equal(
+  (select public.bootstrap_retailer_organization('00000000-0000-0000-0000-0000000000a1',
+          'b5000000-0000-0000-0000-000000000001', '  Second Shop  ', 'CA', 'Second Shop Ltd', null)::text),
+  (select public.bootstrap_retailer_organization('00000000-0000-0000-0000-0000000000a1',
+          'b5000000-0000-0000-0000-000000000001', 'Second Shop', 'CA', null, null)::text),
+  'bootstrap: repeating the same request returns the same organization');
+select t.expect_count($$select * from public.organization where creation_request_id = 'b5000000-0000-0000-0000-000000000001'$$,
+                      1, 'bootstrap: duplicate submission creates no duplicate organization');
+select t.expect_equal(
+  (select name || ' | ' || kind || ' | ' || default_country || ' | ' || created_by::text from public.organization
+    where creation_request_id = 'b5000000-0000-0000-0000-000000000001'),
+  'Second Shop | retailer | CA | 00000000-0000-0000-0000-0000000000a1', 'bootstrap: organization fields recorded');
+select t.expect_count($$select * from public.membership m join public.organization o on o.id = m.organization_id
+                         where o.creation_request_id = 'b5000000-0000-0000-0000-000000000001'
+                           and m.user_id = '00000000-0000-0000-0000-0000000000a1' and m.role = 'owner'$$,
+                      1, 'bootstrap: creator becomes owner atomically');
+select t.expect_error($$select public.bootstrap_retailer_organization('00000000-0000-0000-0000-0000000000b1',
+                          'b5000000-0000-0000-0000-000000000001', 'Hijack', 'US')$$,
+                      'bootstrap: another user cannot reuse a request id');
+select t.expect_error($$select public.bootstrap_retailer_organization('00000000-0000-0000-0000-0000000000a1',
+                          gen_random_uuid(), '   ', 'US')$$,
+                      'bootstrap: blank name rejected');
+select t.expect_error($$select public.bootstrap_retailer_organization('99999999-0000-0000-0000-000000000009',
+                          gen_random_uuid(), 'Ghost', 'US')$$,
+                      'bootstrap: unknown user rejected');
+select t.expect_error($$select public.bootstrap_retailer_organization('00000000-0000-0000-0000-0000000000a1',
+                          gen_random_uuid(), 'Bad Country', 'XX1')$$,
+                      'bootstrap: invalid country rejected');
+:as_a
+select t.expect_count($$select * from public.membership where user_id = '00000000-0000-0000-0000-0000000000a1'
+                         and status = 'active'$$,
+                      2, 'bootstrap: one user can belong to more than one retailer');
+select t.expect_count($$select * from public.change_log where table_name = 'organization'
+                         and reason like 'retailer bootstrap by user%'$$,
+                      1, 'bootstrap: creation is audited with its reason');
+select t.expect_error($$update public.organization set created_by = null
+                        where creation_request_id = 'b5000000-0000-0000-0000-000000000001'$$,
+                      'bootstrap: members cannot alter provenance fields');
+select t.expect_affected($$update public.organization set website = 'https://second.example'
+                           where creation_request_id = 'b5000000-0000-0000-0000-000000000001'$$,
+                      1, 'bootstrap: owner can edit the profile');
+:as_b
+select t.expect_count($$select * from public.organization where creation_request_id = 'b5000000-0000-0000-0000-000000000001'$$,
+                      0, 'bootstrap: other retailers cannot see the new organization');
 
 -- ===========================================================================
 -- 10. Server-side integrity

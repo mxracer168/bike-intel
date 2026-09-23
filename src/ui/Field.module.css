@@ -1,0 +1,38 @@
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.label { font-size: 14px; font-weight: 500; line-height: 20px; color: var(--ink); }
+.optional { font-weight: 400; color: var(--ink-2); }
+.help { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+.error { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--risk); font-weight: 500; }
+
+.input {
+  width: 100%; min-height: 44px;
+  font-size: 15px; background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line-strong); border-radius: var(--r-md); padding: 11px 14px;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.input::placeholder { color: var(--ink-3); }
+.input:hover { border-color: var(--ink-3); }
+.input:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+.input[aria-invalid='true'] { border-color: var(--risk); }
+.select { appearance: none; padding-right: 40px; background-image: none; }
+.selectWrap { position: relative; }
+.selectWrap svg { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--ink-2); }
+
+.check { display: flex; gap: var(--sp-3); align-items: flex-start; font-size: 15px; line-height: 22px; cursor: pointer; }
+.check input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--accent); flex: none; cursor: pointer; }
+.check input:focus-visible { box-shadow: var(--focus-ring); }
+
+.choices { display: flex; flex-wrap: wrap; gap: var(--sp-2); border: 0; padding: 0; margin: 0; min-width: 0; }
+.choices legend { padding: 0; margin-bottom: var(--sp-2); }
+.choice { position: relative; }
+.choice input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.choice span {
+  display: inline-flex; align-items: center; min-height: 40px;
+  font-size: 14px; font-weight: 500; background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line-strong); border-radius: var(--r-md); padding: 9px 14px;
+  transition: background var(--t-fast), border-color var(--t-fast);
+}
+.choice:hover span { background: var(--subtle); }
+.choice input:checked + span { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.choice input:focus-visible + span { box-shadow: var(--focus-ring); }
+.choices .error { flex-basis: 100%; }

@@ -1,0 +1,13 @@
+.form { display: flex; flex-direction: column; gap: var(--sp-5); }
+.row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+.row3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: var(--sp-4); }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); }
+.aside { font-size: 14px; color: var(--ink-2); }
+.section { display: flex; flex-direction: column; gap: var(--sp-3); }
+.sectionTitle { font-size: var(--fs-heading); line-height: var(--lh-heading); }
+.sectionBody { color: var(--ink-2); max-width: 60ch; }
+.divider { border: 0; border-top: 1px solid var(--line); margin: 0; }
+@media (max-width: 560px) {
+  .row, .row3 { grid-template-columns: minmax(0, 1fr); }
+}
+.fieldError { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--risk); font-weight: 500; }

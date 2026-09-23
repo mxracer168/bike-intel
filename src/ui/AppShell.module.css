@@ -1,0 +1,55 @@
+.shell { min-height: 100dvh; display: flex; flex-direction: column; }
+.skip { position: absolute; left: var(--sp-4); top: -60px; z-index: 10; background: var(--surface); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm); }
+.skip:focus { top: var(--sp-2); }
+
+.bar {
+  background: var(--surface); border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: var(--sp-6);
+  min-height: 56px; padding: 0 var(--gutter);
+}
+.spacer { flex: 1; }
+
+.logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: var(--ink); text-decoration: none; white-space: nowrap; }
+.logoMark { width: 22px; height: 22px; border-radius: var(--r-sm); background: var(--accent); display: grid; place-items: center; }
+.logoMark::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--canvas); }
+
+.nav { display: flex; gap: var(--sp-1); }
+.navLink {
+  font-size: 14px; font-weight: 500; color: var(--ink-2); text-decoration: none;
+  padding: 7px 12px; border-radius: var(--r-sm); white-space: nowrap;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.navLink:hover { background: var(--subtle); color: var(--ink); }
+.navLink[aria-current='page'] { color: var(--accent); background: var(--accent-soft); }
+
+.account { position: relative; }
+.account summary {
+  list-style: none; cursor: pointer; display: flex; align-items: center; gap: var(--sp-2);
+  padding: 4px; border-radius: var(--r-md);
+}
+.account summary::-webkit-details-marker { display: none; }
+.account summary:hover { background: var(--subtle); }
+.avatar {
+  width: 30px; height: 30px; border-radius: 50%; background: var(--sunken);
+  display: grid; place-items: center; font-size: 12px; font-weight: 600; color: var(--ink-2);
+}
+.menu {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 240px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--sh-2);
+  padding: var(--sp-2); display: flex; flex-direction: column; gap: var(--sp-1);
+}
+.menuMeta { padding: var(--sp-2) var(--sp-3); display: flex; flex-direction: column; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: var(--sp-1); }
+.menuMeta b { font-size: 14px; }
+.menuMeta span { font-size: var(--fs-label); color: var(--ink-2); overflow-wrap: anywhere; }
+.menuItem {
+  width: 100%; text-align: left; background: none; border: 0; cursor: pointer;
+  font-size: 14px; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm); color: var(--ink);
+}
+.menuItem:hover { background: var(--subtle); }
+
+.main { flex: 1; }
+
+@media (max-width: 760px) {
+  .bar { flex-wrap: wrap; gap: 0 var(--sp-3); padding-top: var(--sp-2); }
+  .nav { order: 3; flex-basis: 100%; overflow-x: auto; padding: var(--sp-2) 0; margin: 0 calc(-1 * var(--sp-2)); }
+}

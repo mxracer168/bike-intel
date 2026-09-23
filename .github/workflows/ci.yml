@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, types, unit, database, build, public E2E
+    runs-on: ubuntu-latest
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+      # Placeholder values: this job never talks to a Supabase project.
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+      SUPABASE_SECRET_KEY: sb_secret_ci_leak_canary_do_not_ship
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - name: Database migrations + RLS tests (plain PostgreSQL)
+        run: npm run test:db
+      - run: npm run build
+      - name: Secret key never reaches browser bundles
+        run: npm run check:secrets
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --project=public
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-public
+          path: playwright-report/
+
+  e2e:
+    name: Full E2E on a local Supabase stack
+    runs-on: ubuntu-latest
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+      E2E_SUPABASE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start local Supabase (applies all migrations)
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,realtime
+      - name: Export local stack credentials
+        run: |
+          eval "$(supabase status -o env)"
+          case "$API_URL" in http://127.0.0.1:*|http://localhost:*) ;; *) echo "Not a local stack: $API_URL"; exit 1;; esac
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
+            echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${PUBLISHABLE_KEY:-$ANON_KEY}"
+            echo "SUPABASE_SECRET_KEY=${SECRET_KEY:-$SERVICE_ROLE_KEY}"
+            echo "E2E_MAILPIT_URL=${MAILPIT_URL:-${INBUCKET_URL:-http://127.0.0.1:54324}}"
+            echo "NEXT_PUBLIC_SITE_URL=http://localhost:3000"
+          } >> "$GITHUB_ENV"
+      - run: npm run build
+      - run: npm run check:secrets
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-full
+          path: playwright-report/
+      - if: always()
+        run: supabase stop --no-backup
