@@ -3,6 +3,7 @@
 import { Fragment, useId, useState, type ReactNode } from 'react'
 import { average, describeCover, describeWeeklyRate, formatMoney, plural } from '@/domain/language/plain'
 import { EvidenceChart } from '@/features/recommendations/EvidenceChart'
+import { InlineQuestion } from '@/features/intelligence/InlineQuestion'
 import { QuickAnswer } from '@/features/work/QuickAnswer'
 import { ConfidenceMark } from '@/ui/Confidence'
 import { Icon } from '@/ui/Icon'
@@ -121,6 +122,10 @@ export function OrderReview({ order, eyebrow, example = false }: { order: Propos
           {note && <span className={styles.note}> {note}.</span>}
         </p>
       </header>
+
+      {order.intelligenceQuestionId && (
+        <InlineQuestion questionId={order.intelligenceQuestionId} lead={order.intelligenceQuestionLead} />
+      )}
 
       <div className={styles.work}>
       <div className={styles.filter} role="group" aria-label="Show">

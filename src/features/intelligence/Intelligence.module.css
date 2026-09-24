@@ -1,0 +1,106 @@
+/* ---------- Entry point ---------- */
+.entry {
+  border: 0; background: none; cursor: pointer; color: var(--accent);
+  font-size: 14px; font-weight: 600; padding: 8px 10px; border-radius: var(--r-sm);
+}
+.entry:hover { background: var(--accent-soft); }
+.compact { padding: 8px 6px; }
+
+/* ---------- Panel ---------- */
+.panel {
+  margin: 0 0 0 auto; padding: 0; border: 0; height: 100dvh; max-height: 100dvh;
+  width: min(460px, 100vw); max-width: 100vw; background: var(--surface); color: var(--ink); box-shadow: var(--sh-3);
+}
+.panel[open] { display: flex; flex-direction: column; }
+.panel::backdrop { background: var(--scrim); }
+
+.head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-5) var(--sp-5) var(--sp-3); }
+.title { font-size: var(--fs-heading); line-height: var(--lh-heading); }
+.subtitle { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+.close {
+  width: 36px; height: 36px; display: grid; place-items: center; border-radius: var(--r-sm); flex: none;
+  border: 0; background: transparent; color: var(--ink-2); cursor: pointer; margin: -6px -8px 0 0;
+}
+.close:hover { background: var(--subtle); color: var(--ink); }
+
+.scroll { flex: 1; min-height: 0; overflow-y: auto; padding: var(--sp-2) var(--sp-5) var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-4); }
+.quiet { color: var(--ink-2); font-size: 14px; }
+.intro { color: var(--ink-2); max-width: 44ch; }
+
+/* ---------- Transcript: no bubbles ---------- */
+.transcript { list-style: none; display: flex; flex-direction: column; gap: var(--sp-3); }
+.transcript:empty { display: none; }
+.item { display: flex; flex-direction: column; gap: 2px; }
+.day {
+  display: flex; align-items: center; gap: var(--sp-2); padding-top: var(--sp-3);
+  font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2);
+}
+.who { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 600; color: var(--ink-2); padding-top: var(--sp-1); }
+.who span { font-weight: 400; color: var(--ink-2); }
+.text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.asked { font-weight: 600; }
+.answerEntry { display: flex; flex-direction: column; gap: 2px; padding-left: var(--sp-3); border-left: 2px solid var(--line); }
+.answerTo { font-size: 14px; color: var(--ink-2); }
+.checkInMark { font-size: var(--fs-label); color: var(--ink-2); text-align: center; padding: var(--sp-2) 0; }
+
+.attachment { display: flex; align-items: flex-start; gap: var(--sp-2); color: var(--ink-2); }
+.attachment svg { flex: none; margin-top: 3px; }
+.attachment > span { display: flex; flex-direction: column; min-width: 0; }
+.fileLink { color: var(--ink); font-weight: 600; overflow-wrap: anywhere; }
+.fileMeta { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+
+/* ---------- Questions ---------- */
+.block { display: flex; flex-direction: column; gap: 2px; }
+.questions { list-style: none; display: flex; flex-direction: column; gap: var(--sp-4); padding-top: var(--sp-3); }
+.question { display: flex; flex-direction: column; gap: var(--sp-2); }
+.prompt { font-weight: 600; }
+.choices { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+.choice {
+  min-height: 36px; padding: 6px 12px; font-size: 14px; font-weight: 500; color: var(--ink); cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-md);
+}
+.choice:hover { background: var(--subtle); }
+.choice:disabled { color: var(--ink-3); cursor: default; }
+.answered { font-size: 14px; color: var(--ink-2); }
+
+.linkButton { border: 0; background: none; padding: 6px 4px; font-size: 14px; color: var(--ink-2); cursor: pointer; }
+.linkButton:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Composer: one obvious place to write ---------- */
+.composerArea { padding: var(--sp-3) var(--sp-4) var(--sp-4); display: flex; flex-direction: column; gap: 6px; }
+.composer {
+  display: flex; align-items: flex-end; gap: 2px; padding: 6px;
+  background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-xl);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.composer:focus-within { border-color: var(--accent); box-shadow: var(--focus-ring); }
+.input {
+  flex: 1; min-width: 0; resize: none; border: 0; background: transparent; outline: none;
+  font-size: 16px; line-height: 24px; padding: 6px 6px; max-height: 168px;
+}
+.input::placeholder { color: var(--ink-3); }
+.input:focus-visible { box-shadow: none; }
+.iconButton, .send {
+  flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; border: 0; cursor: pointer;
+}
+.iconButton { background: transparent; color: var(--ink-2); }
+.iconButton:hover { background: var(--subtle); color: var(--ink); }
+.send { background: var(--accent); color: var(--on-accent); }
+.send:hover { background: var(--accent-hover); }
+.send:disabled { background: var(--sunken); color: var(--ink-3); cursor: default; }
+.iconButton:disabled { color: var(--ink-3); cursor: default; background: transparent; }
+.replying { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); padding: 0 var(--sp-2); }
+.replying span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hint { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); padding: 0 var(--sp-2); }
+.problem { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--risk); font-weight: 500; padding: 0 var(--sp-2); }
+
+/* ---------- Inline, elsewhere in the app ---------- */
+.inline { display: flex; flex-direction: column; gap: 2px; padding: var(--sp-3) 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.inline .questions { padding-top: 0; }
+.inlineLead { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+.compactQuestion { gap: var(--sp-2); }
+.inlineLink {
+  border: 0; background: none; padding: 0; font: inherit; color: var(--accent); cursor: pointer;
+  text-decoration: underline; text-decoration-color: var(--accent-underline); text-underline-offset: 3px;
+}
+.inlineLink:hover { text-decoration-color: var(--accent); }

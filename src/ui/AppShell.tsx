@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { productName } from '@/content/product'
-import { AddContextButton, ContextProvider } from '@/features/context/ContextPanel'
-import type { ContextQuestion, SyncStatus } from '@/features/context/types'
+import { AddContextButton, IntelligenceProvider } from '@/features/intelligence/IntelligencePanel'
+import type { IntelligenceQuestionView, SyncStatus } from '@/features/intelligence/types'
 import { MobileNav } from './MobileNav'
 import { SidebarPanel, type ShellAccount, type ShellRetailer } from './SidebarPanel'
 import styles from './AppShell.module.css'
@@ -18,8 +18,11 @@ export function Logo() {
   )
 }
 
-/** Optional shell extras: the context panel (off when null) and the quiet sync line. */
-export type ShellExtras = { context: { questions: ContextQuestion[]; example: boolean } | null; sync?: SyncStatus }
+/** Shell extras: the retailer's intelligence conversation and the quiet sync line. */
+export type ShellExtras = {
+  intelligence: { questions: IntelligenceQuestionView[]; exampleQuestions: IntelligenceQuestionView[] }
+  sync?: SyncStatus
+}
 
 /**
  * Signed-in application frame: a quiet left sidebar (primary navigation,
@@ -27,8 +30,8 @@ export type ShellExtras = { context: { questions: ContextQuestion[]; example: bo
  * "Add context" entry, and the page content. On phones the sidebar becomes a
  * panel opened from the top bar.
  */
-export function AppShell({ retailer, account, extras = { context: null }, children }: {
-  retailer: ShellRetailer; account: ShellAccount; extras?: ShellExtras; children: ReactNode
+export function AppShell({ retailer, account, extras, children }: {
+  retailer: ShellRetailer; account: ShellAccount; extras: ShellExtras; children: ReactNode
 }) {
   const panel = (inDrawer: boolean) => (
     <SidebarPanel retailer={retailer} account={account} sync={extras.sync} logo={<Logo />} inDrawer={inDrawer} />
@@ -45,18 +48,19 @@ export function AppShell({ retailer, account, extras = { context: null }, childr
         </span>
       </header>
       <div className={styles.main}>
-        {extras.context && (
-          <div className={styles.topBar}>
-            <AddContextButton />
-          </div>
-        )}
+        <div className={styles.topBar}>
+          <AddContextButton />
+        </div>
         <main id="main">{children}</main>
       </div>
     </div>
   )
-  return extras.context
-    ? <ContextProvider questions={extras.context.questions} example={extras.context.example}>{frame}</ContextProvider>
-    : frame
+  return (
+    <IntelligenceProvider retailerName={retailer.name} questions={extras.intelligence.questions}
+      exampleQuestions={extras.intelligence.exampleQuestions}>
+      {frame}
+    </IntelligenceProvider>
+  )
 }
 
 /** Minimal frame for sign-in and onboarding: logo only, no navigation. */

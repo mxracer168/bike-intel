@@ -4,19 +4,22 @@ export type ContextEntry = {
   id: string
   statement: string
   scopeType: string
-  lifespan: 'evergreen' | 'temporary'
+  lifespan: 'evergreen' | 'seasonal' | 'temporary'
   source: 'retailer_stated' | 'system_inferred' | 'imported'
   category: string | null
   confidence: number | null
   expiresAt: string | null
   confirmedAt: string | null
+  reviewAt: string | null
+  /** Learned from the conversation (a message or an attached file). */
+  fromConversation: boolean
 }
 
 /** Active things we believe about the business (RLS applies). */
 export async function listActiveContext(db: Db, organizationId: string): Promise<ContextEntry[]> {
   const { data, error } = await db
     .from('context_item')
-    .select('id, statement, scope_type, lifespan, source_type, category, confidence, expires_at, retailer_confirmed_at')
+    .select('id, statement, scope_type, lifespan, source_type, category, confidence, expires_at, retailer_confirmed_at, review_at, source_message_id, source_document_id')
     .eq('organization_id', organizationId)
     .eq('status', 'active')
     .order('created_at', { ascending: false })
@@ -31,5 +34,7 @@ export async function listActiveContext(db: Db, organizationId: string): Promise
     confidence: c.confidence,
     expiresAt: c.expires_at,
     confirmedAt: c.retailer_confirmed_at,
+    reviewAt: c.review_at,
+    fromConversation: Boolean(c.source_message_id || c.source_document_id),
   }))
 }

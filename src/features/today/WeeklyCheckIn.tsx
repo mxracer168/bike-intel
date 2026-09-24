@@ -1,19 +1,31 @@
 'use client'
 
 import { useState } from 'react'
-import { useOpenContext } from '@/features/context/ContextPanel'
+import { useIntelligence } from '@/features/intelligence/IntelligencePanel'
+import { topQuestions } from '@/features/intelligence/types'
 import styles from './Today.module.css'
 
-/** One line, one action, easy to skip. Only shown when the context panel exists. */
+const words = ['', 'one thing', 'two things', 'three things']
+
+/**
+ * The weekly check-in: a way back into the same ongoing conversation,
+ * drawing on the same open questions. One line, one action, easy to skip.
+ */
 export function WeeklyCheckIn() {
-  const open = useOpenContext()
+  const api = useIntelligence()
   const [dismissed, setDismissed] = useState(false)
-  if (!open || dismissed) return null
+  if (!api || dismissed) return null
+  const count = topQuestions(api.questions).length
+  const line = count === 0
+    ? 'Anything worth updating this week?'
+    : `${count === 1 ? 'There’s' : 'There are'} ${words[count]} we’d like to check with you this week.`
   return (
     <aside className={styles.checkIn} aria-label="Weekly check-in">
-      <p>Anything worth updating this week?</p>
+      <p>{line}</p>
       <span className={styles.checkInActions}>
-        <button type="button" className={styles.checkInPrimary} aria-haspopup="dialog" onClick={open}>Add context</button>
+        <button type="button" className={styles.checkInPrimary} aria-haspopup="dialog" onClick={() => api.open()}>
+          {count === 0 ? 'Add context' : 'Take a look'}
+        </button>
         <button type="button" className={styles.checkInQuiet} onClick={() => setDismissed(true)}>Not now</button>
       </span>
     </aside>

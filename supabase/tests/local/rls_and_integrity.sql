@@ -719,6 +719,108 @@ select t.expect_count($$select * from public.organization where creation_request
                       0, 'bootstrap: other retailers cannot see the new organization');
 
 -- ===========================================================================
+-- 9c. Intelligence conversation: history, questions, attachments, provenance
+-- ===========================================================================
+:as_server
+insert into public.intelligence_question (id, organization_id, prompt, choices, reason, priority) values
+  ('c1000000-0000-0000-0000-0000000000a1', '10000000-0000-0000-0000-0000000000a1',
+   'Will the new Cedar Ridge trails open before spring?', '["Yes, this spring", "Not sure yet", "No"]',
+   'Changes how much trail gear we suggest for early spring.', 80),
+  ('c1000000-0000-0000-0000-0000000000a2', '10000000-0000-0000-0000-0000000000a1',
+   'Are you running a winter service special?', '["Yes", "No"]', null, 40),
+  ('c1000000-0000-0000-0000-0000000000b1', '10000000-0000-0000-0000-0000000000b1',
+   'B question', '["Yes", "No"]', null, 50);
+insert into public.document (id, organization_id, storage_path, file_name, document_type, uploaded_by) values
+  ('d1000000-0000-0000-0000-0000000000a1', '10000000-0000-0000-0000-0000000000a1',
+   '10000000-0000-0000-0000-0000000000a1/intelligence/d1/plan.pdf', 'plan.pdf', 'conversation_attachment',
+   '00000000-0000-0000-0000-0000000000a1'),
+  ('d1000000-0000-0000-0000-0000000000b1', '10000000-0000-0000-0000-0000000000b1',
+   '10000000-0000-0000-0000-0000000000b1/intelligence/d1/secret.pdf', 'secret.pdf', 'conversation_attachment',
+   '00000000-0000-0000-0000-0000000000b1');
+select t.expect_error($$insert into public.document (organization_id, storage_path, file_name, uploaded_by)
+                        values ('10000000-0000-0000-0000-0000000000a1', '10000000-0000-0000-0000-0000000000b1/x.pdf',
+                                'x.pdf', '00000000-0000-0000-0000-0000000000a1')$$,
+                      'a document row cannot point into another retailer''s folder');
+
+:as_a
+insert into public.intelligence_message (organization_id, author_type, author_user_id, kind, body, surface)
+values ('10000000-0000-0000-0000-0000000000a1', 'retailer', '00000000-0000-0000-0000-0000000000a1', 'text',
+        'We are closed the first week of January.', 'panel');
+insert into public.intelligence_message (organization_id, author_type, author_user_id, kind, document_id, surface)
+values ('10000000-0000-0000-0000-0000000000a1', 'retailer', '00000000-0000-0000-0000-0000000000a1', 'attachment',
+        'd1000000-0000-0000-0000-0000000000a1', 'panel');
+select t.expect_error($$set constraints all immediate;
+                        insert into public.intelligence_message (organization_id, author_type, author_user_id, kind, document_id)
+                        values ('10000000-0000-0000-0000-0000000000a1', 'retailer', '00000000-0000-0000-0000-0000000000a1',
+                                'attachment', 'd1000000-0000-0000-0000-0000000000b1')$$,
+                      'A cannot attach B''s document to its conversation');
+select t.expect_error($$insert into public.intelligence_message (organization_id, author_type, author_user_id, kind, body)
+                        values ('10000000-0000-0000-0000-0000000000b1', 'retailer', '00000000-0000-0000-0000-0000000000a1',
+                                'text', 'hello')$$,
+                      'A cannot write into B''s conversation');
+select t.expect_error($$insert into public.intelligence_message (organization_id, author_type, author_user_id, kind, body)
+                        values ('10000000-0000-0000-0000-0000000000a1', 'system', null, 'text', 'pretend system')$$,
+                      'members cannot write system messages');
+select t.expect_error($$insert into public.intelligence_message (organization_id, author_type, author_user_id, kind, body)
+                        values ('10000000-0000-0000-0000-0000000000a1', 'retailer', '00000000-0000-0000-0000-0000000000b1',
+                                'text', 'as someone else')$$,
+                      'members speak only as themselves');
+select t.expect_affected($$update public.intelligence_message set body = 'rewritten'$$, 0, 'members cannot rewrite the conversation');
+select t.expect_affected($$delete from public.intelligence_message$$, 0, 'members cannot delete the conversation');
+select t.expect_error($$insert into public.intelligence_question (organization_id, prompt)
+                        values ('10000000-0000-0000-0000-0000000000a1', 'self-asked')$$,
+                      'questions are created server-side only');
+select t.expect_count('select * from public.intelligence_question', 2, 'A sees only its questions');
+
+select t.expect_error($$select public.answer_intelligence_question('c1000000-0000-0000-0000-0000000000a1', 'Maybe', null)$$,
+                      'answers must be one of the offered choices');
+select t.expect_error($$select public.answer_intelligence_question('c1000000-0000-0000-0000-0000000000b1', 'Yes', null)$$,
+                      'A cannot answer B''s question');
+select public.answer_intelligence_question('c1000000-0000-0000-0000-0000000000a1', 'Not sure yet',
+                                           'Depends on the county vote in March.', 'order') \g /dev/null
+select t.expect_equal((select status || '/' || (answer_message_id is not null)::text
+                         from public.intelligence_question where id = 'c1000000-0000-0000-0000-0000000000a1'),
+                      'answered/true', 'answering resolves the one question and links the answer');
+select t.expect_error($$select public.answer_intelligence_question('c1000000-0000-0000-0000-0000000000a1', 'No', null)$$,
+                      'an answered question is not asked again');
+select t.expect_error($$update public.intelligence_question set prompt = 'changed'
+                        where id = 'c1000000-0000-0000-0000-0000000000a2'$$,
+                      'members cannot rewrite a question');
+select t.expect_error($$update public.intelligence_question set status = 'withdrawn'
+                        where id = 'c1000000-0000-0000-0000-0000000000a2'$$,
+                      'only the system retires a question');
+select t.expect_affected($$update public.intelligence_question set status = 'deferred'
+                           where id = 'c1000000-0000-0000-0000-0000000000a2'$$,
+                      1, 'a question can be deferred');
+select t.expect_count($$select * from public.intelligence_message where kind = 'answer'
+                         and question_id = 'c1000000-0000-0000-0000-0000000000a1'$$,
+                      1, 'the answer is kept in the conversation');
+select t.expect_count($$select * from public.change_log where table_name = 'intelligence_question'$$,
+                      4, 'questions are audited: two created, one answered, one deferred');
+
+-- Structured context stays separate and points back at its source.
+insert into public.context_item (organization_id, scope_type, lifespan, statement, source_type, created_by,
+                                 source_message_id, review_at)
+select '10000000-0000-0000-0000-0000000000a1', 'organization', 'seasonal', 'Closed the first week of January.',
+       'retailer_stated', '00000000-0000-0000-0000-0000000000a1', m.id, now() + interval '90 days'
+  from public.intelligence_message m where m.kind = 'text' limit 1;
+select t.expect_error($$set constraints all immediate;
+                        insert into public.context_item (organization_id, scope_type, lifespan, statement, source_type,
+                                                         source_document_id)
+                        values ('10000000-0000-0000-0000-0000000000a1', 'organization', 'evergreen', 'x', 'retailer_stated',
+                                'd1000000-0000-0000-0000-0000000000b1')$$,
+                      'context cannot cite another retailer''s file');
+select t.expect_error($$insert into public.context_item (organization_id, scope_type, lifespan, statement, source_type)
+                        values ('10000000-0000-0000-0000-0000000000a1', 'product', 'evergreen', 'x', 'retailer_stated')$$,
+                      'product-scoped context needs a product');
+
+:as_b
+select t.expect_count('select * from public.intelligence_message', 0, 'B cannot read A''s conversation');
+select t.expect_count($$select * from public.document where id = 'd1000000-0000-0000-0000-0000000000a1'$$,
+                      0, 'B cannot see A''s attachments');
+select t.expect_count('select * from public.intelligence_question', 1, 'B sees only its own question');
+
+-- ===========================================================================
 -- 10. Server-side integrity
 -- ===========================================================================
 :as_server

@@ -193,6 +193,11 @@ export type Database = {
           created_by: string | null
           created_at: string
           updated_at: string
+          category_id: string | null
+          product_id: string | null
+          review_at: string | null
+          source_message_id: string | null
+          source_document_id: string | null
         }
         Insert: {
           id?: string
@@ -218,6 +223,11 @@ export type Database = {
           created_by?: string | null
           created_at?: string
           updated_at?: string
+          category_id?: string | null
+          product_id?: string | null
+          review_at?: string | null
+          source_message_id?: string | null
+          source_document_id?: string | null
         }
         Update: {
           id?: string
@@ -243,6 +253,11 @@ export type Database = {
           created_by?: string | null
           created_at?: string
           updated_at?: string
+          category_id?: string | null
+          product_id?: string | null
+          review_at?: string | null
+          source_message_id?: string | null
+          source_document_id?: string | null
         }
         Relationships: []
       }
@@ -372,6 +387,114 @@ export type Database = {
           raw_purged_at?: string | null
           created_by?: string | null
           created_at?: string
+        }
+        Relationships: []
+      }
+      intelligence_message: {
+        Row: {
+          id: string
+          organization_id: string
+          author_type: string
+          author_user_id: string | null
+          kind: string
+          body: string | null
+          question_id: string | null
+          answer_choice: string | null
+          document_id: string | null
+          surface: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          author_type: string
+          author_user_id?: string | null
+          kind: string
+          body?: string | null
+          question_id?: string | null
+          answer_choice?: string | null
+          document_id?: string | null
+          surface?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          author_type?: string
+          author_user_id?: string | null
+          kind?: string
+          body?: string | null
+          question_id?: string | null
+          answer_choice?: string | null
+          document_id?: string | null
+          surface?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      intelligence_question: {
+        Row: {
+          id: string
+          organization_id: string
+          prompt: string
+          choices: Json
+          reason: string | null
+          priority: number
+          scope_type: string
+          location_id: string | null
+          supplier_relationship_id: string | null
+          category_id: string | null
+          product_id: string | null
+          purchase_order_id: string | null
+          status: string
+          deferred_until: string | null
+          answered_at: string | null
+          answered_by: string | null
+          answer_message_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          prompt: string
+          choices?: Json
+          reason?: string | null
+          priority?: number
+          scope_type?: string
+          location_id?: string | null
+          supplier_relationship_id?: string | null
+          category_id?: string | null
+          product_id?: string | null
+          purchase_order_id?: string | null
+          status?: string
+          deferred_until?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          answer_message_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          prompt?: string
+          choices?: Json
+          reason?: string | null
+          priority?: number
+          scope_type?: string
+          location_id?: string | null
+          supplier_relationship_id?: string | null
+          category_id?: string | null
+          product_id?: string | null
+          purchase_order_id?: string | null
+          status?: string
+          deferred_until?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          answer_message_id?: string | null
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2004,6 +2127,15 @@ export type Database = {
       }
     }
     Functions: {
+      answer_intelligence_question: {
+        Args: {
+          p_question_id: string
+          p_choice: string | null
+          p_body: string | null
+          p_surface?: string
+        }
+        Returns: string
+      }
       bootstrap_retailer_organization: {
         Args: {
           p_user_id: string

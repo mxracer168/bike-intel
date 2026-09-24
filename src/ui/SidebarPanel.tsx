@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { isCurrent, navigation } from '@/content/navigation'
-import type { SyncStatus } from '@/features/context/types'
+import type { SyncStatus } from '@/features/intelligence/types'
 import { signOutAction } from '@/server/actions/auth'
 import styles from './AppShell.module.css'
 

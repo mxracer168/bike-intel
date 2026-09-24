@@ -8,6 +8,12 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Conversation attachments are capped at 20 MB (domain/intelligence/attachments.ts);
+  // leave room for multipart overhead.
+  experimental: {
+    serverActions: { bodySizeLimit: '21mb' },
+    proxyClientMaxBodySize: '21mb',
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }]
   },

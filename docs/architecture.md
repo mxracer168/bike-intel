@@ -79,15 +79,26 @@ email + password and email confirmation.
   describe what screens render. Today is a health snapshot plus one ranked
   list of `WorkItemView`s; an order becomes one item
   (`features/work/fromOrder.ts`) and line evidence stays on the order.
-- **Context gathering and sync status** are shell features: an "Add context"
-  side panel (a note plus at most three questions) and one sync line. Both
-  are example-only for now and save nothing; `context_item` will be their home. Real data is mapped
+- **The intelligence conversation is the interface; `context_item` is the
+  memory.** Each retailer has one ongoing, private conversation
+  (`intelligence_message`, append-only), opened from "Add context" anywhere in
+  the app. It holds notes, answers, attachments and check-in markers and is
+  never rewritten. Questions live once in `intelligence_question`
+  (open / answered / deferred / withdrawn), so answering in the panel, the
+  weekly check-in or inline on an order resolves the same row
+  (`answer_intelligence_question`, run as the user). Attachments are ordinary
+  `document` rows whose bytes sit in `documents/<organization_id>/intelligence/`;
+  nothing reads them yet, and the conversation says so. Interpreting the
+  conversation into `context_item` (with `source_message_id` /
+  `source_document_id`) comes later; nothing is inferred today. Voice input
+  relies on the device's own dictation for now.
+- **Sync status** is one quiet line in the sidebar (example-only for now). Real data is mapped
   into them; they carry no schema commitments. A supplier page is an identity
   plus an ordered list of typed sections, so it can be sparse or rich.
 - **Example data** lives in `src/demo/`, gated by `DEMO_PREVIEW` (default on
   only under `next dev`), always visibly marked, never written to the database.
 
-## Tables (35)
+## Tables (37)
 
 Visibility key: **G** global/shared · **R** retailer-private ·
 **Rel** relationship-specific (retailer side only in V1) · **O** owner-scoped
@@ -125,14 +136,17 @@ Visibility key: **G** global/shared · **R** retailer-private ·
 | | `program_rule` | follows program | Tiers, thresholds, benefits, original wording |
 | | `program_eligibility` | follows program | What qualifies (or unresolved source lines) |
 | | `program_link` | R | Private program → official program; never merged |
-| Context | `context_item` | R | Scoped, evergreen/temporary, stated/inferred beliefs |
+| Context | `context_item` | R | Scoped (incl. category/product), evergreen/seasonal/temporary, stated/inferred beliefs, review date, source message/document |
+| Intelligence | `intelligence_message` | R | The retailer's one ongoing conversation; append-only |
+| | `intelligence_question` | R | Questions worth asking, with lifecycle; answered once wherever shown |
 | Decisions | `recommendation` | R | Immutable output; status open / acted_on / dismissed / expired / unaddressed; `actionable_until` |
 | | `recommendation_line` | R | Quantity, forecast, coverage, frozen assumptions, explanation |
 | | `purchase_order` | R | draft → approved → submitted, or discarded; POS-origin mirrored |
 | | `purchase_order_line` | R | Recommended / working / approved / submitted values; live validation |
 
-Plus the view `organization_agreement_current` (latest decision per agreement type)
-and the server-only function `bootstrap_retailer_organization`.
+Plus the view `organization_agreement_current` (latest decision per agreement type),
+the server-only function `bootstrap_retailer_organization` and
+`answer_intelligence_question` (runs as the user).
 
 ## Key mechanics
 

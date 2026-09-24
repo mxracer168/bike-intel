@@ -41,6 +41,10 @@ export type ProposedOrderView = {
   /** Plain-words cutoff for this order, e.g. "Thursday". */
   orderBy?: string
   lines: OrderLineView[]
+  /** A conversation question whose answer could change this order, shown inline. */
+  intelligenceQuestionId?: string
+  /** Why that question matters here, in a few words. */
+  intelligenceQuestionLead?: string
 }
 
 /** One row on Today / Orders: the whole order at a glance, no line detail. */

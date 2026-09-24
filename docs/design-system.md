@@ -36,9 +36,11 @@ tabs for a page's sub-pages), `ExampleMarker` / `ExampleRegion`.
 
 Feature components: `OrderList` (proposed orders at supplier level, one
 comparable row each), `HealthSnapshot` (Today's few figures), `WeeklyCheckIn` (one optional line
-that opens the context panel), `ContextProvider` / `AddContextButton` (the
-"Add context" side panel: one short note that works with device dictation
-and at most three questions, none when there's nothing worth asking),
+back into the conversation), `IntelligenceProvider` / `AddContextButton` (the
+retailer's ongoing conversation in a side panel: a quiet transcript with no
+bubbles, at most three questions with quick answers plus "Tell us more", and
+one composer at the bottom with attach, dictate and send), `InlineQuestion`
+(the same question shown where it matters; answered once),
 `OrderReview` (one supplier's order as a dense table;
 each line expands to answer → reason, evidence only on request), `WorkList`
 (Today's ranked priorities: orders, deadlines, stock, sync problems, one row shape), `EvidenceChart`

@@ -24,7 +24,7 @@ export default defineConfig({
   },
   projects: [
     { name: 'public', testMatch: /public\.spec\.ts/, use: { ...devices['Desktop Chrome'] } },
-    ...(full ? [{ name: 'full', testMatch: /(onboarding|isolation)\.spec\.ts/, use: { ...devices['Desktop Chrome'] } }] : []),
+    ...(full ? [{ name: 'full', testMatch: /(onboarding|isolation|intelligence)\.spec\.ts/, use: { ...devices['Desktop Chrome'] } }] : []),
   ],
   webServer: {
     command: `npm run start -- -p ${port}`,

@@ -1,19 +1,24 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_QUESTIONS, topQuestions, type ContextQuestion } from '@/features/context/types'
 import type { OrderSummary } from '@/features/orders/types'
+import { MAX_QUESTIONS, topQuestions, type IntelligenceQuestionView } from '@/features/intelligence/types'
 import { orderPriority } from '@/features/work/fromOrder'
 
-const q = (id: string): ContextQuestion => ({ id, prompt: id, choices: ['Yes', 'No'] })
+const q = (id: string, status: IntelligenceQuestionView['status'] = 'open'): IntelligenceQuestionView =>
+  ({ id, prompt: id, choices: ['Yes', 'No'], status })
 
-describe('context questions', () => {
-  it('never shows more than three, keeping the given order', () => {
+describe('intelligence questions', () => {
+  it('never asks more than three, keeping the given order', () => {
     expect(MAX_QUESTIONS).toBe(3)
-    expect(topQuestions(['a', 'b', 'c', 'd', 'e'].map(q)).map((x) => x.id)).toEqual(['a', 'b', 'c'])
+    expect(topQuestions(['a', 'b', 'c', 'd', 'e'].map((id) => q(id))).map((x) => x.id)).toEqual(['a', 'b', 'c'])
   })
 
-  it('shows none when there are none, and never pads', () => {
+  it('asks none when there are none, and never pads', () => {
     expect(topQuestions([])).toEqual([])
     expect(topQuestions([q('a')])).toHaveLength(1)
+  })
+
+  it('does not ask answered or retired questions again; deferred ones roll over', () => {
+    expect(topQuestions([q('a', 'answered'), q('b', 'withdrawn'), q('c', 'deferred'), q('d')]).map((x) => x.id)).toEqual(['c', 'd'])
   })
 })
 

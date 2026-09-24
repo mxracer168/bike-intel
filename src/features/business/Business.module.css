@@ -10,14 +10,12 @@
 
 .knowHead { display: flex; flex-direction: column; gap: 4px; }
 .knowTitle { font-size: var(--fs-heading); line-height: var(--lh-heading); }
-.knowLead { font-size: 14px; color: var(--ink-2); max-width: 64ch; }
-.groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-6); }
 .group { display: flex; flex-direction: column; gap: var(--sp-2); }
-.groupTitle { font-size: 14px; font-weight: 600; }
 .beliefs { list-style: none; display: flex; flex-direction: column; border-top: 1px solid var(--line); }
 .belief { display: flex; flex-direction: column; gap: 2px; padding: var(--sp-3) 0; border-bottom: 1px solid var(--line); }
 .beliefText { font-size: 15px; }
-.beliefMeta { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: var(--fs-label); color: var(--ink-2); }
+.beliefMeta { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+.inferred { font-style: normal; color: var(--con); }
 
 .locations { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-5) var(--sp-6); }
 .location { border-top: 1px solid var(--line); padding-top: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); }
@@ -27,6 +25,6 @@
 .small { font-size: 14px; color: var(--ink-2); }
 
 @media (max-width: 860px) {
-  .grid, .groups, .locations { grid-template-columns: minmax(0, 1fr); }
+  .grid, .locations { grid-template-columns: minmax(0, 1fr); }
   .facts div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
 }

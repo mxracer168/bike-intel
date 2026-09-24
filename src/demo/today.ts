@@ -2,7 +2,7 @@
  * EXAMPLE DATA for Today, the context panel and the sync line. Never written
  * to the database. Suppliers and places are fictional.
  */
-import type { ContextQuestion, SyncStatus } from '@/features/context/types'
+import type { IntelligenceQuestionView, SyncStatus } from '@/features/intelligence/types'
 import { summarizeOrder } from '@/features/orders/summarize'
 import type { HealthMetric } from '@/features/today/types'
 import { orderPriority } from '@/features/work/fromOrder'
@@ -42,11 +42,16 @@ export const demoPriorities: WorkItemView[] = [
   },
 ]
 
-/** Already ranked. The panel shows at most three. */
-export const demoContextQuestions: ContextQuestion[] = [
-  { id: 'cedar-ridge', prompt: 'Will the new Cedar Ridge trails open before spring?', choices: ['Yes, this spring', 'Not sure yet', 'No'] },
-  { id: 'winter-service', prompt: 'Are you running a winter service special this year?', choices: ['Yes', 'No', 'Not decided'] },
-  { id: 'tubes-26', prompt: 'Do you want to keep stocking 26-inch tubes?', choices: ['Yes', 'Just a few', 'No'] },
+/**
+ * Already ranked; the conversation asks at most three at a time. Example
+ * questions are answered locally and never saved.
+ */
+export const DEMO_CEDAR_RIDGE = 'demo-cedar-ridge'
+
+export const demoIntelligenceQuestions: IntelligenceQuestionView[] = [
+  { id: DEMO_CEDAR_RIDGE, prompt: 'Will the new Cedar Ridge trails open before spring?', choices: ['Yes, this spring', 'Not sure yet', 'No'], status: 'open', example: true },
+  { id: 'demo-winter-service', prompt: 'Are you running a winter service special this year?', choices: ['Yes', 'No', 'Not decided'], status: 'open', example: true },
+  { id: 'demo-tubes-26', prompt: 'Do you want to keep stocking 26-inch tubes?', choices: ['Yes', 'Just a few', 'No'], status: 'open', example: true },
 ]
 
 export const demoSync: SyncStatus = { state: 'ok', label: 'All synced · 7:40 am' }
