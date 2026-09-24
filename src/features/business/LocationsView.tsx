@@ -26,7 +26,7 @@ export function LocationsView({ locations }: { locations: LocationSummary[] }) {
               {countryName(l.country)}
             </address>
             <p className={styles.small}>{timeZoneLabel(l.timezone)}</p>
-            {roles.length > 0 && <div className={styles.roles}>{roles.map((r) => <Tag key={r}>{r}</Tag>)}</div>}
+            {roles.length > 0 && <p className={styles.small}>{roles.join(' · ')}</p>}
           </li>
         )
       })}

@@ -5,7 +5,7 @@ import { useDeferredValue, useId, useState } from 'react'
 import { ExampleMarker } from '@/ui/Example'
 import { TextInput } from '@/ui/Field'
 import { Icon } from '@/ui/Icon'
-import { kindLabel, monogram, type DirectoryEntry } from './presentation'
+import { kindLabel, type DirectoryEntry } from './presentation'
 import { RelationshipTag } from './RelationshipTag'
 import styles from './Suppliers.module.css'
 
@@ -21,6 +21,8 @@ export function SupplierDirectory({ entries }: { entries: DirectoryEntry[] }) {
   const inputId = useId()
   const q = normalize(deferred)
   const visible = q ? entries.filter((e) => normalize(e.name).includes(q)) : entries
+  // When every entry is an example, say so once instead of on every row.
+  const allExamples = entries.length > 0 && entries.every((e) => e.example)
   const summary = q
     ? visible.length === 0
       ? `No suppliers match “${deferred.trim()}”.`
@@ -35,19 +37,18 @@ export function SupplierDirectory({ entries }: { entries: DirectoryEntry[] }) {
         <TextInput id={inputId} type="search" placeholder="Search suppliers by name" value={query}
           onChange={(e) => setQuery(e.target.value)} autoComplete="off" spellCheck={false} />
       </div>
-      <p className={styles.count} aria-live="polite">{summary}</p>
+      <p className={styles.count}><span aria-live="polite">{summary}</span>{allExamples && <ExampleMarker />}</p>
       {visible.length > 0 && (
         <ul className={styles.list}>
           {visible.map((e) => (
             <li key={e.id} className={styles.row}>
               <Link href={`/suppliers/${e.id}`} className={styles.rowLink}>
-                <span className={styles.monogram} aria-hidden="true">{monogram(e.name)}</span>
                 <span className={styles.rowText}>
                   <span className={styles.rowName}>{e.name}</span>
                   {e.tagline && <span className={styles.rowTagline}>{e.tagline}</span>}
                 </span>
                 <span className={styles.rowMeta}>
-                  {e.example && <ExampleMarker quiet />}
+                  {e.example && !allExamples && <ExampleMarker quiet />}
                   <RelationshipTag relationship={e.relationship} />
                   {e.kind && <span className={styles.rowTagline}>{kindLabel[e.kind]}</span>}
                   <span className={styles.chevron}><Icon name="chevron-right" /></span>

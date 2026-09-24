@@ -1,0 +1,3 @@
+.section { display: flex; flex-direction: column; gap: 4px; }
+.heading { font-size: var(--fs-heading); line-height: var(--lh-heading); }
+.body { color: var(--ink-2); max-width: 60ch; }

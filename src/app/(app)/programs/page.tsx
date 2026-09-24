@@ -7,10 +7,8 @@ export const metadata: Metadata = { title: 'Programs' }
 export default function ProgramsPage() {
   return (
     <Placeholder
-      eyebrow='Programs'
-      title='No programs yet.'
-      lead='Booking, preseason and promotional programs from your suppliers.'
-      body='You’ll be able to upload a program you’ve received, or open one a supplier has published, and see what it means for your business before you commit.'
+      title="No programs yet."
+      body="Upload a booking or preseason program you’ve received, or open one a supplier has published, and see what it means for your store before you commit."
     />
   )
 }

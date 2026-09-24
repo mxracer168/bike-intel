@@ -31,15 +31,26 @@ additions come from the artifact's own component styles: `--accent-pressed`,
 `Stack`, `Card`, `Notice`, `Tag`, `FormErrorSummary`, `Toast`, `EmptyState`,
 `Skeleton`, `Icon`, `AppShell` (left sidebar: primary navigation, current
 retailer, personal account; phone panel via native `<dialog>`), `FocusedShell`,
-`ConfidenceMark`, `QuantityStepper`, `ChoiceChips`, `ExampleMarker` /
-`ExampleRegion`.
+`ConfidenceMark`, `QuantityStepper`, `ChoiceChips`, `Tabs` (quiet underline
+tabs for a page's sub-pages), `ExampleMarker` / `ExampleRegion`.
 
-Feature components: `RecommendationCard` (answer → reason → evidence with
-"Why?"), `EvidenceChart` (weekly sales; single series, per-bar tooltip,
-screen-reader table), `SupplierProfile` (identity + ordered typed sections),
-`SupplierDirectory` (instant name search).
+Feature components: `OrderList` (proposed orders at supplier level, one
+comparable row each), `OrderReview` (one supplier's order as a dense table;
+each line expands to answer → reason, evidence only on request), `WorkList`
+(every other kind of work on Today, one generic row shape), `EvidenceChart`
+(weekly sales; single series, per-bar tooltip, screen-reader table),
+`SupplierProfile` (identity + ordered typed sections), `SupplierDirectory`
+(instant name search).
 
-Built later with the features that need them: tables, dialogs with undo.
+Built later with the features that need them: dialogs with undo.
+
+## Three levels of information
+
+| Level | Screen | Question it answers | Shows |
+|---|---|---|---|
+| 1 | Today | What deserves my attention? | Orders at supplier level (lines, confident, to review, questions, estimate, cutoff, free-freight gap) and other work. No line evidence. |
+| 2 | Proposed order | What should I buy from this supplier? | Every line: product, on hand, on order, quantity, cost, what needs a look. |
+| 3 | Line (expanded in place) | Why this quantity? | "Order 6", one reason; evidence (sales, stock, season, supplier stock, confidence, assumptions, alternatives) only when asked. |
 
 ## Rules (enforced where possible)
 
@@ -53,12 +64,15 @@ Built later with the features that need them: tables, dialogs with undo.
 8. Prefer undo over "are you sure?" dialogs. Button labels say exactly what happens. *(test)*
 9. Show uncertainty honestly and ask one question instead of guessing.
 10. The left sidebar is the primary application navigation (approved change to the
-    original guide, which said "no feature sidebars"). Keep it visually quiet so
-    Today stays the obvious home. Avoid secondary or feature-specific sidebars that
-    make individual screens feel crowded. The current retailer and the person's own
-    account sit at the bottom of the sidebar, kept visually separate.
+    original guide, which said "no feature sidebars"): one flat list (Today, Orders,
+    Inventory, Programs, Suppliers, Insights, Business), no section headers, no
+    icons. Keep it visually quiet so Today stays the obvious home. Sub-pages use
+    quiet in-page tabs, never a second sidebar. The current retailer and the
+    person's own account sit at the bottom of the sidebar.
 11. Works on a phone: no sideways scrolling at 375px. *(E2E test)*
 12. If a screen feels like more work for the retailer, simplify it before adding anything.
-13. Example data is always marked "Example data", lives only in `src/demo/`, is
+13. Example data is marked "Example data" once per screen (not on every row), lives only in `src/demo/`, is
     never written to the database, and appears only when `DEMO_PREVIEW` allows it
     (on by default in development, off elsewhere). *(test: `demo-guard.test.ts`)*
+14. Subtract before adding: if something doesn't help the person understand, decide
+    or act, remove it. Prefer type, spacing and alignment over cards, borders and pills.

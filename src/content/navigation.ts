@@ -1,46 +1,26 @@
 /**
- * Primary application navigation (left sidebar).
- * The sidebar is the product's single primary navigation; screens do not add
- * their own secondary sidebars. Today stays first and visually leads.
+ * Primary application navigation (left sidebar): the fewest first-class
+ * destinations we can defend. Pages with sub-pages (Business) use a quiet
+ * row of in-page tabs rather than more sidebar items.
  */
 export type NavItem = { href: string; label: string }
-export type NavSection = { label?: string; items: NavItem[] }
 
-export const navigation: NavSection[] = [
-  { items: [{ href: '/today', label: 'Today' }] },
-  {
-    label: 'Buying',
-    items: [
-      { href: '/recommendations', label: 'Recommendations' },
-      { href: '/orders', label: 'Orders' },
-      { href: '/inventory', label: 'Inventory' },
-    ],
-  },
-  {
-    label: 'Suppliers',
-    items: [
-      { href: '/suppliers', label: 'Supplier directory' },
-      { href: '/programs', label: 'Programs' },
-    ],
-  },
-  {
-    label: 'Insights',
-    items: [
-      { href: '/performance', label: 'Performance' },
-      { href: '/opportunities', label: 'Opportunities' },
-    ],
-  },
-  {
-    label: 'Business',
-    items: [
-      { href: '/business/profile', label: 'Retailer profile' },
-      { href: '/business/locations', label: 'Locations' },
-      { href: '/business/team', label: 'Team' },
-    ],
-  },
+export const navigation: NavItem[] = [
+  { href: '/today', label: 'Today' },
+  { href: '/orders', label: 'Orders' },
+  { href: '/inventory', label: 'Inventory' },
+  { href: '/programs', label: 'Programs' },
+  { href: '/suppliers', label: 'Suppliers' },
+  { href: '/insights', label: 'Insights' },
+  { href: '/business', label: 'Business' },
 ]
 
-export const allNavItems: NavItem[] = navigation.flatMap((s) => s.items)
+/** In-page tabs within Business. */
+export const businessTabs: NavItem[] = [
+  { href: '/business/profile', label: 'Profile' },
+  { href: '/business/locations', label: 'Locations' },
+  { href: '/business/team', label: 'Team' },
+]
 
 /** The item a path belongs to (exact match or a sub-page of it). */
 export function isCurrent(pathname: string, href: string) {

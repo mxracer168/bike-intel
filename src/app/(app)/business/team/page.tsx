@@ -1,16 +1,16 @@
 import type { Metadata } from 'next'
-import { Placeholder } from '@/features/placeholder/Placeholder'
+import { BusinessFrame } from '@/features/business/BusinessFrame'
+import { requireOrganization } from '@/server/session'
+import styles from '@/features/business/Business.module.css'
 
 export const metadata: Metadata = { title: 'Team' }
 
 /** Placeholder until this area is built. */
-export default function TeamPage() {
+export default async function TeamPage() {
+  const { organization } = await requireOrganization()
   return (
-    <Placeholder
-      eyebrow='Team'
-      title='Your team will appear here.'
-      lead='The people who work in this business with you.'
-      body='Inviting teammates, and deciding who can approve orders, comes later.'
-    />
+    <BusinessFrame name={organization.name}>
+      <p className={styles.small}>Inviting teammates, and deciding who can approve orders, comes later.</p>
+    </BusinessFrame>
   )
 }

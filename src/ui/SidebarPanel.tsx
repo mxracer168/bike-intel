@@ -26,35 +26,25 @@ export function SidebarPanel({
       {!inDrawer && <div className={styles.panelHead}>{logo}</div>}
 
       <nav className={styles.nav} aria-label="Primary">
-        {navigation.map((section, i) => (
-          <div key={section.label ?? i} className={styles.section}>
-            {section.label && <p className={styles.sectionLabel}>{section.label}</p>}
-            {section.items.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={[styles.navLink, item.href === '/today' && styles.home].filter(Boolean).join(' ')}
-                aria-current={isCurrent(pathname, item.href) ? 'page' : undefined}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
+        {navigation.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={styles.navLink}
+            aria-current={isCurrent(pathname, item.href) ? 'page' : undefined}
+          >
+            {item.label}
+          </Link>
         ))}
       </nav>
 
       <div className={styles.footer}>
         {/* The business being worked in. Switching arrives with retailer switching. */}
-        <section aria-label="Current retailer">
-          <div className={styles.retailer}>
-            <span className={styles.retailerMark} aria-hidden="true">{initials(retailer.name)}</span>
-            <span className={styles.retailerText}>
-              <span className={styles.retailerName}>{retailer.name}</span>
-              <span className={styles.retailerMeta}>
-                {retailer.locationCount === 1 ? '1 location' : `${retailer.locationCount} locations`}
-              </span>
-            </span>
-          </div>
+        <section aria-label="Current retailer" className={styles.retailer}>
+          <span className={styles.retailerName}>{retailer.name}</span>
+          <span className={styles.retailerMeta}>
+            {retailer.locationCount === 1 ? '1 location' : `${retailer.locationCount} locations`}
+          </span>
         </section>
 
         {/* The person's own account, kept separate from the business. */}

@@ -1,0 +1,35 @@
+/* ---------- Supplier-level list (Today, Orders) ---------- */
+.list { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.list th, .list td { text-align: left; padding: var(--sp-3) var(--sp-3); border-bottom: 1px solid var(--line); vertical-align: top; }
+.list th:first-child, .list td:first-child { padding-left: 0; }
+.list thead th { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); padding-top: 0; }
+.list tbody tr { position: relative; }
+.list tbody tr:hover { background: var(--subtle); }
+.list .num { text-align: right; white-space: nowrap; }
+.supplier { display: flex; flex-direction: column; gap: 2px; font-weight: 400; }
+.rowLink { color: var(--ink); font-weight: 600; text-decoration: none; }
+.rowLink::after { content: ''; position: absolute; inset: 0; }
+.rowLink:focus-visible { box-shadow: none; }
+.list tbody tr:has(.rowLink:focus-visible) { box-shadow: var(--focus-ring); border-radius: var(--r-sm); }
+.note { font-size: 14px; color: var(--con); }
+.none { color: var(--ink-3); }
+.ask { color: var(--con); font-weight: 600; }
+.go { width: 32px; color: var(--ink-3); padding-right: 0; }
+.list tbody tr:hover .go { color: var(--ink-2); }
+.phoneSummary { display: none; font-size: 14px; color: var(--ink-2); }
+
+@media (max-width: 640px) {
+  .list thead { display: none; }
+  .list td:not(.go) { display: none; }
+  .list .go { vertical-align: middle; }
+  .phoneSummary { display: block; }
+}
+
+/* ---------- Page bits ---------- */
+.head { display: flex; flex-direction: column; gap: 6px; }
+.eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); }
+.eyebrow a { color: inherit; }
+.title { font-size: var(--fs-title); line-height: var(--lh-title); letter-spacing: -0.015em; }
+.lead { font-size: var(--fs-lead); line-height: var(--lh-lead); color: var(--ink-2); max-width: 60ch; }
+.section { display: flex; flex-direction: column; gap: var(--sp-3); }
+.sectionTitle { font-size: var(--fs-heading); line-height: var(--lh-heading); }

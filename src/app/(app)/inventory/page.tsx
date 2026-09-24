@@ -7,10 +7,8 @@ export const metadata: Metadata = { title: 'Inventory' }
 export default function InventoryPage() {
   return (
     <Placeholder
-      eyebrow='Inventory'
-      title='No inventory to show yet.'
-      lead='What you have on hand at each location, and how long it will last.'
-      body='Once your point-of-sale system is connected, you’ll see stock by location, in plain terms like “about 3 weeks left”.'
+      title="No inventory to show yet."
+      body="Once your point-of-sale system is connected, you’ll see stock at each location and how long it will last."
     />
   )
 }

@@ -1,11 +1,7 @@
-import Link from 'next/link'
 import type { ReactNode } from 'react'
 import type { ContextEntry } from '@/domain/context/list'
-import type { LocationSummary } from '@/domain/location/list'
 import type { OrganizationDetails } from '@/domain/organization/details'
-import { plural } from '@/domain/language/plain'
-import { EmptyState, Tag } from '@/ui/Feedback'
-import { Card } from '@/ui/Layout'
+import { EmptyState } from '@/ui/Feedback'
 import { countryName, industryLabel } from './labels'
 import styles from './Business.module.css'
 
@@ -37,9 +33,9 @@ function Beliefs({ title, entries, inferred }: { title: string; entries: Context
           <li key={e.id} className={styles.belief}>
             <p className={styles.beliefText}>{e.statement}</p>
             <span className={styles.beliefMeta}>
-              <Tag>{lifespanLabel(e)}</Tag>
-              {inferred && !e.confirmedAt && <span>We think so. Tell us if it’s wrong.</span>}
-              {inferred && e.confirmedAt && <span>You confirmed this.</span>}
+              <span>{lifespanLabel(e)}</span>
+              {inferred && !e.confirmedAt && <span>· We think so. Tell us if it’s wrong.</span>}
+              {inferred && e.confirmedAt && <span>· You confirmed this.</span>}
             </span>
           </li>
         ))}
@@ -49,7 +45,7 @@ function Beliefs({ title, entries, inferred }: { title: string; entries: Context
 }
 
 /** Everything we hold about the retailer, facts they gave us kept apart from what we inferred. */
-export function ProfileView({ org, locations, context }: { org: OrganizationDetails; locations: LocationSummary[]; context: ContextEntry[] }) {
+export function ProfileView({ org, context }: { org: OrganizationDetails; context: ContextEntry[] }) {
   const stated = context.filter((c) => c.source !== 'system_inferred')
   const inferred = context.filter((c) => c.source === 'system_inferred')
   const billing = [org.billing.line1, org.billing.line2, [org.billing.city, org.billing.region, org.billing.postalCode].filter(Boolean).join(', '), countryName(org.billing.country)].filter(Boolean)
@@ -57,39 +53,30 @@ export function ProfileView({ org, locations, context }: { org: OrganizationDeta
   return (
     <>
       <div className={styles.grid}>
-        <Card title="Business">
+        <section className={styles.group} aria-labelledby="details">
+          <h2 id="details" className={styles.knowTitle}>Details</h2>
           <Facts rows={[
-            ['Business name', org.name],
             ['Legal name', org.legalName],
             ['Website', org.website && <a href={org.website} target="_blank" rel="noopener noreferrer">{org.website.replace(/^https?:\/\//, '')}</a>],
             ['Country', countryName(org.defaultCountry)],
             ['Industry', industryLabel[org.industry] ?? org.industry],
           ]} />
-        </Card>
-        <Card title="Contact and billing">
+        </section>
+        <section className={styles.group} aria-labelledby="contact">
+          <h2 id="contact" className={styles.knowTitle}>Contact and billing</h2>
           <Facts rows={[
             ['Primary contact', org.contact.name],
             ['Email', org.contact.email],
             ['Phone', org.contact.phone],
             ['Billing address', billing.length ? <address className={styles.address}>{billing.map((l) => <span key={l}>{l}<br /></span>)}</address> : null],
           ]} />
-        </Card>
-        <div className={styles.wide}>
-          <Card title="Locations">
-            <p className={styles.small}>
-              {plural(locations.length, 'location')}: {locations.map((l) => l.name).join(', ')}.{' '}
-              <Link href="/business/locations">See locations</Link>
-            </p>
-          </Card>
-        </div>
+        </section>
       </div>
 
       <section className={styles.group} aria-labelledby="what-we-know">
         <div className={styles.knowHead}>
           <h2 id="what-we-know" className={styles.knowTitle}>What we know about your business</h2>
-          <p className={styles.knowLead}>
-            The things that shape our advice: what you’ve told us, and what we’ve learned from your sales. You’ll always be able to see and correct it here.
-          </p>
+          <p className={styles.knowLead}>What you’ve told us, kept apart from what we’ve worked out from your sales.</p>
         </div>
         {context.length === 0 ? (
           <EmptyState title="Nothing here yet.">

@@ -18,7 +18,7 @@ export default async function SupplierDirectoryPage() {
     <Page>
       <PageHeader
         title="Suppliers"
-        lead="The brands and distributors you buy from, and others you might. Your terms and history with each stay private to you."
+        lead="Your terms and history with each supplier stay private to you."
       />
       {entries.length > 0 ? (
         <SupplierDirectory entries={entries} />

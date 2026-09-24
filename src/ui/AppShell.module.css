@@ -16,39 +16,26 @@
 .mobileBar { display: none; }
 
 /* Sidebar content (shared by desktop sidebar and phone panel) */
-.panel { height: 100%; display: flex; flex-direction: column; padding: var(--sp-4) var(--sp-3); gap: var(--sp-5); overflow-y: auto; }
+.panel { height: 100%; display: flex; flex-direction: column; padding: var(--sp-5) var(--sp-3) var(--sp-4); gap: var(--sp-6); overflow-y: auto; }
 .panelHead { display: flex; align-items: center; justify-content: space-between; padding: 0 var(--sp-2); min-height: 32px; }
 
 .logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: var(--ink); text-decoration: none; white-space: nowrap; border-radius: var(--r-sm); }
 .logoMark { width: 22px; height: 22px; border-radius: var(--r-sm); background: var(--accent); display: grid; place-items: center; flex: none; }
 .logoMark::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--canvas); }
 
-.nav { display: flex; flex-direction: column; gap: var(--sp-5); flex: 1; }
-.section { display: flex; flex-direction: column; gap: 2px; }
-.sectionLabel { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); padding: 0 var(--sp-3); margin-bottom: var(--sp-1); }
+.nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
 .navLink {
   display: flex; align-items: center; min-height: 36px; padding: 0 var(--sp-3);
-  font-size: 14px; font-weight: 400; color: var(--ink); text-decoration: none;
+  font-size: 15px; font-weight: 400; color: var(--ink-2); text-decoration: none;
   border-radius: var(--r-sm);
   transition: background var(--t-fast) var(--ease), color var(--t-fast);
 }
-.navLink:hover { background: var(--subtle); }
-.navLink[aria-current='page'] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.home { font-size: 15px; }
+.navLink:hover { color: var(--ink); background: var(--subtle); }
+.navLink[aria-current='page'] { color: var(--ink); font-weight: 600; background: var(--subtle); }
 
-/* Footer: retailer area, then the person's own account, kept distinct */
-.footer { display: flex; flex-direction: column; gap: var(--sp-2); border-top: 1px solid var(--line); padding-top: var(--sp-3); }
-.footerLabel { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); padding: 0 var(--sp-2); }
-.retailer {
-  display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2);
-  border: 1px solid var(--line); border-radius: var(--r-md); background: var(--canvas);
-}
-.retailerMark {
-  width: 32px; height: 32px; border-radius: var(--r-sm); flex: none;
-  background: var(--accent-soft); color: var(--accent); display: grid; place-items: center;
-  font-size: 13px; font-weight: 600;
-}
-.retailerText { display: flex; flex-direction: column; min-width: 0; }
+/* Footer: the business, then the person's own account, kept distinct */
+.footer { display: flex; flex-direction: column; gap: var(--sp-2); }
+.retailer { display: flex; flex-direction: column; padding: var(--sp-2) var(--sp-3) 0; min-width: 0; }
 .retailerName { font-size: 14px; font-weight: 600; line-height: 20px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .retailerMeta { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
 
