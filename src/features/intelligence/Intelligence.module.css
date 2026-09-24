@@ -29,23 +29,20 @@
 .introMore { font-size: 14px; color: var(--ink-2); }
 
 /* ---------- Transcript: editorial, no chat chrome ---------- */
-.example { display: flex; flex-direction: column; gap: var(--sp-3); padding-bottom: var(--sp-5); border-bottom: 1px solid var(--line); }
-.example > .day { padding-top: 0; }
 .transcript { list-style: none; display: flex; flex-direction: column; gap: var(--sp-5); }
 .transcript:empty { display: none; }
-.item { display: flex; flex-direction: column; gap: 4px; }
+.item { display: flex; flex-direction: column; gap: 4px; border-radius: var(--r-md); outline: none; }
+.item:focus-visible { box-shadow: 0 0 0 3px var(--accent-soft); }
+/* When a message was sent: shown on demand, quietly, on the message's own side. */
+.time { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .continued { margin-top: calc(-1 * var(--sp-3)); }
-.day {
-  display: flex; align-items: center; gap: var(--sp-2); align-self: stretch;
-  font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2);
-}
 .said { white-space: pre-wrap; overflow-wrap: anywhere; display: flex; flex-direction: column; gap: var(--sp-3); }
 /* The retailer: to the right, on a faint surface. */
 .fromRetailer { align-items: flex-end; }
 .fromRetailer .said, .fromRetailer .attachment {
   max-width: 84%; background: var(--subtle); border-radius: var(--r-lg); padding: 8px 12px; color: var(--ink);
 }
-.fromRetailer .notYet { text-align: right; max-width: 84%; }
+.fromRetailer .notYet, .fromRetailer .time { text-align: right; max-width: 84%; }
 /* Replies: plain text on the left, full measure. */
 .fromAssistant { align-items: flex-start; }
 .fromAssistant .said { font-size: 15px; line-height: 24px; color: var(--ink); max-width: 60ch; }

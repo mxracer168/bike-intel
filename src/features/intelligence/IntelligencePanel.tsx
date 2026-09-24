@@ -194,13 +194,7 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
           </button>
         </header>
 
-        <div ref={scroller} className={styles.scroll} tabIndex={0} role="region" aria-label="Conversation history">
-          {exampleConversation.length > 0 && (
-            <section aria-label="Example conversation" className={styles.example}>
-              <p className={styles.day}>Example conversation <ExampleMarker /></p>
-              <Transcript entries={exampleConversation} pending={null} label="Example conversation" />
-            </section>
-          )}
+        <div ref={scroller} className={styles.scroll} role="region" aria-label="Conversation history">
           {load.state === 'loading' && load.entries.length === 0 && <p className={styles.quiet}>Loading…</p>}
           {load.state === 'failed' && <p className={styles.quiet}>I couldn’t load our conversation. Close this and try again.</p>}
           {(load.state === 'unavailable' || load.state === 'ready') && load.entries.length === 0 && exampleConversation.length === 0 && (
@@ -209,7 +203,7 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
               <p className={styles.introMore}>I use what you tell me, along with your business data, to make better recommendations.</p>
             </div>
           )}
-          <Transcript entries={load.entries} pending={pending} />
+          <Transcript entries={[...exampleConversation, ...load.entries]} pending={pending} />
         </div>
 
         <Composer

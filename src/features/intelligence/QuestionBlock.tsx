@@ -66,7 +66,6 @@ export function Question({ q, onAnswer, onTellUsMore, onDefer, onBack, compact =
       {answered ? (
         <p className={styles.answered}>
           You answered: {[q.answer?.choice, q.answer?.body].filter(Boolean).join('. ') || 'thanks'}
-          {q.example && ' (example, not saved)'}
         </p>
       ) : active ? (
         <div className={styles.choices}>

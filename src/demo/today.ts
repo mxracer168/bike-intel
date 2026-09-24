@@ -68,14 +68,16 @@ function said(id: string, author: 'you' | 'system', body: string, at: string, no
 /**
  * An example conversation, shown before the real one in development only so
  * the interaction can be reviewed. Never written to the database. The
- * assistant replies are illustrative: nothing generates them yet.
+ * assistant replies are illustrative: nothing generates them yet, and the
+ * Northline figures are invented (see demo/orders.ts for the example order).
  */
 export const demoConversation: ConversationEntry[] = [
+  said('0a', 'you', 'We want to keep HLC as our preferred distributor whenever the economics are reasonably close.', hoursAgo(122)),
+  said('0b', 'system', 'Understood. When HLC is within a few percent of another supplier, I’ll suggest HLC first and show you the difference so you can decide.', hoursAgo(122)),
   said('1', 'you', 'We’re expecting the Cedar Ridge trails to open in March. That usually gives us a bump in mountain bike traffic.', hoursAgo(27)),
   said('2', 'system', 'That’s helpful. I’ll treat March as a likely increase in mountain bike demand for your Columbia store.\n\nDo you expect that to affect complete-bike sales, service traffic, or both?', hoursAgo(27)),
   said('3', 'you', 'Mostly service and accessories. We usually see more tires, sealant and suspension work before people start riding again.', hoursAgo(26.9)),
   said('4', 'system', 'Got it. I’ll keep that in mind when we review spring inventory and service-related recommendations.', hoursAgo(26.9)),
   said('5', 'you', 'When was the last time I ordered from Northline Distribution?', hoursAgo(2)),
-  said('6', 'system', 'For this example, your most recent Northline order was September 18 for about $4,860 across 73 lines.\n\nWhen live order data is connected, I’ll answer this from your actual order history.', hoursAgo(2),
-    'Example answer. Not from your order history.'),
+  said('6', 'system', 'Your most recent Northline order was September 18: about $4,860 across 73 lines.', hoursAgo(2)),
 ]

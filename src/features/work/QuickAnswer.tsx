@@ -14,7 +14,8 @@ export function QuickAnswer({ name, prompt, choices, example = false }: {
       <ChoiceChips name={name} label={prompt} options={choices} onChoose={setAnswer} />
       {answer && (
         <p className={styles.thanks} role="status">
-          {example ? 'Thanks. This is example data, so nothing was saved.' : 'Thanks, we’ll take that into account.'}
+          {/* Example answers aren't saved, so they don't promise anything. */}
+          {example ? 'Thanks.' : 'Thanks, we’ll take that into account.'}
         </p>
       )}
     </div>

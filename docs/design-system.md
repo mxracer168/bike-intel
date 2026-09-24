@@ -38,8 +38,11 @@ Feature components: `OrderList` (proposed orders at supplier level, one
 comparable row each), `HealthSnapshot` (Today's few figures), `WeeklyCheckIn` (one optional line
 back into the conversation), `IntelligenceProvider` / `AddContextButton` (the
 retailer's ongoing conversation with one assistant, speaking as "I", in a
-side panel: the retailer's words sit right on a faint surface, replies are
-plain editorial text with no icon, label or bubble, and the composer ("Ask or tell me
+side panel: one continuous thread with no date dividers (click, tap or press
+Enter on a message to show when it was sent; the thread is one tab stop,
+arrows move between messages); the retailer's words sit right on a faint
+surface, replies are plain editorial text with no icon, label or bubble, and
+the composer ("Ask or tell me
 anything": attach, write, dictate, send) sits directly beneath; below that,
 on a quieter surface, "Questions for you" shows one question at a time
 ("2 of 3") with quick answers, "Tell us more" and "Not now" (while answering
@@ -85,7 +88,10 @@ Built later with the features that need them: dialogs with undo.
     person's own account sit at the bottom of the sidebar.
 11. Works on a phone: no sideways scrolling at 375px. *(E2E test)*
 12. If a screen feels like more work for the retailer, simplify it before adding anything.
-13. Example data is marked "Example data" once per screen (not on every row), lives only in `src/demo/`, is
+13. Example data is marked "Example data" once per screen (not on every row) when
+    real and example data can appear together; while the whole environment is a
+    design demo the visible labels are off (`SHOW_EXAMPLE_LABELS` in `ui/Example.tsx`).
+    Either way, example data lives only in `src/demo/`, is
     never written to the database, and appears only when `DEMO_PREVIEW` allows it
     (on by default in development, off elsewhere). *(test: `demo-guard.test.ts`)*
 14. Subtract before adding: if something doesn't help the person understand, decide
