@@ -729,7 +729,9 @@ insert into public.intelligence_question (id, organization_id, prompt, choices, 
   ('c1000000-0000-0000-0000-0000000000a2', '10000000-0000-0000-0000-0000000000a1',
    'Are you running a winter service special?', '["Yes", "No"]', null, 40),
   ('c1000000-0000-0000-0000-0000000000b1', '10000000-0000-0000-0000-0000000000b1',
-   'B question', '["Yes", "No"]', null, 50);
+   'B question', '["Yes", "No"]', null, 50),
+  ('c1000000-0000-0000-0000-0000000000a3', '10000000-0000-0000-0000-0000000000a1',
+   'Keep stocking 26-inch tubes?', '["Yes", "Just a few", "No"]', null, 30);
 insert into public.document (id, organization_id, storage_path, file_name, document_type, uploaded_by) values
   ('d1000000-0000-0000-0000-0000000000a1', '10000000-0000-0000-0000-0000000000a1',
    '10000000-0000-0000-0000-0000000000a1/intelligence/d1/plan.pdf', 'plan.pdf', 'conversation_attachment',
@@ -770,7 +772,7 @@ select t.expect_affected($$delete from public.intelligence_message$$, 0, 'member
 select t.expect_error($$insert into public.intelligence_question (organization_id, prompt)
                         values ('10000000-0000-0000-0000-0000000000a1', 'self-asked')$$,
                       'questions are created server-side only');
-select t.expect_count('select * from public.intelligence_question', 2, 'A sees only its questions');
+select t.expect_count('select * from public.intelligence_question', 3, 'A sees only its questions');
 
 select t.expect_error($$select public.answer_intelligence_question('c1000000-0000-0000-0000-0000000000a1', 'Maybe', null)$$,
                       'answers must be one of the offered choices');
@@ -794,9 +796,16 @@ select t.expect_affected($$update public.intelligence_question set status = 'def
                       1, 'a question can be deferred');
 select t.expect_count($$select * from public.intelligence_message where kind = 'answer'
                          and question_id = 'c1000000-0000-0000-0000-0000000000a1'$$,
-                      1, 'the answer is kept in the conversation');
+                      1, 'a written answer is kept in the conversation');
+select public.answer_intelligence_question('c1000000-0000-0000-0000-0000000000a3', 'Just a few', null) \g /dev/null
+select t.expect_equal((select status || '/' || answer_choice || '/' || (answer_message_id is null)::text
+                         from public.intelligence_question where id = 'c1000000-0000-0000-0000-0000000000a3'),
+                      'answered/Just a few/true', 'a quick answer is recorded on the question');
+select t.expect_count($$select * from public.intelligence_message
+                         where question_id = 'c1000000-0000-0000-0000-0000000000a3'$$,
+                      0, 'a quick answer does not add to the conversation');
 select t.expect_count($$select * from public.change_log where table_name = 'intelligence_question'$$,
-                      4, 'questions are audited: two created, one answered, one deferred');
+                      6, 'questions are audited: three created, two answered, one deferred');
 
 -- Structured context stays separate and points back at its source.
 insert into public.context_item (organization_id, scope_type, lifespan, statement, source_type, created_by,

@@ -91,7 +91,10 @@ email + password and email confirmation.
   nothing reads them yet, and the conversation says so. Interpreting the
   conversation into `context_item` (with `source_message_id` /
   `source_document_id`) comes later; nothing is inferred today. Voice input
-  relies on the device's own dictation for now.
+  relies on the device's own dictation for now. Quick answers are stored on
+  the question (`answer_choice`), not in the conversation. The assistant
+  model (tell / ask / answer, and "retrieve, don't dump") is in
+  [`intelligence.md`](intelligence.md).
 - **Sync status** is one quiet line in the sidebar (example-only for now). Real data is mapped
   into them; they carry no schema commitments. A supplier page is an identity
   plus an ordered list of typed sections, so it can be sparse or rich.

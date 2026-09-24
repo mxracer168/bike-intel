@@ -18,6 +18,8 @@ type IntelligenceApi = {
   /** Opens the conversation; optionally ready to answer one question in words. */
   open: (options?: { tellUsMoreFor?: string }) => void
   questions: IntelligenceQuestionView[]
+  /** How many questions are waiting in "Questions for you" right now. */
+  openCount: number
   answer: (id: string, choice: string | null, body: string | null, surface: Surface) => Promise<string | null>
   defer: (id: string) => Promise<void>
 }
@@ -27,6 +29,14 @@ const Intelligence = createContext<IntelligenceApi | null>(null)
 /** The retailer's intelligence conversation, from anywhere in the app. */
 export function useIntelligence() {
   return useContext(Intelligence)
+}
+
+/** A written answer to an example question: shown for this visit only, never saved. */
+function exampleAnswer(prompt: string, body: string): ConversationEntry {
+  return {
+    id: `example-${Date.now()}`, kind: 'answer', author: 'you', authorId: null, body, createdAt: new Date().toISOString(),
+    questionId: null, answerChoice: null, attachment: null, question: { prompt }, example: true,
+  }
 }
 
 type Load = { state: 'idle' | 'loading' | 'ready' | 'unavailable' | 'failed'; entries: ConversationEntry[] }
@@ -102,24 +112,29 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
     setSetAside((s) => new Set(s).add(id))
   }, [questions])
 
-  const api = useMemo<IntelligenceApi>(() => ({ open, questions, answer, defer }), [open, questions, answer, defer])
+  // Questions for you: still open, not set aside, at most three. Answered ones leave the list.
+  const asked = useMemo(() => topQuestions(questions.filter((q) => !setAside.has(q.id))), [questions, setAside])
+  const api = useMemo<IntelligenceApi>(
+    () => ({ open, questions, openCount: asked.length, answer, defer }),
+    [open, questions, asked.length, answer, defer],
+  )
 
-  // Questions asked this week: open ones first, then any answered here so the answer stays in view.
-  const asked = useMemo(() => {
-    const live = questions.filter((q) => !setAside.has(q.id))
-    const open = topQuestions(live)
-    const answeredHere = live.filter((q) => q.status === 'answered' && q.answer)
-    return [...answeredHere, ...open]
-  }, [questions, setAside])
   const tellUsMoreQuestion = questions.find((q) => q.id === tellUsMoreFor) ?? null
-  const showExampleMarker = asked.some((q) => q.example)
 
   async function send(text: string) {
     setProblem(null)
     if (tellUsMoreQuestion) {
-      const message = await answer(tellUsMoreQuestion.id, null, text, 'panel')
+      // A written answer resolves the question and belongs in the conversation.
+      const q = tellUsMoreQuestion
+      const message = await answer(q.id, null, text, 'panel')
       if (message) { setProblem(message); return false }
       setTellUsMoreFor(null)
+      if (q.example) {
+        setLoad((l) => ({ ...l, entries: [...l.entries, exampleAnswer(q.prompt, text)] }))
+        scrollToEnd()
+      } else {
+        void refresh()
+      }
       return true
     }
     const r = await sendMessageAction(text)
@@ -177,19 +192,10 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
           {load.state === 'unavailable' && <p className={styles.quiet}>Your conversation isn’t set up yet.</p>}
           {load.state === 'ready' && load.entries.length === 0 && (
             <p className={styles.intro}>
-              Tell us anything about your business: plans, changes, what’s working, what isn’t. It shapes what we suggest, and it stays here for next time.
+              Tell us about your business, or ask about it. Everything stays here, private to your team, for next time.
             </p>
           )}
           <Transcript entries={load.entries} pending={pending} />
-          {asked.length > 0 && (
-            <QuestionBlock
-              questions={asked}
-              marker={showExampleMarker ? <ExampleMarker /> : null}
-              onAnswer={(id, choice) => answer(id, choice, null, 'panel')}
-              onTellUsMore={(id) => { setTellUsMoreFor(id); composer.current?.focus() }}
-              onDefer={defer}
-            />
-          )}
         </div>
 
         <Composer
@@ -201,6 +207,17 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
           onAttach={attach}
           problem={problem}
         />
+
+        {asked.length > 0 && (
+          <QuestionBlock
+            questions={asked}
+            replyingTo={tellUsMoreFor}
+            marker={asked.some((q) => q.example) ? <ExampleMarker /> : null}
+            onAnswer={(id, choice) => answer(id, choice, null, 'panel')}
+            onTellUsMore={(id) => { setTellUsMoreFor(id); composer.current?.focus() }}
+            onDefer={defer}
+          />
+        )}
       </dialog>
     </Intelligence.Provider>
   )

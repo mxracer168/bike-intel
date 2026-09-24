@@ -15,6 +15,11 @@ const time = (iso: string) => new Intl.DateTimeFormat('en-US', { hour: 'numeric'
 
 const who = { you: 'You', teammate: 'A teammate', system: 'We' } as const
 
+/** A plain heuristic for display only; nothing is stored or decided from it. */
+function looksLikeQuestion(body: string | null) {
+  return Boolean(body && /\?\s*$/.test(body.trim()))
+}
+
 /**
  * The conversation as a quiet transcript: a day line when the day changes,
  * the speaker when the speaker changes. No bubbles.
@@ -25,11 +30,14 @@ export function Transcript({ entries, pending }: { entries: ConversationEntry[];
     const day = dayLabel(e.createdAt)
     const newDay = !prev || dayLabel(prev.createdAt) !== day
     const sameSpeaker = prev && prev.author === e.author && prev.authorId === e.authorId && prev.kind !== 'check_in'
-    return { e, day, newDay, showWho: newDay || !sameSpeaker || e.kind === 'check_in' }
+    // Honest about what we can't do yet: a question from the retailer with no reply after it.
+    const unanswered = e.author !== 'system' && e.kind === 'text' && looksLikeQuestion(e.body)
+      && !entries.slice(i + 1).some((later) => later.author === 'system')
+    return { e, day, newDay, unanswered, showWho: newDay || !sameSpeaker || e.kind === 'check_in' }
   })
   return (
     <ol className={styles.transcript} aria-label="Conversation">
-      {rows.map(({ e, day, newDay, showWho }) => {
+      {rows.map(({ e, day, newDay, showWho, unanswered }) => {
         return (
           <li key={e.id} className={styles.item}>
             {newDay && <p className={styles.day}>{day}</p>}
@@ -39,6 +47,8 @@ export function Transcript({ entries, pending }: { entries: ConversationEntry[];
               <>
                 {showWho && <p className={styles.who}>{who[e.author]} <span>{time(e.createdAt)}</span></p>}
                 <Body entry={e} />
+                {unanswered && <p className={styles.notYet}>We can’t answer questions yet. It’s saved here.</p>}
+                {e.example && <p className={styles.notYet}>Example answer; not saved.</p>}
               </>
             )}
           </li>

@@ -49,25 +49,37 @@
 .fileLink { color: var(--ink); font-weight: 600; overflow-wrap: anywhere; }
 .fileMeta { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
 
-/* ---------- Questions ---------- */
-.block { display: flex; flex-direction: column; gap: 2px; }
+/* ---------- Questions for you: below the composer, quieter surface ---------- */
+.block {
+  flex: none; max-height: 42%; overflow-y: auto;
+  background: var(--subtle); border-top: 1px solid var(--line);
+  padding: var(--sp-3) var(--sp-5) var(--sp-4);
+}
+.blockTitle {
+  display: flex; align-items: center; gap: var(--sp-2);
+  font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 600; color: var(--ink-2);
+}
+.count { font-weight: 400; margin-left: -4px; }
 .questions { list-style: none; display: flex; flex-direction: column; gap: var(--sp-4); padding-top: var(--sp-3); }
 .question { display: flex; flex-direction: column; gap: var(--sp-2); }
+.activeQuestion .prompt { color: var(--accent); }
 .prompt { font-weight: 600; }
 .choices { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
 .choice {
-  min-height: 36px; padding: 6px 12px; font-size: 14px; font-weight: 500; color: var(--ink); cursor: pointer;
+  min-height: 34px; padding: 5px 12px; font-size: 14px; font-weight: 500; color: var(--ink); cursor: pointer;
   background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-md);
 }
-.choice:hover { background: var(--subtle); }
+.choice:hover { background: var(--canvas); }
+.choice[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .choice:disabled { color: var(--ink-3); cursor: default; }
 .answered { font-size: 14px; color: var(--ink-2); }
+.notYet { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
 
 .linkButton { border: 0; background: none; padding: 6px 4px; font-size: 14px; color: var(--ink-2); cursor: pointer; }
 .linkButton:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---------- Composer: one obvious place to write ---------- */
-.composerArea { padding: var(--sp-3) var(--sp-4) var(--sp-4); display: flex; flex-direction: column; gap: 6px; }
+.composerArea { flex: none; padding: var(--sp-2) var(--sp-4) var(--sp-4); display: flex; flex-direction: column; gap: 6px; }
 .composer {
   display: flex; align-items: flex-end; gap: 2px; padding: 6px;
   background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-xl);

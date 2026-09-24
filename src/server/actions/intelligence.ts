@@ -121,14 +121,17 @@ export async function answerQuestionAction(input: {
   return { ok: true, value: null }
 }
 
-/** "Not now": the question waits for the next check-in. */
+/** Until scheduled check-ins exist, "Not now" means "ask again next week". */
+const DEFER_DAYS = 7
+
+/** "Not now": set the question aside until the next weekly check-in. */
 export async function deferQuestionAction(questionId: string): Promise<Result<null>> {
   const id = uuid.safeParse(questionId)
   if (!id.success) return { ok: false, message: SAVE_FAILED }
   const { db, organization } = await requireOrganization()
   const { error } = await db
     .from('intelligence_question')
-    .update({ status: 'deferred', deferred_until: null })
+    .update({ status: 'deferred', deferred_until: new Date(Date.now() + DEFER_DAYS * 86400000).toISOString() })
     .eq('id', id.data)
     .eq('organization_id', organization.id)
     .eq('status', 'open')

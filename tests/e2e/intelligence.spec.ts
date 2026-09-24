@@ -78,22 +78,53 @@ test('the intelligence conversation persists and stays inside its retailer', asy
   })
   expect(smuggle.error).not.toBeNull()
 
-  // A question asked by the system is answered once, by A only.
-  const { data: question } = await admin.from('intelligence_question').insert({
-    organization_id: orgA, prompt: 'Will the new Cedar Ridge trails open before spring?',
-    choices: ['Yes, this spring', 'Not sure yet', 'No'], priority: 80,
-  }).select('id').single()
-  const stolen = await b.rpc('answer_intelligence_question', { p_question_id: question!.id, p_choice: 'No', p_body: null })
+  // Questions asked by the system are answered once, by A only.
+  const ask = async (prompt: string, choices: string[], priority: number) => (await admin.from('intelligence_question')
+    .insert({ organization_id: orgA, prompt, choices, priority }).select('id').single()).data!.id
+  const cedar = await ask('Will the new Cedar Ridge trails open before spring?', ['Yes, this spring', 'Not sure yet', 'No'], 80)
+  const winter = await ask('Are you running a winter service special this year?', ['Yes', 'No', 'Not decided'], 60)
+  const tubes = await ask('Do you want to keep stocking 26-inch tubes?', ['Yes', 'Just a few', 'No'], 40)
+  const stolen = await b.rpc('answer_intelligence_question', { p_question_id: cedar, p_choice: 'No', p_body: null })
   expect(stolen.error).not.toBeNull()
 
   await pageA.keyboard.press('Escape')
   await pageA.reload()
   panel = await openConversation(pageA)
-  await panel.getByRole('group', { name: 'Will the new Cedar Ridge trails open before spring?' })
+  const questions = panel.getByRole('region', { name: /Questions for you/ })
+  await expect(questions).toContainText('Questions for you · 3')
+
+  // A quick answer resolves the question and stays out of the conversation.
+  await questions.getByRole('group', { name: 'Will the new Cedar Ridge trails open before spring?' })
     .getByRole('button', { name: 'Not sure yet' }).click()
-  await expect(panel.getByText('You answered: Not sure yet')).toBeVisible()
-  const { data: answered } = await admin.from('intelligence_question').select('status, answered_by').eq('id', question!.id).single()
-  expect(answered).toEqual({ status: 'answered', answered_by: idA })
+  await expect(questions).toContainText('Questions for you · 2')
+  await expect(panel.getByRole('list', { name: 'Conversation' })).not.toContainText('Cedar Ridge')
+  const { data: quick } = await admin.from('intelligence_question').select('status, answered_by, answer_choice, answer_message_id').eq('id', cedar).single()
+  expect(quick).toEqual({ status: 'answered', answered_by: idA, answer_choice: 'Not sure yet', answer_message_id: null })
+
+  // "Not now" defers without answering.
+  await questions.getByRole('group', { name: 'Do you want to keep stocking 26-inch tubes?' })
+    .getByRole('button', { name: 'Not now' }).click()
+  await expect(questions).toContainText('Questions for you · 1')
+  const { data: deferred } = await admin.from('intelligence_question').select('status, deferred_until').eq('id', tubes).single()
+  expect(deferred!.status).toBe('deferred')
+  expect(Date.parse(deferred!.deferred_until!)).toBeGreaterThan(Date.now())
+
+  // "Tell us more": a written answer, which does belong in the conversation.
+  await questions.getByRole('group', { name: 'Are you running a winter service special this year?' })
+    .getByRole('button', { name: 'Tell us more' }).click()
+  await expect(panel.getByLabel('Your answer')).toBeFocused()
+  await panel.getByLabel('Your answer').fill('Yes, 15% off tune-ups from November to February.')
+  await panel.getByLabel('Your answer').press('Enter')
+  await expect(panel.getByRole('region', { name: /Questions for you/ })).toHaveCount(0)
+  await expect(panel.getByRole('list', { name: 'Conversation' })).toContainText('15% off tune-ups')
+  const { data: written } = await admin.from('intelligence_question').select('status, answer_message_id').eq('id', winter).single()
+  expect(written!.status).toBe('answered')
+  expect(written!.answer_message_id).not.toBeNull()
+
+  // The composer stays available with no questions open, and a question gets an honest reply.
+  await panel.getByLabel('Message').fill('When did I last order from Northline?')
+  await panel.getByLabel('Message').press('Enter')
+  await expect(panel.getByText('We can’t answer questions yet. It’s saved here.')).toBeVisible()
 
   // Nothing was turned into structured context behind the retailer's back.
   const { count } = await admin.from('context_item').select('id', { count: 'exact', head: true }).eq('organization_id', orgA)

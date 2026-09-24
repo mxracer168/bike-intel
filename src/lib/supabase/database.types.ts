@@ -451,6 +451,7 @@ export type Database = {
           answered_at: string | null
           answered_by: string | null
           answer_message_id: string | null
+          answer_choice: string | null
           created_at: string
           updated_at: string
         }
@@ -472,6 +473,7 @@ export type Database = {
           answered_at?: string | null
           answered_by?: string | null
           answer_message_id?: string | null
+          answer_choice?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -493,6 +495,7 @@ export type Database = {
           answered_at?: string | null
           answered_by?: string | null
           answer_message_id?: string | null
+          answer_choice?: string | null
           created_at?: string
           updated_at?: string
         }

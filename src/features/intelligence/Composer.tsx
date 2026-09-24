@@ -66,7 +66,7 @@ export const Composer = forwardRef<ComposerHandle, {
         <label htmlFor={id} className="visually-hidden">{replyingTo ? 'Your answer' : 'Message'}</label>
         <textarea
           ref={input} id={id} rows={1} value={text} disabled={disabled}
-          placeholder={replyingTo ? 'Your answer' : 'Tell us anything'}
+          placeholder={replyingTo ? 'Your answer' : 'Ask or tell us anything'}
           className={styles.input} maxLength={10000} autoCapitalize="sentences" enterKeyHint="send"
           onChange={(e) => { setText(e.target.value); grow() }}
           onKeyDown={(e) => {

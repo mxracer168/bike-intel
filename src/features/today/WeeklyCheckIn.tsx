@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useIntelligence } from '@/features/intelligence/IntelligencePanel'
-import { topQuestions } from '@/features/intelligence/types'
 import styles from './Today.module.css'
 
 const words = ['', 'one thing', 'two things', 'three things']
@@ -15,7 +14,7 @@ export function WeeklyCheckIn() {
   const api = useIntelligence()
   const [dismissed, setDismissed] = useState(false)
   if (!api || dismissed) return null
-  const count = topQuestions(api.questions).length
+  const count = api.openCount
   const line = count === 0
     ? 'Anything worth updating this week?'
     : `${count === 1 ? 'There’s' : 'There are'} ${words[count]} we’d like to check with you this week.`

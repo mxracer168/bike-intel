@@ -13,6 +13,8 @@ export type ConversationEntry = {
   attachment: { id: string; name: string; mime: string | null; size: number | null } | null
   /** For question and answer entries: what was asked. */
   question?: { prompt: string } | null
+  /** Example content shown for this visit only; never saved. */
+  example?: boolean
 }
 
 export type QuestionState = 'open' | 'answered' | 'deferred' | 'withdrawn'
@@ -51,7 +53,9 @@ export async function loadConversation(db: Db, organizationId: string, userId: s
   if (missingTable(messages.error) || questions === null) return { available: false }
   if (messages.error) throw messages.error
 
-  const rows = (messages.data ?? []).reverse()
+  // Quick answers are structured (on the question), not conversation. Older
+  // choice-only answer messages, from before that rule, stay stored but unshown.
+  const rows = (messages.data ?? []).reverse().filter((m) => m.kind !== 'answer' || Boolean(m.body?.trim()))
   const docIds = rows.map((m) => m.document_id).filter((d): d is string => Boolean(d))
   const docs = new Map<string, { file_name: string; mime_type: string | null; size_bytes: number | null }>()
   if (docIds.length) {

@@ -4,35 +4,37 @@ import { useState, type ReactNode } from 'react'
 import { TELL_US_MORE, type IntelligenceQuestionView } from './types'
 import styles from './Intelligence.module.css'
 
-const words = ['no', 'one thing', 'two things', 'three things']
-
-/** This week's questions, inside the conversation rather than as a form. */
-export function QuestionBlock({ questions, marker, onAnswer, onTellUsMore, onDefer }: {
+/**
+ * Questions for you: below the composer, on a quieter surface, and separate
+ * from the conversation. Answered questions leave; when none are left the
+ * section goes away.
+ */
+export function QuestionBlock({ questions, replyingTo, marker, onAnswer, onTellUsMore, onDefer }: {
   questions: IntelligenceQuestionView[]
+  replyingTo: string | null
   marker: ReactNode
   onAnswer: (id: string, choice: string) => Promise<string | null>
   onTellUsMore: (id: string) => void
   onDefer: (id: string) => void
 }) {
-  const openCount = questions.filter((q) => q.status !== 'answered').length
   return (
-    <section className={styles.block} aria-labelledby="this-week">
-      <p id="this-week" className={styles.day}>This week {marker}</p>
-      <p className={styles.who}>We</p>
-      {openCount > 0 && (
-        <p className={styles.text}>
-          {openCount === 1 ? 'There’s one thing' : `There are ${words[openCount] ?? `${openCount} things`}`} we’d like to check with you.
-        </p>
-      )}
+    <section className={styles.block} aria-labelledby="questions-for-you">
+      <h3 id="questions-for-you" className={styles.blockTitle}>
+        Questions for you <span className={styles.count}>· {questions.length}</span> {marker}
+      </h3>
       <ol className={styles.questions}>
-        {questions.map((q) => <Question key={q.id} q={q} onAnswer={onAnswer} onTellUsMore={onTellUsMore} onDefer={onDefer} />)}
+        {questions.map((q) => (
+          <Question key={q.id} q={q} active={q.id === replyingTo}
+            onAnswer={onAnswer} onTellUsMore={onTellUsMore} onDefer={onDefer} />
+        ))}
       </ol>
     </section>
   )
 }
 
-export function Question({ q, onAnswer, onTellUsMore, onDefer, compact = false }: {
+export function Question({ q, onAnswer, onTellUsMore, onDefer, compact = false, active = false }: {
   q: IntelligenceQuestionView
+  active?: boolean
   onAnswer: (id: string, choice: string) => Promise<string | null>
   onTellUsMore: (id: string) => void
   onDefer?: (id: string) => void
@@ -43,7 +45,7 @@ export function Question({ q, onAnswer, onTellUsMore, onDefer, compact = false }
   const answered = q.status === 'answered'
 
   return (
-    <li className={[styles.question, compact && styles.compactQuestion].filter(Boolean).join(' ')}>
+    <li className={[styles.question, compact && styles.compactQuestion, active && styles.activeQuestion].filter(Boolean).join(' ')}>
       <p className={styles.prompt}>{q.prompt}</p>
       {answered ? (
         <p className={styles.answered}>
@@ -59,7 +61,7 @@ export function Question({ q, onAnswer, onTellUsMore, onDefer, compact = false }
                 {c}
               </button>
             ))}
-            <button type="button" className={styles.choice} disabled={busy} onClick={() => onTellUsMore(q.id)}>{TELL_US_MORE}</button>
+            <button type="button" className={styles.choice} disabled={busy} aria-pressed={active} onClick={() => onTellUsMore(q.id)}>{TELL_US_MORE}</button>
             {onDefer && <button type="button" className={styles.linkButton} disabled={busy} onClick={() => onDefer(q.id)}>Not now</button>}
           </div>
           {problem && <p className={styles.problem} role="alert">{problem}</p>}
