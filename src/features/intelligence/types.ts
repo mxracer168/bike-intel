@@ -16,3 +16,10 @@ export const TELL_US_MORE = 'Tell us more'
 export type SyncStatus =
   | { state: 'ok'; label: string }
   | { state: 'attention'; label: string; href?: string }
+
+/** A short name for a question: its topic, or its first few words. */
+export function questionTopic(q: Pick<IntelligenceQuestionView, 'prompt' | 'topic'>): string {
+  if (q.topic) return q.topic
+  const words = q.prompt.replace(/\?$/, '').split(/\s+/)
+  return words.length <= 5 ? words.join(' ') : `${words.slice(0, 5).join(' ')}…`
+}

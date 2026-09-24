@@ -10,7 +10,7 @@ import styles from './Intelligence.module.css'
  * the conversation. One question at a time; answered ones leave and the next
  * one steps up. Collapsing hides the section without dismissing anything.
  */
-export function QuestionBlock({ questions, position, total, collapsed, onToggle, replyingTo, marker, onAnswer, onTellUsMore, onDefer }: {
+export function QuestionBlock({ questions, position, total, collapsed, onToggle, replyingTo, marker, onAnswer, onTellUsMore, onDefer, onBackToQuickAnswers }: {
   questions: IntelligenceQuestionView[]
   position: number
   total: number
@@ -21,6 +21,7 @@ export function QuestionBlock({ questions, position, total, collapsed, onToggle,
   onAnswer: (id: string, choice: string) => Promise<string | null>
   onTellUsMore: (id: string) => void
   onDefer: (id: string) => void
+  onBackToQuickAnswers: () => void
 }) {
   const current = questions[0]
   if (!current) return null
@@ -38,16 +39,18 @@ export function QuestionBlock({ questions, position, total, collapsed, onToggle,
       <div id="questions-body" hidden={collapsed}>
         <ol className={styles.questions}>
           <Question key={current.id} q={current} active={current.id === replyingTo}
-            onAnswer={onAnswer} onTellUsMore={onTellUsMore} onDefer={onDefer} />
+            onAnswer={onAnswer} onTellUsMore={onTellUsMore} onDefer={onDefer} onBack={onBackToQuickAnswers} />
         </ol>
       </div>
     </section>
   )
 }
 
-export function Question({ q, onAnswer, onTellUsMore, onDefer, compact = false, active = false }: {
+export function Question({ q, onAnswer, onTellUsMore, onDefer, onBack, compact = false, active = false }: {
   q: IntelligenceQuestionView
+  /** Being answered in words: the quick answers step aside. */
   active?: boolean
+  onBack?: () => void
   onAnswer: (id: string, choice: string) => Promise<string | null>
   onTellUsMore: (id: string) => void
   onDefer?: (id: string) => void
@@ -58,13 +61,17 @@ export function Question({ q, onAnswer, onTellUsMore, onDefer, compact = false, 
   const answered = q.status === 'answered'
 
   return (
-    <li className={[styles.question, compact && styles.compactQuestion, active && styles.activeQuestion].filter(Boolean).join(' ')}>
+    <li className={[styles.question, compact && styles.compactQuestion].filter(Boolean).join(' ')}>
       <p className={styles.prompt}>{q.prompt}</p>
       {answered ? (
         <p className={styles.answered}>
           You answered: {[q.answer?.choice, q.answer?.body].filter(Boolean).join('. ') || 'thanks'}
           {q.example && ' (example, not saved)'}
         </p>
+      ) : active ? (
+        <div className={styles.choices}>
+          <button type="button" className={styles.linkButton} onClick={onBack}>Back to quick answers</button>
+        </div>
       ) : (
         <>
           <div className={styles.choices} role="group" aria-label={q.prompt}>
@@ -74,7 +81,7 @@ export function Question({ q, onAnswer, onTellUsMore, onDefer, compact = false, 
                 {c}
               </button>
             ))}
-            <button type="button" className={styles.choice} disabled={busy} aria-pressed={active} onClick={() => onTellUsMore(q.id)}>{TELL_US_MORE}</button>
+            <button type="button" className={styles.choice} disabled={busy} onClick={() => onTellUsMore(q.id)}>{TELL_US_MORE}</button>
             {onDefer && <button type="button" className={styles.linkButton} disabled={busy} onClick={() => onDefer(q.id)}>Not now</button>}
           </div>
           {problem && <p className={styles.problem} role="alert">{problem}</p>}

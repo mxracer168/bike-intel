@@ -9,7 +9,7 @@ import { Icon } from '@/ui/Icon'
 import { Composer, type ComposerHandle } from './Composer'
 import { QuestionBlock } from './QuestionBlock'
 import { Transcript } from './Transcript'
-import { topQuestions, type ConversationEntry, type IntelligenceQuestionView } from './types'
+import { questionTopic, topQuestions, type ConversationEntry, type IntelligenceQuestionView } from './types'
 import styles from './Intelligence.module.css'
 
 type Surface = 'panel' | 'check_in' | 'order'
@@ -215,7 +215,7 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
         <Composer
           ref={composer}
           disabled={!canWrite}
-          replyingTo={tellUsMoreQuestion?.prompt ?? null}
+          replyingTo={tellUsMoreQuestion ? questionTopic(tellUsMoreQuestion) : null}
           onCancelReply={() => setTellUsMoreFor(null)}
           onSend={send}
           onAttach={attach}
@@ -234,6 +234,7 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
             onAnswer={(id, choice) => answer(id, choice, null, 'panel')}
             onTellUsMore={(id) => { setCollapsed(false); setTellUsMoreFor(id); composer.current?.focus() }}
             onDefer={defer}
+            onBackToQuickAnswers={() => { setTellUsMoreFor(null); composer.current?.focus() }}
           />
         )}
       </dialog>

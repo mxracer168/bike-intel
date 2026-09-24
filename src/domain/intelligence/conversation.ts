@@ -24,6 +24,8 @@ export type QuestionState = 'open' | 'answered' | 'deferred' | 'withdrawn'
 export type IntelligenceQuestionView = {
   id: string
   prompt: string
+  /** A few words naming the question ("Trail tires"), for orientation while answering. */
+  topic?: string
   choices: string[]
   status: QuestionState
   answer?: { choice: string | null; body: string | null }

@@ -49,9 +49,9 @@ export const demoPriorities: WorkItemView[] = [
 export const DEMO_CEDAR_RIDGE = 'demo-cedar-ridge'
 
 export const demoIntelligenceQuestions: IntelligenceQuestionView[] = [
-  { id: DEMO_CEDAR_RIDGE, prompt: 'Should we carry more trail tires ahead of the Cedar Ridge opening?', choices: ['Yes, a few more', 'Keep it normal', 'Not sure yet'], status: 'open', example: true },
-  { id: 'demo-winter-service', prompt: 'Are you running a winter service special this year?', choices: ['Yes', 'No', 'Not decided'], status: 'open', example: true },
-  { id: 'demo-tubes-26', prompt: 'Do you want to keep stocking 26-inch tubes?', choices: ['Yes', 'Just a few', 'No'], status: 'open', example: true },
+  { id: DEMO_CEDAR_RIDGE, topic: 'Trail tires', prompt: 'Should we carry more trail tires ahead of the Cedar Ridge opening?', choices: ['Yes, a few more', 'Keep it normal', 'Not sure yet'], status: 'open', example: true },
+  { id: 'demo-winter-service', topic: 'Winter service special', prompt: 'Are you running a winter service special this year?', choices: ['Yes', 'No', 'Not decided'], status: 'open', example: true },
+  { id: 'demo-tubes-26', topic: '26-inch tubes', prompt: 'Do you want to keep stocking 26-inch tubes?', choices: ['Yes', 'Just a few', 'No'], status: 'open', example: true },
 ]
 
 export const demoSync: SyncStatus = { state: 'ok', label: 'All synced · 7:40 am' }

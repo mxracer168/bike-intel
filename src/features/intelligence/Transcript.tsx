@@ -18,8 +18,8 @@ function looksLikeQuestion(body: string | null) {
 
 /**
  * The conversation as a quiet transcript. What the retailer says sits to the
- * right on a faint surface; the assistant speaks in plain text, marked only
- * by a small sign. A day line appears when the day changes.
+ * right on a faint surface; replies are plain editorial text on the left,
+ * with no icon or label. A day line appears when the day changes.
  */
 export function Transcript({ entries, pending, label = 'Conversation' }: {
   entries: ConversationEntry[]; pending: string | null; label?: string
@@ -44,11 +44,9 @@ export function Transcript({ entries, pending, label = 'Conversation' }: {
             <p className={styles.checkInMark}>{e.body ?? 'Weekly check-in'}</p>
           ) : (
             <>
-              {!sameSpeaker && e.author === 'system' && (
-                <p className={styles.speaker}><i className={styles.mark} aria-hidden="true" /><span className="visually-hidden">Assistant</span></p>
-              )}
+              {/* Who is speaking is carried by layout; screen readers get it in words. */}
+              <span className="visually-hidden">{e.author === 'system' ? 'Reply:' : e.author === 'you' ? 'You:' : ''}</span>
               {!sameSpeaker && e.author === 'teammate' && <p className={styles.speaker}>A teammate</p>}
-              {e.author !== 'system' && <span className="visually-hidden">{e.author === 'you' ? 'You:' : ''}</span>}
               <Body entry={e} />
               {unanswered && <p className={styles.notYet}>I can’t answer questions yet. It’s saved here.</p>}
               {e.note && <p className={styles.notYet}>{e.note}</p>}
@@ -90,5 +88,11 @@ function Body({ entry: e }: { entry: ConversationEntry }) {
       </div>
     )
   }
-  return <p className={styles.said}>{e.body}</p>
+  // Paragraphs, not one block: the assistant writes like an editor, not a chat bubble.
+  const paragraphs = (e.body ?? '').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
+  return (
+    <div className={styles.said}>
+      {paragraphs.map((p, i) => <p key={i}>{p}</p>)}
+    </div>
+  )
 }

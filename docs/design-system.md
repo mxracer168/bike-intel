@@ -38,11 +38,13 @@ Feature components: `OrderList` (proposed orders at supplier level, one
 comparable row each), `HealthSnapshot` (Today's few figures), `WeeklyCheckIn` (one optional line
 back into the conversation), `IntelligenceProvider` / `AddContextButton` (the
 retailer's ongoing conversation with one assistant, speaking as "I", in a
-side panel: the retailer's words sit right on a faint surface, the assistant's
-are plain text with a small mark, and the composer ("Ask or tell me
+side panel: the retailer's words sit right on a faint surface, replies are
+plain editorial text with no icon, label or bubble, and the composer ("Ask or tell me
 anything": attach, write, dictate, send) sits directly beneath; below that,
 on a quieter surface, "Questions for you" shows one question at a time
-("2 of 3") with quick answers, "Tell us more" and "Not now", can be
+("2 of 3") with quick answers, "Tell us more" and "Not now" (while answering
+in words, the quick answers step aside for "Back to quick answers" and the
+composer shows a short "Answering: Trail tires"), can be
 collapsed to a single row ("Questions for you · 3") without dismissing
 anything, and is gone entirely when none are open), `InlineQuestion`
 (the same question shown where it matters; answered once),

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { OrderSummary } from '@/features/orders/types'
-import { MAX_QUESTIONS, topQuestions, type IntelligenceQuestionView } from '@/features/intelligence/types'
+import { MAX_QUESTIONS, questionTopic, topQuestions, type IntelligenceQuestionView } from '@/features/intelligence/types'
 import { orderPriority } from '@/features/work/fromOrder'
 
 const q = (id: string, status: IntelligenceQuestionView['status'] = 'open'): IntelligenceQuestionView =>
@@ -19,6 +19,14 @@ describe('intelligence questions', () => {
 
   it('does not ask answered or retired questions again; deferred ones roll over', () => {
     expect(topQuestions([q('a', 'answered'), q('b', 'withdrawn'), q('c', 'deferred'), q('d')]).map((x) => x.id)).toEqual(['c', 'd'])
+  })
+})
+
+describe('question topics', () => {
+  it('uses the short topic when there is one, else the first few words', () => {
+    expect(questionTopic({ prompt: 'Should we carry more trail tires ahead of the Cedar Ridge opening?', topic: 'Trail tires' })).toBe('Trail tires')
+    expect(questionTopic({ prompt: 'Should we carry more trail tires ahead of the Cedar Ridge opening?' })).toBe('Should we carry more trail…')
+    expect(questionTopic({ prompt: 'Keep 26-inch tubes?' })).toBe('Keep 26-inch tubes')
   })
 })
 
