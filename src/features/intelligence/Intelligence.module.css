@@ -57,16 +57,16 @@
 .fileLink { color: var(--ink); font-weight: 600; overflow-wrap: anywhere; }
 .fileMeta { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
 
-/* ---------- Questions for you: below the composer, quieter surface ---------- */
+/* ---------- Questions for you: soft Harbor blue = something the system needs from you ---------- */
 .block {
   flex: none; max-height: 42%; overflow-y: auto;
-  background: var(--subtle); border-top: 1px solid var(--line);
+  background: var(--accent-soft);
   padding: var(--sp-3) var(--sp-5) var(--sp-4);
 }
-.blockCollapsed { padding-bottom: var(--sp-3); }
+.blockCollapsed { padding-top: var(--sp-2); padding-bottom: var(--sp-2); }
 .blockTitle {
   display: flex; align-items: center; gap: var(--sp-2);
-  font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 600; color: var(--ink-2);
+  font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2);
 }
 .blockToggle {
   display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 4px 0; cursor: pointer;
@@ -77,21 +77,24 @@
 .blockToggle[aria-expanded='false'] .toggleIcon { transform: rotate(180deg); }
 .count { font-weight: 400; }
 .progress { margin-left: auto; font-weight: 400; font-variant-numeric: tabular-nums; }
-.questions { list-style: none; display: flex; flex-direction: column; gap: var(--sp-4); padding-top: var(--sp-3); }
-.question { display: flex; flex-direction: column; gap: var(--sp-2); }
-.prompt { font-weight: 600; }
+.questions { list-style: none; display: flex; flex-direction: column; gap: var(--sp-4); padding-top: var(--sp-2); }
+.question { display: flex; flex-direction: column; gap: var(--sp-3); }
+.prompt { font-weight: 600; color: var(--ink); }
 .choices { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+/* Answers lift slightly off the blue: white, a simple border, no shadow. */
 .choice {
   min-height: 34px; padding: 5px 12px; font-size: 14px; font-weight: 500; color: var(--ink); cursor: pointer;
   background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-md);
+  transition: border-color var(--t-fast), color var(--t-fast);
 }
-.choice:hover { background: var(--canvas); }
-.choice[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
-.choice:disabled { color: var(--ink-3); cursor: default; }
+.choice:hover { border-color: var(--accent-muted); }
+.choice[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.choice:disabled:not([aria-pressed='true']) { color: var(--ink-3); cursor: default; }
+.choice:disabled { cursor: default; }
 .answered { font-size: 14px; color: var(--ink-2); }
 .notYet { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
 
-.linkButton { border: 0; background: none; padding: 6px 4px; font-size: 14px; color: var(--ink-2); cursor: pointer; }
+.linkButton { border: 0; background: none; padding: 6px 0; font-size: 14px; color: var(--ink-2); cursor: pointer; }
 .linkButton:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---------- Composer: one obvious place to write ---------- */

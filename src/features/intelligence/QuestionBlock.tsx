@@ -57,7 +57,19 @@ export function Question({ q, onAnswer, onTellUsMore, onDefer, onBack, compact =
   compact?: boolean
 }) {
   const [busy, setBusy] = useState(false)
+  const [chosen, setChosen] = useState<string | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
+
+  // Show the chosen answer as selected for a moment before the next question steps up.
+  async function choose(c: string) {
+    setBusy(true)
+    setChosen(c)
+    await new Promise((r) => setTimeout(r, 350))
+    const message = await onAnswer(q.id, c)
+    setProblem(message)
+    if (message) setChosen(null)
+    setBusy(false)
+  }
   const answered = q.status === 'answered'
 
   return (
@@ -75,8 +87,8 @@ export function Question({ q, onAnswer, onTellUsMore, onDefer, onBack, compact =
         <>
           <div className={styles.choices} role="group" aria-label={q.prompt}>
             {q.choices.map((c) => (
-              <button key={c} type="button" className={styles.choice} disabled={busy}
-                onClick={async () => { setBusy(true); setProblem(await onAnswer(q.id, c)); setBusy(false) }}>
+              <button key={c} type="button" className={styles.choice} disabled={busy} aria-pressed={chosen === c}
+                onClick={() => void choose(c)}>
                 {c}
               </button>
             ))}

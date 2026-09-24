@@ -44,7 +44,8 @@ arrows move between messages); the retailer's words sit right on a faint
 surface, replies are plain editorial text with no icon, label or bubble, and
 the composer ("Ask or tell me
 anything": attach, write, dictate, send) sits directly beneath; below that,
-on a quieter surface, "Questions for you" shows one question at a time
+on a full-width soft Harbor blue (`--accent-soft`, meaning "the system needs
+something from you"; white answer buttons, charcoal text), "Questions for you" shows one question at a time
 ("2 of 3") with quick answers, "Tell us more" and "Not now" (while answering
 in words, the quick answers step aside for "Back to quick answers" and the
 composer shows a short "Answering: Trail tires"), can be
