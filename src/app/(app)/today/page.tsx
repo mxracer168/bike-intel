@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 import { isDemoPreviewEnabled } from '@/demo/config'
-import { demoOrders, demoWork } from '@/demo/orders'
+import { demoHealth, demoPriorities } from '@/demo/today'
 import { listLocations } from '@/domain/location/list'
-import { OrderList } from '@/features/orders/OrderList'
-import { summarizeOrder } from '@/features/orders/summarize'
 import styles from '@/features/orders/Orders.module.css'
 import { formatToday } from '@/features/today/formatToday'
+import { HealthSnapshot } from '@/features/today/HealthSnapshot'
+import { WeeklyCheckIn } from '@/features/today/WeeklyCheckIn'
 import { WorkList } from '@/features/work/WorkList'
 import { requireOrganization } from '@/server/session'
 import { ExampleMarker } from '@/ui/Example'
@@ -13,44 +13,47 @@ import { Page } from '@/ui/Layout'
 
 export const metadata: Metadata = { title: 'Today' }
 
-const numberWords = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine']
+const numberWords = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
 
-function headline(orders: number) {
-  if (orders === 0) return 'Nothing needs your attention yet.'
-  const n = orders < numberWords.length ? numberWords[orders]!.toLowerCase() : String(orders)
-  return orders === 1 ? 'We found one order worth working on.' : `We found ${n} orders worth working on.`
+function headline(count: number) {
+  if (count === 0) return 'Nothing needs your attention yet.'
+  const n = count < numberWords.length ? numberWords[count]! : String(count)
+  const sentence = count === 1 ? 'One thing is worth your time today.' : `${n} things are worth your time today.`
+  return sentence.charAt(0).toUpperCase() + sentence.slice(1)
 }
 
-/** What deserves attention today: orders at supplier level first, then everything else. */
+/** Today does two things: a small health snapshot and one ranked list of what to do. */
 export default async function TodayPage() {
   const { db, organization } = await requireOrganization()
   const locations = await listLocations(db, organization.id)
   const today = formatToday(locations[0]?.timezone)
   const demo = isDemoPreviewEnabled()
-  const orders = demo ? demoOrders.map(summarizeOrder) : []
-  const work = demo ? demoWork : []
+  const health = demo ? demoHealth : []
+  const priorities = demo ? demoPriorities : []
 
   return (
     <Page>
       <header className={styles.head}>
         <p className={styles.eyebrow}>{today}{demo && <ExampleMarker />}</p>
-        <h1 className={styles.title}>{headline(orders.length)}</h1>
+        <h1 className={styles.title}>{headline(priorities.length)}</h1>
         {!demo && <p className={styles.lead}>Once your sales are connected, this is where you’ll see what to reorder and anything else worth your time.</p>}
       </header>
 
-      {orders.length > 0 && (
-        <section className={styles.section} aria-labelledby="today-orders">
-          <h2 id="today-orders" className="visually-hidden">Orders</h2>
-          <OrderList orders={orders} label="Proposed orders" />
+      {health.length > 0 && (
+        <section aria-labelledby="today-health">
+          <h2 id="today-health" className="visually-hidden">This week at a glance</h2>
+          <HealthSnapshot metrics={health} />
         </section>
       )}
 
-      {work.length > 0 && (
-        <section className={styles.section} aria-labelledby="today-other">
-          <h2 id="today-other" className={styles.sectionTitle}>Also today</h2>
-          <WorkList items={work} example={demo} />
+      {priorities.length > 0 && (
+        <section aria-labelledby="today-priorities">
+          <h2 id="today-priorities" className="visually-hidden">Priorities</h2>
+          <WorkList items={priorities} label="Priorities, most important first" example={demo} />
         </section>
       )}
+
+      <WeeklyCheckIn />
     </Page>
   )
 }

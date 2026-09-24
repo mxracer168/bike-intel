@@ -76,8 +76,12 @@ email + password and email confirmation.
   where their content now lives.
 - **Presentation shapes, not data models.** `ProposedOrderView` /
   `OrderLineView` / `OrderSummary`, `WorkItemView` and `SupplierPresentation`
-  describe what screens render. Today summarizes orders at supplier level
-  (`features/orders/summarize.ts`); line evidence stays on the order. Real data is mapped
+  describe what screens render. Today is a health snapshot plus one ranked
+  list of `WorkItemView`s; an order becomes one item
+  (`features/work/fromOrder.ts`) and line evidence stays on the order.
+- **Context gathering and sync status** are shell features: an "Add context"
+  side panel (a note plus at most three questions) and one sync line. Both
+  are example-only for now and save nothing; `context_item` will be their home. Real data is mapped
   into them; they carry no schema commitments. A supplier page is an identity
   plus an ordered list of typed sections, so it can be sparse or rich.
 - **Example data** lives in `src/demo/`, gated by `DEMO_PREVIEW` (default on

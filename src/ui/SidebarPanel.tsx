@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { isCurrent, navigation } from '@/content/navigation'
+import type { SyncStatus } from '@/features/context/types'
 import { signOutAction } from '@/server/actions/auth'
 import styles from './AppShell.module.css'
 
@@ -18,8 +19,8 @@ function initials(text: string) {
 
 /** Sidebar content, shared by the desktop sidebar and the phone panel. */
 export function SidebarPanel({
-  retailer, account, logo, inDrawer = false,
-}: { retailer: ShellRetailer; account: ShellAccount; logo: ReactNode; inDrawer?: boolean }) {
+  retailer, account, sync, logo, inDrawer = false,
+}: { retailer: ShellRetailer; account: ShellAccount; sync?: SyncStatus; logo: ReactNode; inDrawer?: boolean }) {
   const pathname = usePathname()
   return (
     <div className={styles.panel}>
@@ -45,6 +46,12 @@ export function SidebarPanel({
           <span className={styles.retailerMeta}>
             {retailer.locationCount === 1 ? '1 location' : `${retailer.locationCount} locations`}
           </span>
+          {sync?.state === 'ok' && <span className={styles.retailerMeta}>{sync.label}</span>}
+          {sync?.state === 'attention' && (
+            sync.href
+              ? <Link href={sync.href} className={styles.syncAttention}>{sync.label}</Link>
+              : <span className={styles.syncAttention}>{sync.label}</span>
+          )}
         </section>
 
         {/* The person's own account, kept separate from the business. */}

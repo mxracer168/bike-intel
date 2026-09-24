@@ -6,7 +6,6 @@
  */
 import { average, describeCover, describeWeeklyRate } from '@/domain/language/plain'
 import type { Confidence, LineState, OrderLineView, ProposedOrderView } from '@/features/orders/types'
-import type { WorkItemView } from '@/features/work/types'
 
 /** Small seeded PRNG (mulberry32): same seed, same example data. */
 function random(seed: number) {
@@ -244,27 +243,3 @@ export const demoOrders: ProposedOrderView[] = [northline, summit, cascade]
 export function findDemoOrder(id: string): ProposedOrderView | undefined {
   return demoOrders.find((o) => o.id === id)
 }
-
-/** Everything else on Today. Rendered generically; none of it has logic behind it. */
-export const demoWork: WorkItemView[] = [
-  {
-    id: 'ridgeline-booking',
-    kind: 'booking',
-    title: 'Ridgeline’s spring 2027 booking closes October 2.',
-    detail: 'Booking 12 bikes earns the first discount tier.',
-    action: { href: '/suppliers/demo-ridgeline', label: 'See the program' },
-  },
-  {
-    id: 'fox-dropper-excess',
-    kind: 'excess',
-    title: 'You have more Fox Transfer droppers than you’re likely to sell before spring.',
-    detail: '9 on hand; you usually sell about 3 by March.',
-  },
-  {
-    id: 'cedar-ridge',
-    kind: 'question',
-    title: 'Will the new Cedar Ridge trails open before spring?',
-    detail: 'It changes how much trail gear we suggest for early spring.',
-    choices: ['Yes, this spring', 'Not sure yet', 'No'],
-  },
-]

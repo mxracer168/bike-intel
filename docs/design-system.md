@@ -35,9 +35,13 @@ retailer, personal account; phone panel via native `<dialog>`), `FocusedShell`,
 tabs for a page's sub-pages), `ExampleMarker` / `ExampleRegion`.
 
 Feature components: `OrderList` (proposed orders at supplier level, one
-comparable row each), `OrderReview` (one supplier's order as a dense table;
+comparable row each), `HealthSnapshot` (Today's few figures), `WeeklyCheckIn` (one optional line
+that opens the context panel), `ContextProvider` / `AddContextButton` (the
+"Add context" side panel: one short note that works with device dictation
+and at most three questions, none when there's nothing worth asking),
+`OrderReview` (one supplier's order as a dense table;
 each line expands to answer → reason, evidence only on request), `WorkList`
-(every other kind of work on Today, one generic row shape), `EvidenceChart`
+(Today's ranked priorities: orders, deadlines, stock, sync problems, one row shape), `EvidenceChart`
 (weekly sales; single series, per-bar tooltip, screen-reader table),
 `SupplierProfile` (identity + ordered typed sections), `SupplierDirectory`
 (instant name search).
@@ -48,13 +52,14 @@ Built later with the features that need them: dialogs with undo.
 
 | Level | Screen | Question it answers | Shows |
 |---|---|---|---|
-| 1 | Today | What deserves my attention? | Orders at supplier level (lines, confident, to review, questions, estimate, cutoff, free-freight gap) and other work. No line evidence. |
+| 1 | Today | What deserves my attention? | A small health snapshot and one ranked priority list; an order appears as one priority (what it needs, lines, estimate). No line evidence. |
 | 2 | Proposed order | What should I buy from this supplier? | Every line: product, on hand, on order, quantity, cost, what needs a look. |
 | 3 | Line (expanded in place) | Why this quantity? | "Order 6", one reason; evidence (sales, stock, season, supplier stock, confidence, assumptions, alternatives) only when asked. |
 
 ## Rules (enforced where possible)
 
-1. Lead every screen with an answer or a next step, as a sentence. Never a grid of metrics.
+1. Lead every screen with an answer or a next step, as a sentence. Never a grid of metrics; Today's
+   health snapshot is the one exception (at most five figures, plain text, no tiles or charts).
 2. One primary (Harbor blue) button per screen. Everything else secondary or quiet.
 3. Tokens only. No raw colors outside `tokens.css`. *(test: `design-rules.test.ts`)*
 4. Hanken Grotesk 400/600, 500 for 13px labels; 13px minimum; sentence case; no all caps. *(test)*
@@ -76,3 +81,5 @@ Built later with the features that need them: dialogs with undo.
     (on by default in development, off elsewhere). *(test: `demo-guard.test.ts`)*
 14. Subtract before adding: if something doesn't help the person understand, decide
     or act, remove it. Prefer type, spacing and alignment over cards, borders and pills.
+15. Reconciliation stays quiet: one muted sync line in the sidebar when all is well. A
+    problem becomes a ranked priority on Today, never a banner.

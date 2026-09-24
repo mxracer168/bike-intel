@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest'
  * import from src/demo. Adding one here is a deliberate, reviewed decision.
  */
 const ALLOWED = new Set([
+  'src/app/(app)/layout.tsx',
   'src/app/(app)/today/page.tsx',
   'src/app/(app)/orders/page.tsx',
   'src/app/(app)/orders/[orderId]/page.tsx',

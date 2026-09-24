@@ -1,9 +1,10 @@
 /**
- * One item on Today's work queue beyond orders. Generic on purpose: a booking
- * deadline, excess stock, unusual sales, an order ready for approval, a
- * supplier opportunity or a question all render the same way.
+ * One item on Today's ranked priority list. Generic on purpose: an order to
+ * review, a booking deadline, excess stock, unusual sales, an order ready for
+ * approval, a supplier opportunity, a sync problem or a question all render
+ * the same way. The kind is for ranking and logic later, not for display.
  */
-export type WorkKind = 'booking' | 'excess' | 'unusual' | 'approval' | 'opportunity' | 'question'
+export type WorkKind = 'order' | 'booking' | 'excess' | 'unusual' | 'approval' | 'opportunity' | 'sync' | 'question'
 
 export type WorkItemView = {
   id: string

@@ -1,0 +1,29 @@
+.health {
+  margin: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-4) var(--sp-5);
+}
+.metric { display: flex; flex-direction: column; min-width: 0; }
+.metric dd { margin: 0; }
+.metricLabel { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); }
+.metricValue { font-size: var(--fs-answer); line-height: var(--lh-answer); font-weight: 600; letter-spacing: -0.015em; font-variant-numeric: tabular-nums; }
+.metricNote { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+
+.checkIn {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2) var(--sp-4);
+  padding: var(--sp-3) var(--sp-4); background: var(--subtle); border-radius: var(--r-md);
+}
+.checkInActions { display: flex; align-items: center; gap: var(--sp-2); }
+.checkInPrimary, .checkInQuiet {
+  border: 0; background: none; cursor: pointer; font-size: 14px; padding: 6px 8px; border-radius: var(--r-sm);
+}
+.checkInPrimary { color: var(--accent); font-weight: 600; }
+.checkInPrimary:hover { background: var(--accent-soft); }
+.checkInQuiet { color: var(--ink-2); }
+.checkInQuiet:hover { color: var(--ink); background: var(--sunken); }
+
+@media (max-width: 900px) {
+  .health { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .health { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3) var(--sp-4); }
+  .metricValue { font-size: var(--fs-heading); line-height: var(--lh-heading); }
+}

@@ -1,24 +1,14 @@
 import Link from 'next/link'
 import { QuickAnswer } from './QuickAnswer'
-import type { WorkItemView, WorkKind } from './types'
+import type { WorkItemView } from './types'
 import styles from './Work.module.css'
 
-const kindLabel: Record<WorkKind, string> = {
-  booking: 'Booking',
-  excess: 'Too much stock',
-  unusual: 'Unusual sales',
-  approval: 'Ready to approve',
-  opportunity: 'Opportunity',
-  question: 'Question',
-}
-
-/** Everything on Today that isn't a proposed order. One shape for every kind of work. */
-export function WorkList({ items, example = false }: { items: WorkItemView[]; example?: boolean }) {
+/** Today's ranked priorities. One row shape for every kind of work; order is rank. */
+export function WorkList({ items, label, example = false }: { items: WorkItemView[]; label: string; example?: boolean }) {
   return (
-    <ul className={styles.list}>
+    <ol className={styles.list} aria-label={label}>
       {items.map((item) => (
         <li key={item.id} className={styles.item}>
-          <p className={styles.kind}>{kindLabel[item.kind]}</p>
           <div className={styles.body}>
             <p className={styles.title}>{item.title}</p>
             {item.detail && <p className={styles.detail}>{item.detail}</p>}
@@ -27,6 +17,6 @@ export function WorkList({ items, example = false }: { items: WorkItemView[]; ex
           {item.action && <Link href={item.action.href} className={styles.action}>{item.action.label}</Link>}
         </li>
       ))}
-    </ul>
+    </ol>
   )
 }

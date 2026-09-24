@@ -12,6 +12,12 @@
   background: var(--surface); border-right: 1px solid var(--line);
 }
 .main { min-width: 0; }
+.topBar {
+  display: flex; justify-content: flex-end; align-items: center;
+  max-width: calc(var(--page-width) + 2 * var(--gutter)); margin: 0 auto; padding: var(--sp-4) var(--gutter) 0;
+}
+.topBar + main > * { padding-top: var(--sp-3); }
+.barActions { display: flex; align-items: center; gap: var(--sp-1); }
 
 .mobileBar { display: none; }
 
@@ -38,6 +44,7 @@
 .retailer { display: flex; flex-direction: column; padding: var(--sp-2) var(--sp-3) 0; min-width: 0; }
 .retailerName { font-size: 14px; font-weight: 600; line-height: 20px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .retailerMeta { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+.syncAttention { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--con); }
 
 .account { position: relative; }
 .account summary {
@@ -87,6 +94,8 @@
 @media (max-width: 900px) {
   .shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; background: var(--canvas); }
   .sidebar { display: none; }
+  .topBar { display: none; }
+  .topBar + main > * { padding-top: var(--sp-6); }
   .mobileBar {
     display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3);
     position: sticky; top: 0; z-index: 10; min-height: 56px; padding: 0 var(--gutter);
