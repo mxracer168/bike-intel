@@ -53,8 +53,12 @@ collapsed to a single row ("Questions for you · 3") without dismissing
 anything, and is gone entirely when none are open), `InlineQuestion`
 (the same question shown where it matters; answered once),
 `OrderReview` (one supplier's order as a dense table;
-each line expands to answer → reason, evidence only on request), `WorkList`
-(Today's ranked priorities: orders, deadlines, stock, sync problems, one row shape), `EvidenceChart`
+each line expands to answer → reason, evidence only on request), `PriorityList`
+(Today's priorities: orders, deadlines, stock, sync problems, one row shape; each
+row with a destination is one link with a quiet chevron; the retailer can
+reorder by dragging a grip that appears on hover/focus, with arrow keys on the
+grip, or from a "⋯" menu (always visible on touch); no rank numbers; "Back to
+suggested order" appears only once the order has changed), `EvidenceChart`
 (weekly sales; single series, per-bar tooltip, screen-reader table),
 `SupplierProfile` (identity + ordered typed sections), `SupplierDirectory`
 (instant name search).

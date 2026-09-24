@@ -6,7 +6,7 @@ import styles from '@/features/orders/Orders.module.css'
 import { formatToday } from '@/features/today/formatToday'
 import { HealthSnapshot } from '@/features/today/HealthSnapshot'
 import { WeeklyCheckIn } from '@/features/today/WeeklyCheckIn'
-import { WorkList } from '@/features/work/WorkList'
+import { PriorityList } from '@/features/work/PriorityList'
 import { requireOrganization } from '@/server/session'
 import { ExampleMarker } from '@/ui/Example'
 import { Page } from '@/ui/Layout'
@@ -49,7 +49,7 @@ export default async function TodayPage() {
       {priorities.length > 0 && (
         <section aria-labelledby="today-priorities">
           <h2 id="today-priorities" className="visually-hidden">Priorities</h2>
-          <WorkList items={priorities} label="Priorities, most important first" example={demo} />
+          <PriorityList items={priorities} storageKey={`today-order:${organization.id}`} label="Priorities" example={demo} />
         </section>
       )}
 

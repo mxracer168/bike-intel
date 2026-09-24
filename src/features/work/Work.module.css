@@ -1,19 +1,77 @@
-.list { list-style: none; display: flex; flex-direction: column; counter-reset: rank; }
+.wrap { display: flex; flex-direction: column; gap: var(--sp-2); }
+.list { list-style: none; display: flex; flex-direction: column; }
+
+/* A calm row: grip · text · chevron · "⋯". Grip and menu stay out of sight until wanted. */
 .item {
-  counter-increment: rank;
-  display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: var(--sp-1) var(--sp-3);
-  align-items: baseline; padding: var(--sp-4) 0; border-bottom: 1px solid var(--line);
+  position: relative;
+  display: grid; grid-template-columns: 24px minmax(0, 1fr) 20px 32px; gap: 0 var(--sp-2); align-items: center;
+  padding: var(--sp-4) var(--sp-2) var(--sp-4) 0; margin: 0 calc(-1 * var(--sp-2)) 0 calc(-1 * var(--sp-6));
+  border-radius: var(--r-md);
+  transition: background var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
 }
-.item::before { content: counter(rank); font-size: var(--fs-label); color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.item:last-child { border-bottom: 0; }
-.body { display: flex; flex-direction: column; gap: 2px; }
-.title { font-weight: 600; }
+/* Hairline separators, inset to the text so the rounded hover never bends them. */
+.item + .item::before {
+  content: ''; position: absolute; top: 0; left: var(--sp-6); right: var(--sp-2); height: 1px; background: var(--line);
+}
+.item:hover::before, .item:hover + .item::before, .dragging::before, .dragging + .item::before { background: transparent; }
+.linked { cursor: pointer; }
+.linked:hover { background: var(--subtle); }
+.item:has(.rowLink:focus-visible) { box-shadow: var(--focus-ring); }
+/* The row being dragged: a quiet lift, nothing more. */
+.dragging { background: var(--surface); box-shadow: var(--sh-2); }
+
+.body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.title, .rowLink { font-weight: 600; color: var(--ink); }
+.rowLink { text-decoration: none; }
+.rowLink:focus-visible { box-shadow: none; }
+/* The whole row is the link. */
+.rowLink::after { content: ''; position: absolute; inset: 0; border-radius: var(--r-md); }
 .detail { font-size: 14px; color: var(--ink-2); }
-.action { font-size: 14px; white-space: nowrap; }
+.go { display: inline-flex; color: var(--ink-3); }
+.linked:hover .go { color: var(--ink-2); }
+
+.grip, .moreButton {
+  position: relative; z-index: 1; width: 24px; height: 28px; display: grid; place-items: center;
+  border: 0; background: none; color: var(--ink-3); border-radius: var(--r-sm); cursor: grab;
+  opacity: 0; transition: opacity var(--t-fast);
+}
+.moreButton { width: 32px; cursor: pointer; }
+.grip:hover, .moreButton:hover { color: var(--ink); background: var(--sunken); }
+.item:hover .grip, .item:hover .moreButton, .item:focus-within .grip, .item:focus-within .moreButton,
+.grip:focus-visible, .moreButton[aria-expanded='true'], .dragging .grip { opacity: 1; }
+.grip:active { cursor: grabbing; }
+
+.more { position: relative; z-index: 2; justify-self: end; }
+.menu {
+  position: absolute; right: 0; top: calc(100% + 4px); min-width: 160px; z-index: 5;
+  display: flex; flex-direction: column; padding: var(--sp-1);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--sh-2);
+}
+.menu button {
+  text-align: left; border: 0; background: none; padding: 8px 10px; font-size: 14px; color: var(--ink);
+  border-radius: var(--r-sm); cursor: pointer;
+}
+.menu button:hover { background: var(--subtle); }
+.menu button:disabled { color: var(--ink-3); cursor: default; background: none; }
+
+.reset {
+  align-self: flex-start; border: 0; background: none; padding: 4px 0; font-size: 14px; color: var(--ink-2); cursor: pointer;
+}
+.reset:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
 .answer { display: flex; flex-direction: column; gap: var(--sp-2); padding-top: var(--sp-2); }
 .thanks { font-size: 14px; color: var(--ink-2); }
 
+/* Touch screens: no drag (it fights scrolling); the "⋯" menu is always there, quietly. */
+@media (hover: none) {
+  .grip { display: none; }
+  .item { grid-template-columns: minmax(0, 1fr) 20px 32px; margin-left: calc(-1 * var(--sp-2)); padding-left: var(--sp-2); }
+  .item + .item::before { left: var(--sp-2); }
+  .moreButton { opacity: 1; }
+}
 @media (max-width: 640px) {
-  .item { grid-template-columns: 20px minmax(0, 1fr); }
-  .action { grid-column: 2; }
+  .grip { display: none; }
+  .item { grid-template-columns: minmax(0, 1fr) 20px 32px; margin-left: calc(-1 * var(--sp-2)); padding-left: var(--sp-2); }
+  .item + .item::before { left: var(--sp-2); }
+  .moreButton { opacity: 1; }
 }

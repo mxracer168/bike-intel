@@ -96,6 +96,27 @@ when, scope, lifespan, stated vs inferred, confidence and a review or expiry
 date. The original message or file is never changed. Inferred items are shown
 as inferred and can be confirmed or rejected by the retailer.
 
+## System priority and the retailer's order
+
+Today's priorities have two orders, kept apart on purpose:
+
+- **System priority**: what we believe matters most, as ranked by the
+  application. It is never overwritten by the retailer's choices.
+- **User order**: how the retailer chooses to work through the list. It is
+  layered on top (`features/work/order.ts`): a list of item ids; items it
+  doesn't mention keep their system position.
+
+Today the user order is kept only in the browser (`localStorage`, per
+retailer). To persist it, store per person and retailer: the item key (stable
+across days, e.g. `order:<purchase order id>`), the chosen position, and when
+it was set, alongside the system rank at that moment.
+
+**Reordering is a signal.** Moves are behavioral data worth keeping: which
+system-ranked items people consistently move up, move down or defer. When
+persistence is built, record each move (item key, system rank, from, to, when)
+as an append-only event, separate from the current order, so the ranking can
+later learn from it. No learning is built yet.
+
 ## Voice
 
 The device's own dictation only (phone keyboards, operating-system
