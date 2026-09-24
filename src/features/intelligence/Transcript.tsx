@@ -11,51 +11,53 @@ function dayLabel(iso: string, now = new Date()) {
   return new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(d)
 }
 
-const time = (iso: string) => new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(new Date(iso)).toLowerCase()
-
-const who = { you: 'You', teammate: 'A teammate', system: 'We' } as const
-
 /** A plain heuristic for display only; nothing is stored or decided from it. */
 function looksLikeQuestion(body: string | null) {
   return Boolean(body && /\?\s*$/.test(body.trim()))
 }
 
 /**
- * The conversation as a quiet transcript: a day line when the day changes,
- * the speaker when the speaker changes. No bubbles.
+ * The conversation as a quiet transcript. What the retailer says sits to the
+ * right on a faint surface; the assistant speaks in plain text, marked only
+ * by a small sign. A day line appears when the day changes.
  */
-export function Transcript({ entries, pending }: { entries: ConversationEntry[]; pending: string | null }) {
+export function Transcript({ entries, pending, label = 'Conversation' }: {
+  entries: ConversationEntry[]; pending: string | null; label?: string
+}) {
   const rows = entries.map((e, i) => {
     const prev = entries[i - 1]
     const day = dayLabel(e.createdAt)
     const newDay = !prev || dayLabel(prev.createdAt) !== day
-    const sameSpeaker = prev && prev.author === e.author && prev.authorId === e.authorId && prev.kind !== 'check_in'
+    const sameSpeaker = Boolean(prev && !newDay && prev.author === e.author && prev.authorId === e.authorId)
     // Honest about what we can't do yet: a question from the retailer with no reply after it.
     const unanswered = e.author !== 'system' && e.kind === 'text' && looksLikeQuestion(e.body)
       && !entries.slice(i + 1).some((later) => later.author === 'system')
-    return { e, day, newDay, unanswered, showWho: newDay || !sameSpeaker || e.kind === 'check_in' }
+    return { e, day, newDay, sameSpeaker, unanswered }
   })
   return (
-    <ol className={styles.transcript} aria-label="Conversation">
-      {rows.map(({ e, day, newDay, showWho, unanswered }) => {
-        return (
-          <li key={e.id} className={styles.item}>
-            {newDay && <p className={styles.day}>{day}</p>}
-            {e.kind === 'check_in' ? (
-              <p className={styles.checkInMark}>{e.body ?? 'Weekly check-in'}</p>
-            ) : (
-              <>
-                {showWho && <p className={styles.who}>{who[e.author]} <span>{time(e.createdAt)}</span></p>}
-                <Body entry={e} />
-                {unanswered && <p className={styles.notYet}>We can’t answer questions yet. It’s saved here.</p>}
-                {e.example && <p className={styles.notYet}>Example answer; not saved.</p>}
-              </>
-            )}
-          </li>
-        )
-      })}
+    <ol className={styles.transcript} aria-label={label}>
+      {rows.map(({ e, day, newDay, sameSpeaker, unanswered }) => (
+        <li key={e.id} className={[styles.item, e.author === 'system' ? styles.fromAssistant : styles.fromRetailer,
+          sameSpeaker && styles.continued].filter(Boolean).join(' ')}>
+          {newDay && <p className={styles.day}>{day}</p>}
+          {e.kind === 'check_in' ? (
+            <p className={styles.checkInMark}>{e.body ?? 'Weekly check-in'}</p>
+          ) : (
+            <>
+              {!sameSpeaker && e.author === 'system' && (
+                <p className={styles.speaker}><i className={styles.mark} aria-hidden="true" /><span className="visually-hidden">Assistant</span></p>
+              )}
+              {!sameSpeaker && e.author === 'teammate' && <p className={styles.speaker}>A teammate</p>}
+              {e.author !== 'system' && <span className="visually-hidden">{e.author === 'you' ? 'You:' : ''}</span>}
+              <Body entry={e} />
+              {unanswered && <p className={styles.notYet}>I can’t answer questions yet. It’s saved here.</p>}
+              {e.note && <p className={styles.notYet}>{e.note}</p>}
+            </>
+          )}
+        </li>
+      ))}
       {pending && (
-        <li className={styles.item}>
+        <li className={[styles.item, styles.fromRetailer].join(' ')}>
           <p className={styles.attachment} aria-live="polite"><Icon name="file" /> <span>Adding {pending}…</span></p>
         </li>
       )}
@@ -68,25 +70,25 @@ function Body({ entry: e }: { entry: ConversationEntry }) {
     const a = e.attachment
     const meta = [attachmentKind(a.mime), a.size ? formatBytes(a.size) : null].filter(Boolean).join(' · ')
     return (
-      <p className={styles.attachment}>
+      <div className={styles.attachment}>
         <Icon name="file" />
         <span>
           <a href={`/files/${a.id}`} className={styles.fileLink}>{a.name}</a>
-          <span className={styles.fileMeta}>{meta}{meta && ' · '}Saved. We haven’t read it yet.</span>
+          <span className={styles.fileMeta}>{meta}{meta && ' · '}Saved. I haven’t read it yet.</span>
         </span>
-      </p>
+      </div>
     )
   }
   if (e.kind === 'question') {
-    return <p className={styles.asked}>{e.question?.prompt || e.body}</p>
+    return <p className={styles.said}>{e.question?.prompt || e.body}</p>
   }
   if (e.kind === 'answer') {
     return (
-      <div className={styles.answerEntry}>
+      <div className={styles.said}>
         {e.question?.prompt && <p className={styles.answerTo}>{e.question.prompt}</p>}
         <p>{[e.answerChoice, e.body].filter(Boolean).join('. ')}</p>
       </div>
     )
   }
-  return <p className={styles.text}>{e.body}</p>
+  return <p className={styles.said}>{e.body}</p>
 }

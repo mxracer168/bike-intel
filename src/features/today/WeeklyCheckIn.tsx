@@ -17,7 +17,7 @@ export function WeeklyCheckIn() {
   const count = api.openCount
   const line = count === 0
     ? 'Anything worth updating this week?'
-    : `${count === 1 ? 'There’s' : 'There are'} ${words[count]} we’d like to check with you this week.`
+    : `${count === 1 ? 'There’s' : 'There are'} ${words[count]} I’d like to check with you this week.`
   return (
     <aside className={styles.checkIn} aria-label="Weekly check-in">
       <p>{line}</p>

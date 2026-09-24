@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { productName } from '@/content/product'
 import { AddContextButton, IntelligenceProvider } from '@/features/intelligence/IntelligencePanel'
-import type { IntelligenceQuestionView, SyncStatus } from '@/features/intelligence/types'
+import type { ConversationEntry, IntelligenceQuestionView, SyncStatus } from '@/features/intelligence/types'
 import { MobileNav } from './MobileNav'
 import { SidebarPanel, type ShellAccount, type ShellRetailer } from './SidebarPanel'
 import styles from './AppShell.module.css'
@@ -20,7 +20,11 @@ export function Logo() {
 
 /** Shell extras: the retailer's intelligence conversation and the quiet sync line. */
 export type ShellExtras = {
-  intelligence: { questions: IntelligenceQuestionView[]; exampleQuestions: IntelligenceQuestionView[] }
+  intelligence: {
+    questions: IntelligenceQuestionView[]
+    exampleQuestions: IntelligenceQuestionView[]
+    exampleConversation: ConversationEntry[]
+  }
   sync?: SyncStatus
 }
 
@@ -57,7 +61,8 @@ export function AppShell({ retailer, account, extras, children }: {
   )
   return (
     <IntelligenceProvider retailerName={retailer.name} questions={extras.intelligence.questions}
-      exampleQuestions={extras.intelligence.exampleQuestions}>
+      exampleQuestions={extras.intelligence.exampleQuestions}
+      exampleConversation={extras.intelligence.exampleConversation}>
       {frame}
     </IntelligenceProvider>
   )

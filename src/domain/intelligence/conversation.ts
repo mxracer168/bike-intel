@@ -13,8 +13,10 @@ export type ConversationEntry = {
   attachment: { id: string; name: string; mime: string | null; size: number | null } | null
   /** For question and answer entries: what was asked. */
   question?: { prompt: string } | null
-  /** Example content shown for this visit only; never saved. */
+  /** Example content (development only); never saved. */
   example?: boolean
+  /** A plain caveat shown under the entry, e.g. that an answer is illustrative. */
+  note?: string
 }
 
 export type QuestionState = 'open' | 'answered' | 'deferred' | 'withdrawn'

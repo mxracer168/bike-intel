@@ -1,33 +1,46 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
+import { Icon } from '@/ui/Icon'
 import { TELL_US_MORE, type IntelligenceQuestionView } from './types'
 import styles from './Intelligence.module.css'
 
 /**
- * Questions for you: below the composer, on a quieter surface, and separate
- * from the conversation. Answered questions leave; when none are left the
- * section goes away.
+ * Questions for you: below the composer, on a quieter surface, apart from
+ * the conversation. One question at a time; answered ones leave and the next
+ * one steps up. Collapsing hides the section without dismissing anything.
  */
-export function QuestionBlock({ questions, replyingTo, marker, onAnswer, onTellUsMore, onDefer }: {
+export function QuestionBlock({ questions, position, total, collapsed, onToggle, replyingTo, marker, onAnswer, onTellUsMore, onDefer }: {
   questions: IntelligenceQuestionView[]
+  position: number
+  total: number
+  collapsed: boolean
+  onToggle: () => void
   replyingTo: string | null
   marker: ReactNode
   onAnswer: (id: string, choice: string) => Promise<string | null>
   onTellUsMore: (id: string) => void
   onDefer: (id: string) => void
 }) {
+  const current = questions[0]
+  if (!current) return null
   return (
-    <section className={styles.block} aria-labelledby="questions-for-you">
-      <h3 id="questions-for-you" className={styles.blockTitle}>
-        Questions for you <span className={styles.count}>· {questions.length}</span> {marker}
+    <section className={[styles.block, collapsed && styles.blockCollapsed].filter(Boolean).join(' ')} aria-labelledby="questions-for-you">
+      <h3 className={styles.blockTitle}>
+        <button type="button" className={styles.blockToggle} aria-expanded={!collapsed} aria-controls="questions-body" onClick={onToggle}>
+          <span id="questions-for-you">Questions for you{collapsed && <span className={styles.count}> · {questions.length}</span>}</span>
+          <span className={styles.toggleIcon} aria-hidden="true"><Icon name="chevron-down" size={14} /></span>
+          <span className="visually-hidden">{collapsed ? ' (show)' : ' (hide)'}</span>
+        </button>
+        {marker}
+        {!collapsed && total > 1 && <span className={styles.progress}>{position} of {total}</span>}
       </h3>
-      <ol className={styles.questions}>
-        {questions.map((q) => (
-          <Question key={q.id} q={q} active={q.id === replyingTo}
+      <div id="questions-body" hidden={collapsed}>
+        <ol className={styles.questions}>
+          <Question key={current.id} q={current} active={current.id === replyingTo}
             onAnswer={onAnswer} onTellUsMore={onTellUsMore} onDefer={onDefer} />
-        ))}
-      </ol>
+        </ol>
+      </div>
     </section>
   )
 }

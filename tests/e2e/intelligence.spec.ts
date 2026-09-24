@@ -49,7 +49,7 @@ test('the intelligence conversation persists and stays inside its retailer', asy
   await panel.locator('input[type=file]').setInputFiles({ name: 'sizes.csv', mimeType: 'text/csv', buffer: Buffer.from('size,count\nM,4\n') })
   const fileLink = panel.getByRole('link', { name: 'sizes.csv' })
   await expect(fileLink).toBeVisible()
-  await expect(panel.getByText('We haven’t read it yet.').first()).toBeVisible()
+  await expect(panel.getByText('I haven’t read it yet.').first()).toBeVisible()
   const href = (await fileLink.getAttribute('href'))!
   expect((await pageA.request.get(href)).status()).toBe(200)
 
@@ -91,40 +91,48 @@ test('the intelligence conversation persists and stays inside its retailer', asy
   await pageA.reload()
   panel = await openConversation(pageA)
   const questions = panel.getByRole('region', { name: /Questions for you/ })
+  // One question at a time, most important first.
+  await expect(questions).toContainText('1 of 3')
+  await expect(questions.getByRole('group')).toHaveCount(1)
+
+  // Collapsing hides the question without dismissing it.
+  await questions.getByRole('button', { name: /Questions for you/ }).click()
+  await expect(questions.getByRole('group')).toHaveCount(0)
   await expect(questions).toContainText('Questions for you · 3')
+  await questions.getByRole('button', { name: /Questions for you/ }).click()
 
   // A quick answer resolves the question and stays out of the conversation.
   await questions.getByRole('group', { name: 'Will the new Cedar Ridge trails open before spring?' })
     .getByRole('button', { name: 'Not sure yet' }).click()
-  await expect(questions).toContainText('Questions for you · 2')
+  await expect(questions).toContainText('2 of 3')
   await expect(panel.getByRole('list', { name: 'Conversation' })).not.toContainText('Cedar Ridge')
   const { data: quick } = await admin.from('intelligence_question').select('status, answered_by, answer_choice, answer_message_id').eq('id', cedar).single()
   expect(quick).toEqual({ status: 'answered', answered_by: idA, answer_choice: 'Not sure yet', answer_message_id: null })
 
   // "Not now" defers without answering.
-  await questions.getByRole('group', { name: 'Do you want to keep stocking 26-inch tubes?' })
+  await questions.getByRole('group', { name: 'Are you running a winter service special this year?' })
     .getByRole('button', { name: 'Not now' }).click()
-  await expect(questions).toContainText('Questions for you · 1')
-  const { data: deferred } = await admin.from('intelligence_question').select('status, deferred_until').eq('id', tubes).single()
+  await expect(questions).toContainText('3 of 3')
+  const { data: deferred } = await admin.from('intelligence_question').select('status, deferred_until').eq('id', winter).single()
   expect(deferred!.status).toBe('deferred')
   expect(Date.parse(deferred!.deferred_until!)).toBeGreaterThan(Date.now())
 
   // "Tell us more": a written answer, which does belong in the conversation.
-  await questions.getByRole('group', { name: 'Are you running a winter service special this year?' })
+  await questions.getByRole('group', { name: 'Do you want to keep stocking 26-inch tubes?' })
     .getByRole('button', { name: 'Tell us more' }).click()
   await expect(panel.getByLabel('Your answer')).toBeFocused()
-  await panel.getByLabel('Your answer').fill('Yes, 15% off tune-ups from November to February.')
+  await panel.getByLabel('Your answer').fill('Just a few; most 26-inch riders have moved on.')
   await panel.getByLabel('Your answer').press('Enter')
   await expect(panel.getByRole('region', { name: /Questions for you/ })).toHaveCount(0)
-  await expect(panel.getByRole('list', { name: 'Conversation' })).toContainText('15% off tune-ups')
-  const { data: written } = await admin.from('intelligence_question').select('status, answer_message_id').eq('id', winter).single()
+  await expect(panel.getByRole('list', { name: 'Conversation' })).toContainText('most 26-inch riders have moved on')
+  const { data: written } = await admin.from('intelligence_question').select('status, answer_message_id').eq('id', tubes).single()
   expect(written!.status).toBe('answered')
   expect(written!.answer_message_id).not.toBeNull()
 
   // The composer stays available with no questions open, and a question gets an honest reply.
   await panel.getByLabel('Message').fill('When did I last order from Northline?')
   await panel.getByLabel('Message').press('Enter')
-  await expect(panel.getByText('We can’t answer questions yet. It’s saved here.')).toBeVisible()
+  await expect(panel.getByText('I can’t answer questions yet. It’s saved here.')).toBeVisible()
 
   // Nothing was turned into structured context behind the retailer's back.
   const { count } = await admin.from('context_item').select('id', { count: 'exact', head: true }).eq('organization_id', orgA)

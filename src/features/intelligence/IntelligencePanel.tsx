@@ -47,10 +47,12 @@ type Load = { state: 'idle' | 'loading' | 'ready' | 'unavailable' | 'failed'; en
  * are never saved. A native <dialog> gives focus trapping, Escape to close
  * and focus return to whatever opened it.
  */
-export function IntelligenceProvider({ retailerName, questions: initialQuestions, exampleQuestions, children }: {
+export function IntelligenceProvider({ retailerName, questions: initialQuestions, exampleQuestions, exampleConversation, children }: {
   retailerName: string
   questions: IntelligenceQuestionView[]
   exampleQuestions: IntelligenceQuestionView[]
+  /** Development only: an illustrative conversation shown before the real one, never saved. */
+  exampleConversation: ConversationEntry[]
   children: ReactNode
 }) {
   const dialog = useRef<HTMLDialogElement>(null)
@@ -63,6 +65,10 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
   const [problem, setProblem] = useState<string | null>(null)
   // Questions set aside with "Not now" during this visit; they return at the next check-in.
   const [setAside, setSetAside] = useState<ReadonlySet<string>>(new Set())
+  // Questions handled (answered or set aside) during this visit, for "2 of 3".
+  const [handled, setHandled] = useState(0)
+  // Collapsing only hides the questions; they stay open.
+  const [collapsed, setCollapsed] = useState(false)
 
   const scrollToEnd = useCallback(() => {
     requestAnimationFrame(() => scroller.current?.scrollTo({ top: scroller.current.scrollHeight }))
@@ -99,6 +105,7 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
       if (!r.ok) return r.message
     }
     setQuestions((qs) => qs.map((x) => (x.id === id ? { ...x, status: 'answered', answer: { choice, body } } : x)))
+    setHandled((n) => n + 1)
     return null
   }, [questions])
 
@@ -110,6 +117,7 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
     }
     setQuestions((qs) => qs.map((x) => (x.id === id ? { ...x, status: 'deferred' } : x)))
     setSetAside((s) => new Set(s).add(id))
+    setHandled((n) => n + 1)
   }, [questions])
 
   // Questions for you: still open, not set aside, at most three. Answered ones leave the list.
@@ -186,14 +194,20 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
           </button>
         </header>
 
-        <div ref={scroller} className={styles.scroll}>
+        <div ref={scroller} className={styles.scroll} tabIndex={0} role="region" aria-label="Conversation history">
+          {exampleConversation.length > 0 && (
+            <section aria-label="Example conversation" className={styles.example}>
+              <p className={styles.day}>Example conversation <ExampleMarker /></p>
+              <Transcript entries={exampleConversation} pending={null} label="Example conversation" />
+            </section>
+          )}
           {load.state === 'loading' && load.entries.length === 0 && <p className={styles.quiet}>Loading…</p>}
-          {load.state === 'failed' && <p className={styles.quiet}>We couldn’t load your conversation. Close this and try again.</p>}
-          {load.state === 'unavailable' && <p className={styles.quiet}>Your conversation isn’t set up yet.</p>}
-          {load.state === 'ready' && load.entries.length === 0 && (
-            <p className={styles.intro}>
-              Tell us about your business, or ask about it. Everything stays here, private to your team, for next time.
-            </p>
+          {load.state === 'failed' && <p className={styles.quiet}>I couldn’t load our conversation. Close this and try again.</p>}
+          {(load.state === 'unavailable' || load.state === 'ready') && load.entries.length === 0 && exampleConversation.length === 0 && (
+            <div className={styles.intro}>
+              <p>Ask me anything about {retailerName}, or tell me something I should know.</p>
+              <p className={styles.introMore}>I use what you tell me, along with your business data, to make better recommendations.</p>
+            </div>
           )}
           <Transcript entries={load.entries} pending={pending} />
         </div>
@@ -211,10 +225,14 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
         {asked.length > 0 && (
           <QuestionBlock
             questions={asked}
+            position={handled + 1}
+            total={handled + asked.length}
+            collapsed={collapsed}
+            onToggle={() => setCollapsed((c) => !c)}
             replyingTo={tellUsMoreFor}
             marker={asked.some((q) => q.example) ? <ExampleMarker /> : null}
             onAnswer={(id, choice) => answer(id, choice, null, 'panel')}
-            onTellUsMore={(id) => { setTellUsMoreFor(id); composer.current?.focus() }}
+            onTellUsMore={(id) => { setCollapsed(false); setTellUsMoreFor(id); composer.current?.focus() }}
             onDefer={defer}
           />
         )}
