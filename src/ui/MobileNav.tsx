@@ -19,9 +19,8 @@ export function MobileNav({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <button type="button" className={styles.menuButton} aria-haspopup="dialog" onClick={() => dialog.current?.showModal()}>
-        <Icon name="menu" />
-        Menu
+      <button type="button" className={styles.menuButton} aria-label="Menu" aria-haspopup="dialog" onClick={() => dialog.current?.showModal()}>
+        <Icon name="menu" size={20} />
       </button>
       <dialog
         ref={dialog}

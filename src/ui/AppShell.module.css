@@ -17,7 +17,6 @@
   max-width: calc(var(--page-width) + 2 * var(--gutter)); margin: 0 auto; padding: var(--sp-4) var(--gutter) 0;
 }
 .topBar + main > * { padding-top: var(--sp-3); }
-.barActions { display: flex; align-items: center; gap: var(--sp-1); }
 
 .mobileBar { display: none; }
 
@@ -71,10 +70,10 @@
 
 /* Phone: slim top bar + slide-in panel (native <dialog>: focus trap + Escape) */
 .menuButton {
-  display: inline-flex; align-items: center; gap: var(--sp-2); min-height: 40px; padding: 0 var(--sp-3);
-  font-size: 14px; font-weight: 500; color: var(--ink); background: var(--surface);
-  border: 1px solid var(--line-strong); border-radius: var(--r-md); cursor: pointer;
+  width: 40px; height: 40px; display: grid; place-items: center; flex: none; margin-left: -8px;
+  color: var(--ink); background: none; border: 0; border-radius: var(--r-md); cursor: pointer;
 }
+.barStart { display: flex; align-items: center; gap: var(--sp-1); min-width: 0; }
 .menuButton:hover { background: var(--subtle); }
 .drawer {
   margin: 0; padding: 0; border: 0; height: 100dvh; max-height: 100dvh;

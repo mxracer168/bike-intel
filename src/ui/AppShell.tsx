@@ -45,11 +45,11 @@ export function AppShell({ retailer, account, extras, children }: {
       <a href="#main" className={styles.skip}>Skip to content</a>
       <aside className={styles.sidebar} aria-label="Sidebar">{panel(false)}</aside>
       <header className={styles.mobileBar}>
-        <Logo />
-        <span className={styles.barActions}>
-          <AddContextButton compact />
+        <span className={styles.barStart}>
           <MobileNav>{panel(true)}</MobileNav>
+          <Logo />
         </span>
+        <AddContextButton compact />
       </header>
       <div className={styles.main}>
         <div className={styles.topBar}>

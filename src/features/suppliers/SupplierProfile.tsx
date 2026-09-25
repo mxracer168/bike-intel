@@ -5,6 +5,7 @@ import { connectionText, type SupplierAccountView } from './account'
 import { monogram, type RelationshipView, type SupplierPresentation, type SupplierSection } from './presentation'
 import { FitScore, ProgramFit } from './ProgramFit'
 import type { ProgramFitMap } from './programFit'
+import { RelationshipTag } from './RelationshipTag'
 import { CopyButton, ManageConnection, UploadProgram } from './SupplierActions'
 import styles from './Suppliers.module.css'
 
@@ -71,17 +72,6 @@ function Section({ section, index, ctx }: { section: SupplierSection; index: num
   )
 }
 
-/** The retailer's standing with this supplier, above the name. */
-function relationshipLabel(r: RelationshipView): string {
-  switch (r.status) {
-    case 'verified':
-    case 'claimed':
-      return r.preference === 'preferred' ? 'Preferred supplier' : 'Your supplier'
-    default:
-      return 'Not currently a supplier'
-  }
-}
-
 const displayUrl = (url: string) => url.replace(/^https?:\/\//, '').replace(/\/$/, '')
 
 /**
@@ -111,8 +101,11 @@ export function SupplierProfile({ presentation, relationship, retailerName, prog
       <header className={styles.hero}>
         <span className={`${styles.monogram} ${styles.monogramLarge}`} aria-hidden="true">{monogram(identity.name)}</span>
         <div className={styles.heroText}>
-          <p className={[styles.status, current && styles.statusCurrent].filter(Boolean).join(' ')}>
-            {relationshipLabel(relationship)}{example && <ExampleMarker />}
+          <p className={styles.status}>
+            {current || relationship.status === 'inactive' || relationship.status === 'suspended'
+              ? <RelationshipTag relationship={relationship} />
+              : 'Not currently a supplier'}
+            {example && <ExampleMarker />}
           </p>
           <h1 className={styles.heroName}>{identity.name}</h1>
         </div>

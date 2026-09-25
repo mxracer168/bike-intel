@@ -29,8 +29,7 @@
 .hero { display: flex; gap: var(--sp-4); align-items: center; }
 .heroText { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 /* The retailer's standing, above the name and aligned with it. */
-.status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); }
-.statusCurrent { color: var(--pos); }
+.status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-bottom: 4px; font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); }
 .heroName { font-size: var(--fs-title); line-height: var(--lh-title); letter-spacing: -0.015em; }
 
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 34%); gap: var(--sp-7); align-items: start; }
