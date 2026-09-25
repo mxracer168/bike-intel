@@ -10,11 +10,11 @@ import type { WorkItemView } from '@/features/work/types'
 import { findDemoOrder } from './orders'
 
 export const demoHealth: HealthMetric[] = [
-  { label: 'Sales this week', value: '$12,480', note: 'Up 6% on last year' },
-  { label: 'In stock', value: '96%', note: 'Of the items you always carry' },
-  { label: 'Stock on hand', value: '$184,200', note: 'About 11 weeks of sales' },
-  { label: 'On order', value: '$9,860', note: 'From 3 suppliers' },
-  { label: 'Not selling', value: '$8,400', note: 'No sales in 90 days' },
+  { label: 'Sales', value: '$12,480', trend: { direction: 'up', text: '6% vs last year', good: true } },
+  { label: 'Gross margin', value: '42.8%', trend: { direction: 'up', text: '1.4 pts', good: true } },
+  { label: 'Inventory', value: '$184,200', note: '11.2 weeks of supply', trend: { direction: 'down', text: '0.8 weeks', good: true } },
+  { label: 'Inventory turn', value: '3.7×', trend: { direction: 'up', text: 'from 3.3×', good: true } },
+  { label: 'Not selling', value: '$8,400', trend: { direction: 'down', text: '$1,240 in 30 days', good: true } },
 ]
 
 function order(id: string): WorkItemView[] {
@@ -38,7 +38,7 @@ export const demoPriorities: WorkItemView[] = [
     id: 'fox-dropper-excess',
     kind: 'excess',
     title: 'You have more Fox Transfer droppers than you’re likely to sell before spring.',
-    detail: '9 on hand; you usually sell about 3 by March.',
+    detail: '9 on hand · usually sell about 3 by March',
   },
 ]
 

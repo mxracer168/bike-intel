@@ -35,8 +35,12 @@ retailer, personal account; phone panel via native `<dialog>`), `FocusedShell`,
 tabs for a page's sub-pages), `ExampleMarker` / `ExampleRegion`.
 
 Feature components: `OrderList` (proposed orders at supplier level, one
-comparable row each), `HealthSnapshot` (Today's few figures), `WeeklyCheckIn` (one optional line
-back into the conversation), `IntelligenceProvider` / `AddContextButton` (the
+comparable row each), `HealthSnapshot` (Today's business health: at most five quiet cards on one
+system, white with a thin line; label, a large value, an optional note and a
+small arrow whose color says whether the change is good for the business,
+muted green or red, never whether it went up), `WeeklyCheckIn` (Today's
+"Questions for you": a compact strip in the panel's soft Harbor blue, "3
+questions for you", one line, "Take a look"), `IntelligenceProvider` / `AddContextButton` (the
 retailer's ongoing conversation with one assistant, speaking as "I", in a
 side panel: one continuous thread with no date dividers (click, tap or press
 Enter on a message to show when it was sent; the thread is one tab stop,
@@ -55,8 +59,9 @@ anything, and is gone entirely when none are open), `AnchoredQuestion`
 that stays at the bottom of the viewport and settles at the end of the page,
 "1 question could change this order", Answer / Dismiss; Answer opens the
 quick answers in place and answering resolves the same question everywhere;
-Dismiss only hides it on that page in this browser, the question stays open
-in the panel and check-in; on a phone the strip is one line until Answer),
+Dismiss hides it until the page is loaded again (for now, during review;
+later it will stay away for a while), the question stays open in the panel
+and check-in; on a phone the strip is one line until Answer),
 `OrderReview` (one supplier's order as a plain table of facts: product, on
 hand, on order, order quantity, cost; no reasons, labels, icons or questions
 in rows beyond a quiet chevron; clicking a row opens it as one washed,
@@ -80,7 +85,7 @@ Across screens:
 
 | Level | Screen | Question it answers | Shows |
 |---|---|---|---|
-| 1 | Today | What deserves my attention? | A small health snapshot and one ranked priority list; an order appears as one priority (what it needs, lines, estimate). No line evidence. |
+| 1 | Today | How are we doing, what should I work on, what do you need from me? | Three zones with space between them and no headline sentence: business health cards; "Priorities" (one ranked, reorderable list in a single outlined container, rows separated by hairlines, an order as one priority: what it needs, lines, estimate); "Questions for you" in soft Harbor blue. No line evidence. |
 | 2 | Proposed order | What should I buy from this supplier? | Every line, scannable in hundreds. |
 | 3 | Line (expanded in place) | Why this quantity? | The reasoning, then the evidence only when asked. |
 
@@ -141,8 +146,9 @@ the user asks for more?** If not, it goes one level down.
 
 ## Rules (enforced where possible)
 
-1. Lead every screen with an answer or a next step, as a sentence. Never a grid of metrics; Today's
-   health snapshot is the one exception (at most five figures, plain text, no tiles or charts).
+1. Lead every screen with an answer or a next step. Never a grid of metrics; Today's
+   business health is the one exception (at most five quiet cards, no charts, no colored tiles).
+   Today leads with its structure instead of a sentence.
 2. One primary (Harbor blue) button per screen. Everything else secondary or quiet.
 3. Tokens only. No raw colors outside `tokens.css`. *(test: `design-rules.test.ts`)*
 4. Hanken Grotesk 400/600, 500 for 13px labels; 13px minimum; sentence case; no all caps. *(test)*

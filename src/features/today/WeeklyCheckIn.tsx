@@ -1,32 +1,29 @@
 'use client'
 
-import { useState } from 'react'
 import { useIntelligence } from '@/features/intelligence/IntelligencePanel'
 import styles from './Today.module.css'
 
-const words = ['', 'one thing', 'two things', 'three things']
-
 /**
- * The weekly check-in: a way back into the same ongoing conversation,
- * drawing on the same open questions. One line, one action, easy to skip.
+ * Questions for you: the way back into the same ongoing conversation, in the
+ * same soft Harbor blue as the panel's "Questions for you". One line, one action.
  */
 export function WeeklyCheckIn() {
   const api = useIntelligence()
-  const [dismissed, setDismissed] = useState(false)
-  if (!api || dismissed) return null
+  if (!api) return null
   const count = api.openCount
-  const line = count === 0
-    ? 'Anything worth updating this week?'
-    : `${count === 1 ? 'There’s' : 'There are'} ${words[count]} I’d like to check with you this week.`
   return (
-    <aside className={styles.checkIn} aria-label="Weekly check-in">
-      <p>{line}</p>
-      <span className={styles.checkInActions}>
-        <button type="button" className={styles.checkInPrimary} aria-haspopup="dialog" onClick={() => api.open()}>
-          {count === 0 ? 'Add context' : 'Take a look'}
-        </button>
-        <button type="button" className={styles.checkInQuiet} onClick={() => setDismissed(true)}>Not now</button>
-      </span>
+    <aside className={styles.checkIn} aria-labelledby="today-questions">
+      <div className={styles.checkInText}>
+        <h2 id="today-questions" className={styles.checkInTitle}>
+          {count === 0 ? 'Anything worth updating?' : count === 1 ? '1 question for you' : `${count} questions for you`}
+        </h2>
+        <p className={styles.checkInLead}>
+          {count === 0 ? 'Tell us about anything that could change what you buy.' : 'A few answers would help sharpen upcoming recommendations.'}
+        </p>
+      </div>
+      <button type="button" className={styles.checkInPrimary} aria-haspopup="dialog" onClick={() => api.open()}>
+        {count === 0 ? 'Add context' : 'Take a look'}
+      </button>
     </aside>
   )
 }

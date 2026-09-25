@@ -1,29 +1,66 @@
-.health {
-  margin: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-4) var(--sp-5);
+/* Three zones: business health, priorities, questions. Space between them does the separating. */
+.zones { display: flex; flex-direction: column; gap: var(--sp-7); }
+.zone { display: flex; flex-direction: column; gap: var(--sp-3); }
+.zoneHead { display: flex; flex-direction: column; gap: 2px; }
+.zoneTitle { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; }
+.zoneLead { font-size: 14px; line-height: 20px; color: var(--ink-2); }
+
+/* ---------- Business health: one system of quiet cards ---------- */
+.health { list-style: none; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-3); }
+.card {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+  padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-5);
 }
-.metric { display: flex; flex-direction: column; min-width: 0; }
-.metric dd { margin: 0; }
 .metricLabel { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); }
-.metricValue { font-size: var(--fs-answer); line-height: var(--lh-answer); font-weight: 600; letter-spacing: -0.015em; font-variant-numeric: tabular-nums; }
+.metricValue {
+  font-size: var(--fs-title); line-height: var(--lh-title); font-weight: 600; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; padding-top: 4px; white-space: nowrap;
+}
 .metricNote { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+.trend {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: auto; padding-top: var(--sp-2);
+  font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; font-variant-numeric: tabular-nums;
+}
+.trend > span:first-child { display: inline-flex; }
+.arrowDown { transform: rotate(180deg); }
+/* Color follows the business meaning of the change, not its direction. */
+.good { color: var(--pos); }
+.bad { color: var(--risk); }
 
+/* ---------- Questions for you: the soft Harbor blue of the intelligence panel ---------- */
 .checkIn {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2) var(--sp-4);
-  padding: var(--sp-3) var(--sp-4); background: var(--subtle); border-radius: var(--r-md);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-5);
+  padding: var(--sp-4) var(--sp-5); background: var(--accent-soft); border-radius: var(--r-lg);
 }
-.checkInActions { display: flex; align-items: center; gap: var(--sp-2); }
-.checkInPrimary, .checkInQuiet {
-  border: 0; background: none; cursor: pointer; font-size: 14px; padding: 6px 8px; border-radius: var(--r-sm);
+.checkInText { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.checkInTitle { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--ink); }
+.checkInLead { font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.checkInPrimary {
+  flex: none; min-height: 36px; padding: 6px 16px; border: 1px solid var(--accent-muted); border-radius: var(--r-md);
+  background: var(--surface); color: var(--accent); font-size: 15px; font-weight: 600; cursor: pointer;
 }
-.checkInPrimary { color: var(--accent); font-weight: 600; }
-.checkInPrimary:hover { background: var(--accent-soft); }
-.checkInQuiet { color: var(--ink-2); }
-.checkInQuiet:hover { color: var(--ink); background: var(--sunken); }
+.checkInPrimary:hover { border-color: var(--accent); }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .health { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
-@media (max-width: 560px) {
-  .health { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3) var(--sp-4); }
-  .metricValue { font-size: var(--fs-heading); line-height: var(--lh-heading); }
+@media (max-width: 640px) {
+  .zones { gap: var(--sp-6); }
+  .health { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
+  /* An odd last card takes the full row rather than sitting alone. */
+  .card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .card { padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4); }
+  .metricValue { font-size: var(--fs-answer); line-height: var(--lh-answer); }
+  .checkIn { padding: var(--sp-4); }
+}
+
+/* ---------- Priorities: one outlined work area, rows separated by hairlines (not cards) ---------- */
+.priorityPanel {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+  /* Left padding leaves room for the drag grip, which sits in the rows' left gutter. */
+  padding: var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-7);
+}
+@media (hover: none), (max-width: 640px) {
+  .priorityPanel { padding: var(--sp-1) var(--sp-2) var(--sp-1) var(--sp-4); }
 }

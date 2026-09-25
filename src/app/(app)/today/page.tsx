@@ -5,6 +5,7 @@ import { listLocations } from '@/domain/location/list'
 import styles from '@/features/orders/Orders.module.css'
 import { formatToday } from '@/features/today/formatToday'
 import { HealthSnapshot } from '@/features/today/HealthSnapshot'
+import today from '@/features/today/Today.module.css'
 import { WeeklyCheckIn } from '@/features/today/WeeklyCheckIn'
 import { PriorityList } from '@/features/work/PriorityList'
 import { requireOrganization } from '@/server/session'
@@ -13,20 +14,15 @@ import { Page } from '@/ui/Layout'
 
 export const metadata: Metadata = { title: 'Today' }
 
-const numberWords = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
-
-function headline(count: number) {
-  if (count === 0) return 'Nothing needs your attention yet.'
-  const n = count < numberWords.length ? numberWords[count]! : String(count)
-  const sentence = count === 1 ? 'One thing is worth your time today.' : `${n} things are worth your time today.`
-  return sentence.charAt(0).toUpperCase() + sentence.slice(1)
-}
-
-/** Today does two things: a small health snapshot and one ranked list of what to do. */
+/**
+ * Today, in three zones: business health (how are we doing?), priorities
+ * (what should I work on?) and questions for you (what does the system need
+ * from me?). Layout does the explaining; no headline sentence.
+ */
 export default async function TodayPage() {
   const { db, organization } = await requireOrganization()
   const locations = await listLocations(db, organization.id)
-  const today = formatToday(locations[0]?.timezone)
+  const date = formatToday(locations[0]?.timezone)
   const demo = isDemoPreviewEnabled()
   const health = demo ? demoHealth : []
   const priorities = demo ? demoPriorities : []
@@ -34,26 +30,33 @@ export default async function TodayPage() {
   return (
     <Page>
       <header className={styles.head}>
-        <p className={styles.eyebrow}>{today}{demo && <ExampleMarker />}</p>
-        <h1 className={styles.title}>{headline(priorities.length)}</h1>
-        {!demo && <p className={styles.lead}>Once your sales are connected, this is where you’ll see what to reorder and anything else worth your time.</p>}
+        <h1 className="visually-hidden">Today</h1>
+        <p className={styles.eyebrow}>{date}{demo && <ExampleMarker />}</p>
+        {!demo && <p className={styles.lead}>Once your sales are connected, this is where you’ll see how the business is doing and what to work on.</p>}
       </header>
 
-      {health.length > 0 && (
-        <section aria-labelledby="today-health">
-          <h2 id="today-health" className="visually-hidden">This week at a glance</h2>
-          <HealthSnapshot metrics={health} />
-        </section>
-      )}
+      <div className={today.zones}>
+        {health.length > 0 && (
+          <section aria-labelledby="today-health">
+            <h2 id="today-health" className="visually-hidden">Business health</h2>
+            <HealthSnapshot metrics={health} />
+          </section>
+        )}
 
-      {priorities.length > 0 && (
-        <section aria-labelledby="today-priorities">
-          <h2 id="today-priorities" className="visually-hidden">Priorities</h2>
-          <PriorityList items={priorities} storageKey={`today-order:${organization.id}`} label="Priorities" example={demo} />
-        </section>
-      )}
+        {priorities.length > 0 && (
+          <section className={today.zone} aria-labelledby="today-priorities">
+            <div className={today.zoneHead}>
+              <h2 id="today-priorities" className={today.zoneTitle}>Priorities</h2>
+              <p className={today.zoneLead}>What deserves your attention today.</p>
+            </div>
+            <div className={today.priorityPanel}>
+              <PriorityList items={priorities} storageKey={`today-order:${organization.id}`} label="Priorities" example={demo} />
+            </div>
+          </section>
+        )}
 
-      <WeeklyCheckIn />
+        <WeeklyCheckIn />
+      </div>
     </Page>
   )
 }

@@ -36,7 +36,7 @@ describe('an order as a priority', () => {
   it('leads with questions for the buyer', () => {
     const p = orderPriority({ ...base, questions: 2 })
     expect(p.title).toBe('Northline’s order has 2 questions for you.')
-    expect(p.detail).toBe('79 lines, about $4,898 · 7 worth a look')
+    expect(p.detail).toBe('79 lines · $4,898 · 7 worth a look')
     expect(p.action).toEqual({ href: '/orders/n', label: 'Review order' })
   })
 
@@ -44,7 +44,7 @@ describe('an order as a priority', () => {
     expect(orderPriority({ ...base, orderBy: 'Thursday' }).title).toBe('Northline’s order closes Thursday.')
     expect(orderPriority({ ...base, review: 0, freightGap: 79.5 })).toMatchObject({
       title: 'Northline is $80 from free freight.',
-      detail: '79 lines, about $4,898 · nothing to check',
+      detail: '79 lines · $4,898',
     })
   })
 })

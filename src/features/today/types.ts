@@ -1,5 +1,8 @@
-/** One figure in Today's health snapshot. Presentation shape only. */
-export type HealthMetric = { label: string; value: string; note?: string }
+/** A change since the comparison period. `good` decides the color, not the direction. */
+export type HealthTrend = { direction: 'up' | 'down'; text: string; good: boolean }
 
-/** Keep the snapshot small: it supports the priorities, it doesn't compete with them. */
+/** One card in Today's business health row. Presentation shape only. */
+export type HealthMetric = { label: string; value: string; note?: string; trend?: HealthTrend }
+
+/** Keep the row small: it supports the priorities, it doesn't compete with them. */
 export const MAX_METRICS = 5

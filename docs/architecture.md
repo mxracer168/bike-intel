@@ -82,7 +82,7 @@ email + password and email confirmation.
   where their content now lives.
 - **Presentation shapes, not data models.** `ProposedOrderView` /
   `OrderLineView` / `OrderSummary`, `WorkItemView` and `SupplierPresentation`
-  describe what screens render. Today is a health snapshot plus one ranked
+  describe what screens render. Today is business health cards plus one ranked
   list of `WorkItemView`s; an order becomes one item
   (`features/work/fromOrder.ts`) and line evidence stays on the order.
 - **The intelligence conversation is the interface; `context_item` is the

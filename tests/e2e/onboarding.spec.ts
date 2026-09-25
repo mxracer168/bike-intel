@@ -23,7 +23,8 @@ test('a new retailer signs up, confirms their email and completes onboarding', a
   await completeBusiness(page, 'Summit Cycles E2E')
   await completeLocation(page, 'Main Street')
   await completeAgreements(page, 'declined')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Nothing needs your attention yet.')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Today')
+  await expect(page.getByText('Once your sales are connected, this is where you’ll see how the business is doing')).toBeVisible()
   await expect(page.getByRole('region', { name: 'Current retailer' })).toContainText('Summit Cycles E2E')
 
   // Primary navigation: the sidebar, Today first.

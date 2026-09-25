@@ -1,47 +1,29 @@
 'use client'
 
-import { useMemo, useState, useSyncExternalStore } from 'react'
+import { useMemo, useState } from 'react'
 import { Icon } from '@/ui/Icon'
 import { Question } from './QuestionBlock'
 import { useIntelligence } from './IntelligencePanel'
 import styles from './AnchoredQuestion.module.css'
 
-const DISMISS_EVENT = 'anchored-question-dismissed'
-const key = (id: string) => `question-dismissed:${id}`
-
-function subscribe(onChange: () => void) {
-  window.addEventListener('storage', onChange)
-  window.addEventListener(DISMISS_EVENT, onChange)
-  return () => { window.removeEventListener('storage', onChange); window.removeEventListener(DISMISS_EVENT, onChange) }
-}
-
-function readDismissed(id: string): boolean {
-  try { return window.localStorage.getItem(key(id)) === '1' } catch { return false }
-}
-
-function dismiss(id: string) {
-  try { window.localStorage.setItem(key(id), '1') } catch { /* storage blocked: hidden until reload */ }
-  window.dispatchEvent(new Event(DISMISS_EVENT))
-}
-
 /**
  * A conversation question that could change what's on this page, kept out of
  * the way: a slim strip that stays at the bottom of the page while the
  * retailer works. "Answer" opens the quick answers in place; answering
- * resolves the same question everywhere. "Dismiss" only hides it on this page
- * (in this browser); the question itself stays open in the conversation and
- * the weekly check-in.
+ * resolves the same question everywhere. "Dismiss" hides it until the page is
+ * loaded again (for now, while it's being reviewed; later it will stay away
+ * for a while). The question itself stays open in the conversation and the
+ * weekly check-in either way.
  */
 export function AnchoredQuestion({ questionId, headline }: { questionId: string; headline: string }) {
   const api = useIntelligence()
-  const stored = useSyncExternalStore(subscribe, () => readDismissed(questionId), () => false)
   const [hiddenHere, setHiddenHere] = useState(false)
   const [answering, setAnswering] = useState(false)
   const [answeredHere, setAnsweredHere] = useState(false)
   const q = useMemo(() => api?.questions.find((x) => x.id === questionId), [api, questionId])
 
   const waiting = q && (q.status === 'open' || q.status === 'deferred')
-  if (!api || !q || stored || hiddenHere || !(waiting || answeredHere)) return null
+  if (!api || !q || hiddenHere || !(waiting || answeredHere)) return null
 
   async function onAnswer(id: string, choice: string) {
     const problem = await api!.answer(id, choice, null, 'order')
@@ -71,7 +53,7 @@ export function AnchoredQuestion({ questionId, headline }: { questionId: string;
           <button type="button" className={styles.primary} onClick={() => setAnswering(true)}>Answer</button>
         )}
         {!answeredHere && (
-          <button type="button" className={styles.quiet} onClick={() => dismiss(questionId)}>Dismiss</button>
+          <button type="button" className={styles.quiet} onClick={() => setHiddenHere(true)}>Dismiss</button>
         )}
       </div>
     </aside>
