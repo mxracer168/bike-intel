@@ -6,7 +6,7 @@
 .zoneLead { font-size: 14px; line-height: 20px; color: var(--ink-2); }
 
 /* ---------- Business health: one system of quiet cards ---------- */
-.health { list-style: none; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-3); }
+.health { list-style: none; display: grid; grid-template-columns: repeat(var(--cards, 5), minmax(0, 1fr)); gap: var(--sp-3); }
 .card {
   display: flex; flex-direction: column; gap: 2px; min-width: 0;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);

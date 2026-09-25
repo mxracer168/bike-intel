@@ -7,9 +7,9 @@ import styles from './Today.module.css'
  * arrow shows the change, colored by whether it's good for the business (not
  * by whether the number went up).
  */
-export function HealthSnapshot({ metrics }: { metrics: HealthMetric[] }) {
+export function HealthSnapshot({ metrics, label }: { metrics: HealthMetric[]; label?: string }) {
   return (
-    <ul className={styles.health}>
+    <ul className={styles.health} aria-label={label} style={{ '--cards': Math.min(metrics.length, MAX_METRICS) } as React.CSSProperties}>
       {metrics.slice(0, MAX_METRICS).map((m) => (
         <li key={m.label} className={styles.card}>
           <p className={styles.metricLabel}>{m.label}</p>

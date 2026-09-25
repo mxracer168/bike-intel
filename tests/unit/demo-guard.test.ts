@@ -9,6 +9,7 @@ import { describe, expect, it } from 'vitest'
 const ALLOWED = new Set([
   'src/app/(app)/layout.tsx',
   'src/app/(app)/today/page.tsx',
+  'src/app/(app)/inventory/page.tsx',
   'src/app/(app)/orders/page.tsx',
   'src/app/(app)/orders/[orderId]/page.tsx',
   'src/app/(app)/suppliers/page.tsx',
