@@ -10,6 +10,8 @@ export type ProgramFitView = {
   score: number
   /** The main reasons, in plain words. Never the weights or the formula. */
   factors: { title: string; detail: string }[]
+  /** Optional one-sentence weighing of the factors, when they pull in different directions. */
+  summary?: string
 }
 
 /** Keyed by program name within one supplier. */

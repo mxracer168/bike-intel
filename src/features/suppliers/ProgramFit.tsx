@@ -29,18 +29,20 @@ export function ProgramFit({ fit, closes, retailerName, programName }: {
         </button>
       </div>
       <section id={id} hidden={!open} className={styles.fitDetail} aria-label={`Why ${programName} fits`}>
-        <p className={styles.fitTitle}>
-          Why this is a {score} fit for {retailerName}
-          <span className={styles.fitBand}> · {fitBand(fit.score)}</span>
-        </p>
+        <div>
+          <p className={styles.fitTitle}>Why this is a {score} fit for {retailerName}</p>
+          <p className={styles.fitBand}>{fitBand(fit.score)}</p>
+        </div>
         <dl className={styles.fitFactors}>
           {fit.factors.map((f) => (
             <div key={f.title}><dt>{f.title}</dt><dd>{f.detail}</dd></div>
           ))}
         </dl>
+        {fit.summary && <p className={styles.fitSummary}>{fit.summary}</p>}
         <p className={styles.fitTrust}>
           Program fit is personalized to your business using your sales history, inventory, supplier terms,
-          seasonality and business context. Supplier payments or sponsorship never affect the score.
+          seasonality and business context. Another retailer may see a different fit for the same program.
+          Supplier payments or sponsorship never affect the score.
         </p>
       </section>
     </>

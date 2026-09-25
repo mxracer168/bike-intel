@@ -23,10 +23,16 @@ retailer under every explanation.
   The program name, season and summary stay first; the score is visible but
   quieter. No stars, rings, gauges, colors or badges, nothing that reads like
   a public review, and never an ordinal rank ("#2") on a supplier page.
-- "Why this fit?" (a text button) opens the explanation in the card:
+- "Why this fit?" (a text button) opens the explanation at the bottom of the
+  card, on the same light Harbor-blue wash with a left accent edge as an
+  opened order line. The blue means "analysis you opened", for every score;
+  it never signals a good fit. A low fit is never red, never a warning, never
+  an icon: it's decision support, not an alert. Inside:
   "Why this is a 4.6 fit for {retailer}", the band in words, the three to
-  five main factors in plain language (a short title and one sentence each),
-  and the trust statement. Factors, not the equation: weights and formulas
+  five main factors in plain language (a short title and one sentence each,
+  two columns on wide screens), optionally one sentence weighing them when
+  they pull in different directions, and the trust statement (including that
+  another retailer may see a different fit for the same program). Factors, not the equation: weights and formulas
   are never shown to the retailer; methodology belongs in help and internal
   documentation.
 - Bands, shown only inside the explanation so the card stays quiet:
@@ -45,7 +51,9 @@ retailer under every explanation.
 ## Today
 
 Example values only (`src/demo/suppliers.ts`, `demoProgramFit`), for the
-demo suppliers. Real supplier pages show no fit yet. Nothing is computed or
+demo suppliers. Northline shows the full range on one page: 4.6, 4.2 and a
+2.1 "Complete Bike Early Commitment", a sound program that is a limited fit
+for this retailer (large, early commitment against current stock). Real supplier pages show no fit yet. Nothing is computed or
 stored.
 
 ## Later (not built)

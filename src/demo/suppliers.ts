@@ -54,6 +54,7 @@ export const demoSuppliers: DemoSupplier[] = [
         programs: [
           { name: 'Winter service parts program', season: 'Winter 2026', closes: 'October 31', summary: 'Extra 8% off drivetrain wear parts booked for December delivery.' },
           { name: 'Tire pre-season', season: 'Spring 2027', closes: 'November 15', summary: 'Tiered discounts on 24 or more tires, split across two delivery dates.' },
+          { name: 'Complete Bike Early Commitment', season: 'Spring 2027', closes: 'November 30', summary: 'Commit to at least 18 complete bikes for January delivery and receive an additional 4% discount.' },
         ],
       },
       {
@@ -135,6 +136,19 @@ const exampleFit: Record<string, ProgramFitMap> = {
         { title: 'Delivery split matches your spring', detail: 'Two delivery dates follow the way your tire sales build through spring.' },
         { title: 'Modest discount at your volume', detail: 'At 24 to 36 tires you would reach the first tier, not the deeper ones.' },
       ],
+    },
+    // Deliberately a limited fit for this retailer: a sound program for a
+    // shop that sells more complete bikes early in the year.
+    'Complete Bike Early Commitment': {
+      score: 2.1,
+      factors: [
+        { title: 'Large commitment', detail: '18 bikes is well above what you usually sell in the same period.' },
+        { title: 'Early delivery', detail: 'January delivery arrives well before your strongest complete-bike months.' },
+        { title: 'Current inventory', detail: 'Comparable bikes you already stock cover much of your expected early-season demand.' },
+        { title: 'Modest discount', detail: 'The extra 4% helps margin, but likely doesn’t offset the cash and stock you’d carry.' },
+        { title: 'Relevant category', detail: 'The program covers bike categories that already sell in your store.' },
+      ],
+      summary: 'For your store, the category fit is outweighed by the size of the commitment, the early delivery and the bikes you already have.',
     },
   },
   'demo-ridgeline': {
