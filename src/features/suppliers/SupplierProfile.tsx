@@ -6,7 +6,7 @@ import { monogram, type RelationshipView, type SupplierPresentation, type Suppli
 import { FitScore, ProgramFit } from './ProgramFit'
 import type { ProgramFitMap } from './programFit'
 import { RelationshipTag } from './RelationshipTag'
-import { CopyButton, ManageConnection, UploadProgram } from './SupplierActions'
+import { CopyButton, UploadProgram } from './SupplierActions'
 import styles from './Suppliers.module.css'
 
 /** What the retailer brings to the page (never part of the supplier's own presentation). */
@@ -165,7 +165,9 @@ export function SupplierProfile({ presentation, relationship, retailerName, prog
                 <div><dt>Last synced</dt><dd>{connection.lastSynced}</dd></div>
               </dl>
             )}
-            <ManageConnection />
+            <Link href={connection.id ? `/connections?connection=${connection.id}` : '/connections'} className={styles.linkButton}>
+              Manage connection
+            </Link>
           </section>
         </aside>
       </div>

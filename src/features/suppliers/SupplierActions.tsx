@@ -46,19 +46,3 @@ export function UploadProgram({ supplierName }: { supplierName: string }) {
     </div>
   )
 }
-
-/** Where the technical setup will live (credentials, order method, sync). Nothing is configurable yet. */
-export function ManageConnection() {
-  const [open, setOpen] = useState(false)
-  const id = useId()
-  return (
-    <div className={styles.manage}>
-      <button type="button" className={styles.linkButton} aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)}>
-        Manage connection
-      </button>
-      <p id={id} hidden={!open} className={styles.railNote}>
-        Credentials, how orders are sent and what syncs will be managed here. Not available yet.
-      </p>
-    </div>
-  )
-}

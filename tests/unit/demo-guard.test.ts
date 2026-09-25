@@ -15,6 +15,7 @@ const ALLOWED = new Set([
   'src/app/(app)/orders/[orderId]/page.tsx',
   'src/app/(app)/suppliers/page.tsx',
   'src/app/(app)/suppliers/[supplierId]/page.tsx',
+  'src/app/(app)/connections/page.tsx',
 ])
 
 function files(dir: string): string[] {

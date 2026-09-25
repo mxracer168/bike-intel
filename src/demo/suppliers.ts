@@ -166,7 +166,7 @@ export function demoProgramFit(supplierId: string): ProgramFitMap {
 
 /** EXAMPLE account details the retailer keeps for a supplier (private to them). */
 const exampleAccounts: Record<string, SupplierAccountView> = {
-  'demo-northline': { accountNumber: 'PW-18472', connection: { mode: 'api', lastSynced: 'Today at 8:24 AM' } },
+  'demo-northline': { accountNumber: 'PW-18472', connection: { id: 'northline', mode: 'api', lastSynced: 'Today at 8:24 AM' } },
   'demo-summit': { accountNumber: 'SC-00931', connection: { mode: 'email', destination: 'orders@summitparts.example' } },
 }
 

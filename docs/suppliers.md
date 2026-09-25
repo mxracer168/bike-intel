@@ -45,9 +45,9 @@ credentials):
 | File | File export and import |
 | None | Manual ordering |
 
-Behind "Manage connection" (not built): API credentials and authentication,
-supplier endpoints, how orders are submitted, the email destination, and
-what syncs.
+"Manage connection" opens that supplier's connection on the Connections
+page (`/connections?connection=<id>`), where credentials, order submission
+and sync live. See `connections.md`.
 
 ## Uploading programs
 

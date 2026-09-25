@@ -144,6 +144,15 @@ the user asks for more?** If not, it goes one level down.
 - **Dense by default.** Compact rows, strong alignment, numbers in their own
   columns, no wrapping on desktop, no oversized controls.
 
+## Libraries of connections and similar lists
+
+Status is a small dot and a word (green Connected, gray Not connected,
+muted amber Needs attention); cards never change border or fill with
+status. Card actions are outlined, never filled blue; secondary actions are
+text. Only third-party brand logos carry their own color. Details open in
+the standard right-side panel (a full-screen sheet on phones). See
+`connections.md`.
+
 ## Rules (enforced where possible)
 
 1. Lead every screen with an answer or a next step. Never a grid of metrics; Today's

@@ -9,6 +9,8 @@ export type ConnectionMode = 'api' | 'email' | 'portal' | 'file' | 'manual'
 
 export type ConnectionView = {
   mode: ConnectionMode
+  /** This connection on the Connections page, where it's managed. */
+  id?: string
   /** When the last sync finished, already in words ("Today at 8:24 AM"). */
   lastSynced?: string
   /** Where orders go, in words, for email ("orders@…"). Never a credential. */
