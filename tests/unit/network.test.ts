@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { networkMatch, networkProminence, networkSignal } from '@/features/orders/network'
+import { networkMatch, networkSignal, supplierShort } from '@/features/orders/network'
 import type { NetworkListing } from '@/features/orders/types'
 
 const l = (id: string, available: number): NetworkListing => ({ id, retailer: { name: id, place: 'Somewhere, SC' }, available })
@@ -19,7 +19,7 @@ describe('retailer network matches', () => {
     expect(m.kind).toBe('partial')
     if (m.kind !== 'partial') return
     expect(m.some.map((x) => x.id)).toEqual(['c', 'a', 'b'])
-    expect(networkSignal(m)).toBe('3 retailers also have some')
+    expect(networkSignal(m)).toBe('3 retailers have some')
   })
 
   it('none: nothing listed, nothing with units, or nothing needed means nothing shown', () => {
@@ -30,15 +30,15 @@ describe('retailer network matches', () => {
 
   it('reads naturally for one retailer', () => {
     expect(networkSignal(networkMatch([l('a', 6)], 4))).toBe('1 retailer can cover all 4')
-    expect(networkSignal(networkMatch([l('a', 1)], 4))).toBe('1 retailer also has some')
+    expect(networkSignal(networkMatch([l('a', 1)], 4))).toBe('1 retailer has some')
   })
 })
 
 describe('prominence follows the supplier option', () => {
-  it('stays quiet when the supplier can fill it, rises when it cannot', () => {
-    expect(networkProminence('available')).toBe('quiet')
-    expect(networkProminence('limited')).toBe('raised')
-    expect(networkProminence('delayed')).toBe('raised')
-    expect(networkProminence('out')).toBe('primary')
+  it('is raised only when the supplier cannot reasonably fill the line', () => {
+    expect(supplierShort('available')).toBe(false)
+    expect(supplierShort('limited')).toBe(false)
+    expect(supplierShort('delayed')).toBe(true)
+    expect(supplierShort('out')).toBe(true)
   })
 })

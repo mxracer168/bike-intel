@@ -52,12 +52,12 @@ composer shows a short "Answering: Trail tires"), can be
 collapsed to a single row ("Questions for you · 3") without dismissing
 anything, and is gone entirely when none are open), `InlineQuestion`
 (the same question shown where it matters; answered once),
-`OrderReview` (one supplier's order as a dense table; under each product one
-reason and one piece of proof ("Seasonal demand ↑ · 5 sold last October");
-a line opens in place to the decision, a sentence, a row of key facts
-(supplier stock, delivery, confidence, the key assumption) and other
-retailers behind one collapsed signal; the evidence only on request; see
-"Information budget" below and `docs/network.md`), `PriorityList`
+`OrderReview` (one supplier's order as a plain table of facts: product, on
+hand, on order, order quantity, cost; no reasons, labels, icons or questions
+in rows; clicking a row opens "Order N" and one short reason, then "Why N?"
+for the facts behind the number and "View evidence" for the full analysis;
+other retailers are one collapsed line; see "Order review" below and
+`docs/network.md`), `PriorityList`
 (Today's priorities: orders, deadlines, stock, sync problems, one row shape; each
 row with a destination is one link with a quiet chevron; the retailer can
 reorder by dragging a grip that appears on hover/focus, with arrow keys on the
@@ -79,35 +79,48 @@ Across screens:
 | 2 | Proposed order | What should I buy from this supplier? | Every line, scannable in hundreds. |
 | 3 | Line (expanded in place) | Why this quantity? | The reasoning, then the evidence only when asked. |
 
-Within an order line the same idea repeats:
+## Order review
+
+**The default order table is operational facts only. Recommendation context
+must be requested by the user.** A buyer may review hundreds of lines; the
+table has to scan like a plain list.
 
 | Level | When | Shows |
 |---|---|---|
-| Scan | Always, one row | Product, on hand, on order, quantity, cost, **reason**, **proof**, whether it needs a look. |
-| Why | The line is opened | The decision ("Order 4"), one sentence, key facts (supplier stock, delivery, confidence, the key assumption), other retailers behind one signal. |
-| Evidence | "Show the evidence" | Weekly sales, stock, supplier stock detail, season, all assumptions, alternatives. |
+| Default table | Always | Product description, on hand, on order, order quantity, cost. Nothing else: no reason, proof, confidence, supplier status, delivery, retailer availability, attention labels, icons, badges or questions. |
+| Row clicked | The buyer opens a line | "Order 3", one short reason ("Selling faster than usual."), the quantity control, "Why 3?". |
+| Why | "Why 3?" | The few facts behind the number, as a short list: "5 sold last October", "0 on hand", "None already on order", the target ("Enough to last about 3 weeks after it arrives"). |
+| Evidence | "View evidence" | Weekly sales chart, stock, supplier stock, delivery, season, confidence, the sentence behind the recommendation, all assumptions, alternatives. |
+| Other retailers | Separate, collapsed | One line ("3 retailers have some ›"); the list only when clicked, never open by default. Placed under the reason, and bolder, only when the supplier is out of stock or delayed. |
+
+- Lines that need a look are found through the "Needs a look" filter, not
+  by labeling rows. Questions that could change a recommendation stay in the
+  intelligence-question system (shown once above the table, in the panel or
+  the check-in), never inside a row.
+- Part numbers are left out for now.
+- Before adding anything to this screen ask: **would a buyer need this while
+  scanning 100 lines?** If not, it goes behind the row click, behind "Why",
+  or behind "View evidence".
 
 ## Information budget
 
 Before anything goes on screen, ask: **does this need to be visible before
 the user asks for more?** If not, it goes one level down.
 
-- **Decision → reason → proof → more.** Every recommendation leads with the
-  decision, then one short reason ("Seasonal demand ↑"), then one short piece
-  of evidence ("5 sold last October"). Everything else waits.
-- **Signal + proof.** A reason never appears without one concrete piece of
-  evidence next to it, and never with more than one before the user asks.
-- **Facts, not prose.** Prefer label and value ("Supplier stock · Available",
-  "Delivery · ~7 days") to sentences. One sentence of prose at most per level.
+- **Decision → reason → proof → more.** When a recommendation is shown, it
+  leads with the decision, then one short reason, then (on request) the
+  evidence. On screens built for scanning, even the reason waits for a click
+  (see "Order review").
+- **One reason, one step at a time.** Never several explanations at once.
+- **Facts, not prose.** Prefer short facts ("5 sold last October") to
+  sentences. Prose only at the deepest level, and only when needed.
 - **Prominence follows relevance.** The same information can be quiet or
-  primary depending on the situation. Other retailers' stock is a collapsed
-  signal when the supplier can supply, raised onto the row when the supplier
-  is limited or late, and open by default when the supplier is out
-  (`networkProminence`, `docs/network.md`).
-- **Icons sparingly**, only where they speed recognition: delivery, supplier
-  stock, other retailers, a warning. Always next to words.
-- **Dense by default.** Rows stay one product plus one short line, so a long
-  order stays scannable. No badges, paragraphs or nested borders in rows.
+  raised depending on the situation. Other retailers' stock is a collapsed
+  line in an opened order line; it moves up and is set in bold only when the
+  supplier is out of stock or delayed (`supplierShort`, `docs/network.md`).
+- **Icons sparingly**, and never as a replacement for removed words.
+- **Dense by default.** Compact rows, strong alignment, numbers in their own
+  columns, no wrapping on desktop, no oversized controls.
 
 ## Rules (enforced where possible)
 

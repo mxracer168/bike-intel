@@ -22,7 +22,7 @@ export function networkMatch(listings: readonly NetworkListing[] | undefined, ne
   return cover.length > 0 ? { kind: 'full', needed, cover, some } : { kind: 'partial', needed, some }
 }
 
-/** The one-line signal on an order line; null when there's nothing to say. */
+/** The one-line signal in an opened order line; null when there's nothing to say. */
 export function networkSignal(match: NetworkMatch): string | null {
   if (match.kind === 'none') return null
   if (match.kind === 'full') {
@@ -30,22 +30,17 @@ export function networkSignal(match: NetworkMatch): string | null {
       ? `1 retailer can cover all ${match.needed}`
       : `${match.cover.length} retailers can cover all ${match.needed}`
   }
-  return `${plural(match.some.length, 'retailer')} also ${match.some.length === 1 ? 'has' : 'have'} some`
+  return `${plural(match.some.length, 'retailer')} ${match.some.length === 1 ? 'has' : 'have'} some`
 }
 
 /**
- * Prominence follows relevance: how loudly to offer other retailers' stock
- * depends on how good the supplier option is.
- *  quiet   supplier can fill it normally: only a collapsed signal in the line detail
- *  raised  supplier stock is limited or delivery is late: a signal in the table row too
- *  primary supplier is out: a stronger signal, and the list opens by default
+ * Prominence follows relevance. Other retailers' stock is a quiet, collapsed
+ * option unless the supplier can't reasonably fill the line: out of stock or
+ * delivery delayed. Limited stock alone isn't enough (it may still cover the
+ * order). The list itself is never open until asked for.
  */
-export type NetworkProminence = 'quiet' | 'raised' | 'primary'
-
-export function networkProminence(supplier: SupplierStatus): NetworkProminence {
-  if (supplier === 'out') return 'primary'
-  if (supplier === 'limited' || supplier === 'delayed') return 'raised'
-  return 'quiet'
+export function supplierShort(supplier: SupplierStatus): boolean {
+  return supplier === 'out' || supplier === 'delayed'
 }
 
 /**

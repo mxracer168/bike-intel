@@ -1,4 +1,4 @@
-type IconName = 'chevron-down' | 'chevron-right' | 'check' | 'alert' | 'info' | 'arrow-right' | 'menu' | 'close' | 'search' | 'external' | 'plus' | 'mic' | 'arrow-up' | 'file' | 'grip' | 'more' | 'store' | 'truck' | 'box'
+type IconName = 'chevron-down' | 'chevron-right' | 'check' | 'alert' | 'info' | 'arrow-right' | 'menu' | 'close' | 'search' | 'external' | 'plus' | 'mic' | 'arrow-up' | 'file' | 'grip' | 'more'
 
 const paths: Record<IconName, React.ReactNode> = {
   'chevron-down': <path d="M3.5 6 8 10.5 12.5 6" />,
@@ -10,9 +10,6 @@ const paths: Record<IconName, React.ReactNode> = {
   menu: <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11" />,
   close: <path d="M4 4l8 8M12 4l-8 8" />,
   search: <><circle cx="7" cy="7" r="4.25" /><path d="m10.2 10.2 3.3 3.3" /></>,
-  store: <><path d="M2.5 6.5 3.5 3h9l1 3.5" /><path d="M2.5 6.5h11c0 1.1-.9 2-2 2s-1.8-.9-1.8-2c0 1.1-.8 2-1.7 2s-1.7-.9-1.7-2c0 1.1-.8 2-1.8 2s-2-.9-2-2Z" /><path d="M3.5 8.5v4.5h9V8.5M6.5 13v-2.5h3V13" /></>,
-  truck: <><path d="M1.5 4h8v7h-8zM9.5 6.5h3l2 2.5v2h-5" /><circle cx="4.5" cy="12" r="1.3" /><circle cx="11.5" cy="12" r="1.3" /></>,
-  box: <><path d="M2.5 5 8 2.5 13.5 5v6L8 13.5 2.5 11z" /><path d="M2.5 5 8 7.5 13.5 5M8 7.5v6" /></>,
   grip: <><circle cx="6" cy="4" r=".9" /><circle cx="10" cy="4" r=".9" /><circle cx="6" cy="8" r=".9" /><circle cx="10" cy="8" r=".9" /><circle cx="6" cy="12" r=".9" /><circle cx="10" cy="12" r=".9" /></>,
   more: <><circle cx="3.5" cy="8" r=".9" /><circle cx="8" cy="8" r=".9" /><circle cx="12.5" cy="8" r=".9" /></>,
   plus: <path d="M8 3v10M3 8h10" />,
