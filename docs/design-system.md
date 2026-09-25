@@ -50,13 +50,18 @@ something from you"; white answer buttons, charcoal text), "Questions for you" s
 in words, the quick answers step aside for "Back to quick answers" and the
 composer shows a short "Answering: Trail tires"), can be
 collapsed to a single row ("Questions for you · 3") without dismissing
-anything, and is gone entirely when none are open), `InlineQuestion`
-(the same question shown where it matters; answered once),
+anything, and is gone entirely when none are open), `AnchoredQuestion`
+(a question that could change the current page, e.g. an order: a slim strip
+that stays at the bottom of the viewport and settles at the end of the page,
+"1 question could change this order", Answer / Dismiss; Answer opens the
+quick answers in place and answering resolves the same question everywhere;
+Dismiss only hides it on that page in this browser, the question stays open
+in the panel and check-in; on a phone the strip is one line until Answer),
 `OrderReview` (one supplier's order as a plain table of facts: product, on
 hand, on order, order quantity, cost; no reasons, labels, icons or questions
-in rows; clicking a row opens "Order N" and one short reason and the controls, then "Why N?"
-for a full-width analysis (chart and sentence, key facts, assumptions and
-options); other retailers are one collapsed line; see "Order review" below and
+in rows beyond a quiet chevron; clicking a row opens it as one washed,
+accent-edged surface: one short reason, then quantity, "Why N?" and other
+retailers as outlined disclosures, each opening its own panel; see "Order review" below and
 `docs/network.md`), `PriorityList`
 (Today's priorities: orders, deadlines, stock, sync problems, one row shape; each
 row with a destination is one link with a quiet chevron; the retailer can
@@ -88,21 +93,28 @@ table has to scan like a plain list.
 | Level | When | Shows |
 |---|---|---|
 | Default table | Always | Product description, on hand, on order, order quantity, cost. Nothing else: no reason, proof, confidence, supplier status, delivery, retailer availability, attention labels, icons, badges or questions. |
-| Row clicked | The buyer opens a line | A light strip across the full width: one short reason ("Busier season ahead."), the quantity control, "Why 4?" and, if any, the other-retailers signal. No heading: the quantity is already in the table and the control. |
-| Why | "Why 4?" | A full-width analysis: the weekly sales chart with one sentence under it on the left (about 60%, left open); key facts on the right (sales pace, on hand, supplier stock, delivery, season, confidence) as label and value on a white surface with a thin outline; "What we assumed" and "Other options" underneath, side by side, below a hairline. Stacked on a phone. |
-| Other retailers | Separate, collapsed | One line ("3 retailers have some ›"); the list only when clicked, never open by default. Placed under the reason, and bolder, only when the supplier is out of stock or delayed. |
+| Row clicked | The buyer opens a line | The row and its detail become one surface across the full table width: a very light blue wash (`--accent-wash`), a 3px accent edge on the left, the product name in bold. Inside: one short reason ("Busier season ahead.") and one line of controls: quantity, "Why 4? ⌄", "3 retailers have some ⌄". No heading: the quantity is already in the table and the control. |
+| Why | "Why 4?" | A white panel: the weekly sales chart and one sentence on the left, "Key facts" (sales pace, on hand, supplier stock, delivery, season, confidence) as label and value on a faint tint on the right. Below it, "What we assumed" and "Other options" as two smaller white panels, side by side where there's room. |
+| Other retailers | Separate, collapsed | The signal is an outlined disclosure, bold only when the supplier is out of stock or delayed. Opened, "Other retailers" is its own white panel: name, place, units available, "Request connection". |
+
+**Zones follow what's open.** Why and other retailers both open: Why takes
+about two thirds on the left, other retailers the right third, assumptions and
+options run underneath both. Only one open: it takes the full width (the
+retailer list then shows one line per retailer). Neither: just the reason and
+controls. On a phone everything stacks in the same order.
 
 - Lines that need a look are found through the "Needs a look" filter, not
   by labeling rows. Questions that could change a recommendation stay in the
-  intelligence-question system (shown once above the table, in the panel or
-  the check-in), never inside a row.
+  intelligence-question system (an anchored strip at the bottom of the order,
+  the panel, the check-in), never inside a row or above the table.
 - **Each fact appears once** at its most useful level: the quantity in the
   table and the control (no "Order 4" heading); pace, stock, supplier and
   delivery as key facts (the sentence under the chart doesn't repeat them,
   and delivery isn't listed again as an assumption).
-- Structure comes from layout, hairlines and at most a white surface with a
-  thin outline (key facts, the retailer list). No cards in cards, no shadows,
-  no icons beyond the turning caret.
+- Structure comes from layout, a light wash, thin outlines and whitespace:
+  white panels with a 1px line on the wash, one faint tint for key facts.
+  No shadows, no cards inside panels, no icons beyond the chevron and
+  carets.
 - Part numbers are left out for now.
 - Before adding anything to this screen ask: **would a buyer need this while
   scanning 100 lines?** If not, it goes behind the row click or behind

@@ -85,7 +85,7 @@ email + password and email confirmation.
   the app. It holds notes, answers, attachments and check-in markers and is
   never rewritten. Questions live once in `intelligence_question`
   (open / answered / deferred / withdrawn), so answering in the panel, the
-  weekly check-in or inline on an order resolves the same row
+  weekly check-in or anchored on an order resolves the same row
   (`answer_intelligence_question`, run as the user). Attachments are ordinary
   `document` rows whose bytes sit in `documents/<organization_id>/intelligence/`;
   nothing reads them yet, and the conversation says so. Interpreting the

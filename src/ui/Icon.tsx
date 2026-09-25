@@ -1,4 +1,4 @@
-type IconName = 'chevron-down' | 'chevron-right' | 'check' | 'alert' | 'info' | 'arrow-right' | 'menu' | 'close' | 'search' | 'external' | 'plus' | 'mic' | 'arrow-up' | 'file' | 'grip' | 'more'
+type IconName = 'chevron-down' | 'chevron-right' | 'check' | 'alert' | 'info' | 'arrow-right' | 'menu' | 'close' | 'search' | 'external' | 'plus' | 'mic' | 'arrow-up' | 'file' | 'grip' | 'more' | 'question'
 
 const paths: Record<IconName, React.ReactNode> = {
   'chevron-down': <path d="M3.5 6 8 10.5 12.5 6" />,
@@ -10,6 +10,7 @@ const paths: Record<IconName, React.ReactNode> = {
   menu: <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11" />,
   close: <path d="M4 4l8 8M12 4l-8 8" />,
   search: <><circle cx="7" cy="7" r="4.25" /><path d="m10.2 10.2 3.3 3.3" /></>,
+  question: <><circle cx="8" cy="8" r="6" /><path d="M6.3 6.2a1.8 1.8 0 0 1 3.5.5c0 1.2-1.8 1.5-1.8 2.6M8 11.4v.1" /></>,
   grip: <><circle cx="6" cy="4" r=".9" /><circle cx="10" cy="4" r=".9" /><circle cx="6" cy="8" r=".9" /><circle cx="10" cy="8" r=".9" /><circle cx="6" cy="12" r=".9" /><circle cx="10" cy="12" r=".9" /></>,
   more: <><circle cx="3.5" cy="8" r=".9" /><circle cx="8" cy="8" r=".9" /><circle cx="12.5" cy="8" r=".9" /></>,
   plus: <path d="M8 3v10M3 8h10" />,

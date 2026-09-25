@@ -125,10 +125,7 @@
 .hint { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); padding: 0 var(--sp-2); }
 .problem { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--risk); font-weight: 500; padding: 0 var(--sp-2); }
 
-/* ---------- Inline, elsewhere in the app ---------- */
-.inline { display: flex; flex-direction: column; gap: 2px; padding: var(--sp-3) 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.inline .questions { padding-top: 0; }
-.inlineLead { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+/* ---------- Compact question, elsewhere in the app ---------- */
 .compactQuestion { gap: var(--sp-2); }
 .inlineLink {
   border: 0; background: none; padding: 0; font: inherit; color: var(--accent); cursor: pointer;

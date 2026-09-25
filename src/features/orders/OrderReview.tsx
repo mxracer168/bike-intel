@@ -3,7 +3,7 @@
 import { Fragment, useId, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { average, describeWeeklyRate, formatMoney, plural } from '@/domain/language/plain'
 import { EvidenceChart } from '@/features/recommendations/EvidenceChart'
-import { InlineQuestion } from '@/features/intelligence/InlineQuestion'
+import { AnchoredQuestion } from '@/features/intelligence/AnchoredQuestion'
 import { ConfidenceMark } from '@/ui/Confidence'
 import { Icon } from '@/ui/Icon'
 import { QuantityStepper } from '@/ui/QuantityStepper'
@@ -16,7 +16,7 @@ import styles from './OrderReview.module.css'
 
 const NARROW = '(max-width: 760px)'
 
-/** On narrow screens the On order column is hidden; a detail row must span only the visible ones. */
+/** On narrow screens the chevron and On order columns are hidden; a detail row must span only the visible ones. */
 function useNarrow() {
   return useSyncExternalStore(
     (onChange) => {
@@ -38,45 +38,51 @@ const supplierLabel = { available: 'Available', limited: 'Limited', delayed: 'De
 
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
 
-/**
- * "Why N?": the analysis behind one line, using the full width. The sales
- * chart and one sentence on the left, key facts on the right, what we assumed
- * and other options underneath. Each fact appears once.
- */
-function Analysis({ line, leadTimeDays }: { line: OrderLineView; leadTimeDays: number }) {
-  // Delivery is a key fact; don't list it again as an assumption.
-  const assumptions = line.assumptions.filter((a) => !a.startsWith('Delivery'))
+/** Why N? panel: the sales chart and one sentence, beside the key facts. */
+function WhyPanel({ line, leadTimeDays }: { line: OrderLineView; leadTimeDays: number }) {
   const supplierOk = line.supplier.status === 'available'
   return (
-    <div className={styles.analysis}>
-      <div className={styles.story}>
-        <EvidenceChart weeklySales={line.weeklySales} />
-        <p className={styles.storyText}>{line.reason}</p>
-      </div>
-      <section className={styles.keyFacts} aria-label="Key facts">
-        <dl>
-          <div><dt>Sales pace</dt><dd>{capitalize(describeWeeklyRate(average(line.weeklySales)))}</dd></div>
-          <div><dt>On hand</dt><dd>{line.onHand}</dd></div>
-          <div><dt>Supplier stock</dt><dd className={supplierOk ? undefined : styles.attention}>
-            {supplierOk ? line.availability : `${supplierLabel[line.supplier.status]} · ${line.supplier.note}`}
-          </dd></div>
-          <div><dt>Delivery</dt><dd>~{leadTimeDays} days</dd></div>
-          {line.season && <div><dt>Season</dt><dd>{line.season}</dd></div>}
-          <div><dt>Confidence</dt><dd><ConfidenceMark level={line.confidence} /></dd></div>
-        </dl>
-      </section>
-      <div className={styles.notes}>
-        <section>
-          <h2 className={styles.notesTitle}>What we assumed</h2>
-          <ul>{assumptions.map((a) => <li key={a}>{a}</li>)}</ul>
+    <section className={[styles.panel, styles.whyPanel].join(' ')} aria-labelledby={`${line.id}-why`}>
+      <h2 id={`${line.id}-why`} className={styles.panelTitle}>Why {line.quantity}?</h2>
+      <div className={styles.whyGrid}>
+        <div className={styles.story}>
+          <EvidenceChart weeklySales={line.weeklySales} />
+          <p className={styles.storyText}>{line.reason}</p>
+        </div>
+        <section className={styles.keyFacts} aria-labelledby={`${line.id}-facts`}>
+          <h3 id={`${line.id}-facts`} className={styles.keyFactsTitle}>Key facts</h3>
+          <dl>
+            <div><dt>Sales pace</dt><dd>{capitalize(describeWeeklyRate(average(line.weeklySales)))}</dd></div>
+            <div><dt>On hand</dt><dd>{line.onHand}</dd></div>
+            <div><dt>Supplier stock</dt><dd className={supplierOk ? undefined : styles.attention}>
+              {supplierOk ? line.availability : `${supplierLabel[line.supplier.status]} · ${line.supplier.note}`}
+            </dd></div>
+            <div><dt>Delivery</dt><dd>~{leadTimeDays} days</dd></div>
+            {line.season && <div><dt>Season</dt><dd>{line.season}</dd></div>}
+            <div><dt>Confidence</dt><dd><ConfidenceMark level={line.confidence} /></dd></div>
+          </dl>
         </section>
-        {line.alternatives.length > 0 && (
-          <section>
-            <h2 className={styles.notesTitle}>Other options</h2>
-            <ul>{line.alternatives.map((a) => <li key={a}>{a}</li>)}</ul>
-          </section>
-        )}
       </div>
+    </section>
+  )
+}
+
+/** Under the Why panel: what we assumed and the other options, each its own quiet panel. */
+function Notes({ line }: { line: OrderLineView }) {
+  // Delivery is a key fact; don't list it again as an assumption.
+  const assumptions = line.assumptions.filter((a) => !a.startsWith('Delivery'))
+  return (
+    <div className={styles.notes}>
+      <section className={styles.panel}>
+        <h2 className={styles.notesTitle}>What we assumed</h2>
+        <ul>{assumptions.map((a) => <li key={a}>{a}</li>)}</ul>
+      </section>
+      {line.alternatives.length > 0 && (
+        <section className={styles.panel}>
+          <h2 className={styles.notesTitle}>Other options</h2>
+          <ul>{line.alternatives.map((a) => <li key={a}>{a}</li>)}</ul>
+        </section>
+      )}
     </div>
   )
 }
@@ -87,11 +93,9 @@ function NetworkRow({ listing }: { listing: NetworkListing }) {
   const who = retailerLabel(listing)
   return (
     <li className={styles.networkRow}>
-      <span className={styles.networkWho}>
-        <span className={styles.networkName}>{who.name}</span>
-        <span className={styles.networkPlace}>{who.place}</span>
-      </span>
+      <span className={styles.networkName}>{who.name}</span>
       <span className={styles.networkQty}>{listing.available} available</span>
+      <span className={styles.networkPlace}>{who.place}</span>
       {requested
         ? <span className={styles.networkDone} role="status">Requested · you’ll agree price and shipping directly</span>
         : <button type="button" className={styles.textButton} onClick={() => setRequested(true)}
@@ -100,10 +104,11 @@ function NetworkRow({ listing }: { listing: NetworkListing }) {
   )
 }
 
-/** Other retailers who made this item available: can cover it all first, then those with some. */
-function NetworkList({ id, match, hidden }: { id: string; match: Exclude<NetworkMatch, { kind: 'none' }>; hidden: boolean }) {
+/** Other retailers who made this item available: those who can cover it all first, then those with some. */
+function NetworkPanel({ id, match }: { id: string; match: Exclude<NetworkMatch, { kind: 'none' }> }) {
   return (
-    <section id={id} hidden={hidden} className={styles.network} aria-label="Other retailers">
+    <section id={id} className={[styles.panel, styles.networkPanel].join(' ')} aria-labelledby={`${id}-title`}>
+      <h2 id={`${id}-title`} className={styles.panelTitle}>Other retailers</h2>
       {match.kind === 'full' ? (
         <>
           <ul className={styles.networkList} aria-label={`Can cover all ${match.needed}`}>
@@ -123,12 +128,13 @@ function NetworkList({ id, match, hidden }: { id: string; match: Exclude<Network
   )
 }
 
-const Caret = () => <span className={styles.caret} aria-hidden="true"><Icon name="chevron-right" size={13} /></span>
+const Caret = () => <span className={styles.caret} aria-hidden="true"><Icon name="chevron-down" size={14} /></span>
 
 /**
- * An opened line. A light strip first: one short reason, the quantity, "Why
- * N?" and (when there are any) other retailers, each opening its own space.
- * Other retailers are bold only when the supplier is out of stock or delayed.
+ * An opened line: one short reason and a strip of controls (quantity, "Why
+ * N?", other retailers). Each disclosure opens its own zone: Why on the left
+ * (about two thirds), other retailers on the right; whichever is open alone
+ * takes the full width. Assumptions and options sit underneath.
  */
 function LineDetail({ line, quantity, setQuantity, leadTimeDays }: {
   line: OrderLineView; quantity: number; setQuantity: (n: number) => void; leadTimeDays: number
@@ -138,28 +144,32 @@ function LineDetail({ line, quantity, setQuantity, leadTimeDays }: {
   const whyId = useId()
   const networkId = useId()
   const match = networkMatch(line.network, quantity)
+  const network = showNetwork && match.kind !== 'none' ? match : null
   return (
     <div className={styles.detail}>
       <p className={styles.reason}>{line.signal.reason}.</p>
       <div className={styles.controls}>
         <QuantityStepper compact value={quantity} onChange={setQuantity} label={`Quantity for ${line.product}`} />
-        {quantity !== line.quantity && (
-          <button type="button" className={styles.more} onClick={() => setQuantity(line.quantity)}>Back to {line.quantity}</button>
-        )}
-        <button type="button" className={styles.more} aria-expanded={why} aria-controls={whyId} onClick={() => setWhy((v) => !v)}>
+        <button type="button" className={styles.disclosure} aria-expanded={why} aria-controls={whyId} onClick={() => setWhy((v) => !v)}>
           Why {line.quantity}?<Caret />
         </button>
         {match.kind !== 'none' && (
           <button type="button" aria-expanded={showNetwork} aria-controls={networkId} onClick={() => setShowNetwork((v) => !v)}
-            className={[styles.more, supplierShort(line.supplier.status) ? styles.morePrimary : styles.moreQuiet].join(' ')}>
+            className={[styles.disclosure, supplierShort(line.supplier.status) && styles.disclosureStrong].filter(Boolean).join(' ')}>
             {networkSignal(match)}<Caret />
           </button>
         )}
+        {quantity !== line.quantity && (
+          <button type="button" className={styles.textButton} onClick={() => setQuantity(line.quantity)}>Back to {line.quantity}</button>
+        )}
       </div>
-      {match.kind !== 'none' && <NetworkList id={networkId} match={match} hidden={!showNetwork} />}
-      <div id={whyId} hidden={!why}>
-        {why && <Analysis line={line} leadTimeDays={leadTimeDays} />}
-      </div>
+      {(why || network) && (
+        <div className={[styles.zones, why && network && styles.zonesBoth].filter(Boolean).join(' ')}>
+          {why && <div id={whyId} className={styles.whyZone}><WhyPanel line={line} leadTimeDays={leadTimeDays} /></div>}
+          {network && <NetworkPanel id={networkId} match={network} />}
+          {why && <Notes line={line} />}
+        </div>
+      )}
     </div>
   )
 }
@@ -196,10 +206,6 @@ export function OrderReview({ order, eyebrow }: { order: ProposedOrderView; eyeb
         </p>
       </header>
 
-      {order.intelligenceQuestionId && (
-        <InlineQuestion questionId={order.intelligenceQuestionId} lead={order.intelligenceQuestionLead} />
-      )}
-
       <div className={styles.work}>
         <div className={styles.filter} role="group" aria-label="Show">
           <button type="button" aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>All {order.lines.length}</button>
@@ -218,6 +224,7 @@ export function OrderReview({ order, eyebrow }: { order: ProposedOrderView; eyeb
         <table className={styles.table} aria-label={`Proposed order from ${order.supplier}`}>
           <thead>
             <tr>
+              <th scope="col" className={[styles.cGo, styles.wide].join(' ')}><span className="visually-hidden">Open</span></th>
               <th scope="col">Product</th>
               <th scope="col" className={[styles.num, styles.cStock].join(' ')}>On hand</th>
               <th scope="col" className={[styles.num, styles.wide, styles.cStock].join(' ')}>On order</th>
@@ -233,6 +240,7 @@ export function OrderReview({ order, eyebrow }: { order: ProposedOrderView; eyeb
                 <Fragment key={line.id}>
                   {/* The whole row opens the line; the button inside is the keyboard and screen-reader control. */}
                   <tr className={[styles.row, isOpen && styles.openRow].filter(Boolean).join(' ')} onClick={() => toggle(line.id)}>
+                    <td className={[styles.go, styles.wide].join(' ')} aria-hidden="true"><Icon name="chevron-right" size={14} /></td>
                     <th scope="row" className={styles.product}>
                       <button type="button" className={styles.lineButton} aria-expanded={isOpen}
                         aria-controls={`${line.id}-detail`} onClick={(e) => { e.stopPropagation(); toggle(line.id) }}>
@@ -250,7 +258,7 @@ export function OrderReview({ order, eyebrow }: { order: ProposedOrderView; eyeb
                   </tr>
                   {isOpen && (
                     <tr className={styles.detailRow} id={`${line.id}-detail`}>
-                      <td colSpan={narrow ? 4 : 5}>
+                      <td colSpan={narrow ? 4 : 6}>
                         <LineDetail line={line} quantity={q} leadTimeDays={order.leadTimeDays}
                           setQuantity={(n) => setQuantities((prev) => ({ ...prev, [line.id]: n }))} />
                       </td>
@@ -262,12 +270,16 @@ export function OrderReview({ order, eyebrow }: { order: ProposedOrderView; eyeb
           </tbody>
           <tfoot>
             <tr>
-              <th scope="row" colSpan={narrow ? 3 : 4}>Estimated total</th>
+              <th scope="row" colSpan={narrow ? 3 : 5}>Estimated total</th>
               <td className={styles.num}>{cost(total, order.currency)}</td>
             </tr>
           </tfoot>
         </table>
       </div>
+
+      {order.intelligenceQuestionId && (
+        <AnchoredQuestion questionId={order.intelligenceQuestionId} headline="1 question could change this order" />
+      )}
     </>
   )
 }

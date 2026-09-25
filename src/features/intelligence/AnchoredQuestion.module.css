@@ -1,0 +1,35 @@
+/* Stays at the bottom of the viewport while the page scrolls, and settles at
+   the end of the page, so it never permanently covers the last rows. */
+.strip {
+  position: sticky; bottom: var(--sp-4); z-index: 5; margin-top: var(--sp-6);
+  display: flex; align-items: center; gap: var(--sp-3) var(--sp-4);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+  box-shadow: var(--sh-2); padding: var(--sp-3) var(--sp-4);
+}
+.mark {
+  flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent-soft); color: var(--accent);
+}
+.body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.headline { font-weight: 600; color: var(--accent-pressed); }
+.prompt { color: var(--ink-2); }
+.answer { list-style: none; padding-top: 2px; }
+.actions { flex: none; display: flex; align-items: center; gap: var(--sp-4); }
+.primary {
+  min-height: 36px; padding: 6px 16px; border: 0; border-radius: var(--r-md); cursor: pointer;
+  background: var(--accent); color: var(--on-accent); font-size: 15px; font-weight: 600;
+}
+.primary:hover { background: var(--accent-hover); }
+.quiet { border: 0; background: none; padding: 6px 0; font-size: 15px; color: var(--accent); cursor: pointer; }
+.quiet:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* On a phone: one compact line until "Answer" opens the question. */
+@media (max-width: 640px) {
+  .strip { flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); bottom: var(--sp-2); padding: var(--sp-2) var(--sp-3); }
+  .mark { display: none; }
+  .body { flex-basis: 100%; }
+  .headline { font-size: 15px; }
+  .prompt { display: none; }
+  .actions { gap: var(--sp-4); }
+  .primary { min-height: 36px; }
+}

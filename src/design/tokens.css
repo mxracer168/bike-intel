@@ -19,6 +19,7 @@
   /* Accent: Harbor blue (primary button, links, Why?, focus) */
   --accent: #3A6EA5;       --accent-hover: #2F5C8C;
   --accent-soft: #E9F0F8;  --accent-muted: #A9C1DC;
+  --accent-wash: #F4F8FC;  /* an opened order line: "you are looking at this one" */
   --accent-pressed: #28507A;
   --accent-underline: rgba(58,110,165,.35);
   --on-accent: #FFFFFF;

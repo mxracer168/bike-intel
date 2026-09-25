@@ -291,7 +291,6 @@ const cascade: ProposedOrderView = {
 
 // The one question that could change this order: asked here and in the conversation, answered once.
 northline.intelligenceQuestionId = 'demo-cedar-ridge'
-northline.intelligenceQuestionLead = 'Your answer could change the trail tires in this order.'
 
 export const demoOrders: ProposedOrderView[] = [northline, summit, cascade]
 
