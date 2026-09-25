@@ -4,7 +4,7 @@
  * product names. Lines are generated deterministically so every load shows
  * the same numbers.
  */
-import { average, describeCover, describeWeeklyRate, weeklyRateShort } from '@/domain/language/plain'
+import { average, describeCover, weeklyRateShort } from '@/domain/language/plain'
 import type { Confidence, LineState, NetworkListing, OrderLineView, ProposedOrderView } from '@/features/orders/types'
 
 /** Small seeded PRNG (mulberry32): same seed, same example data. */
@@ -58,14 +58,14 @@ type Plan = {
   special: Record<string, Special>
 }
 
-const trail = 'Trail riding usually stays busy through October for you.'
-const winter = 'Service work picks up for you from November, when riders stop riding.'
+const trail = 'Busy through October'
+const winter = 'Picks up from November'
 
+/** The sentence under the sales chart. Pace, stock and supplier are key facts, so it doesn't repeat them. */
 function reasonFor(onHand: number, onOrder: number, perWeek: number): string {
-  const rate = describeWeeklyRate(perWeek)
   const coming = onOrder > 0 ? `, and ${onOrder} more ${onOrder === 1 ? 'is' : 'are'} on the way` : ''
-  if (onHand <= 0) return `You sell ${rate} and have none left${coming}.`
-  return `You sell ${rate}; the ${onHand} you have will last ${describeCover(onHand, perWeek)}${coming}.`
+  if (onHand <= 0) return `You have none left${coming}.`
+  return `The ${onHand} you have will last ${describeCover(onHand, perWeek)}${coming}.`
 }
 
 /** An ordinary restock: the short reason and the one fact behind it. */
@@ -185,12 +185,13 @@ const northline = build({
     'KMC chain · X11': { state: 'review',
       signal: { reason: 'Supplier out of stock', proof: 'Back ~Oct 20' },
       supplier: { status: 'out', note: 'Back ~Oct 20' }, onHand: 0, onOrder: 0,
-      reason: 'You sell about 1 a week and have none left. Northline is out until around October 20.',
+      reason: 'You’ve run out, and chains sell for you every week.',
+      alternatives: ['Wait for Northline’s restock around October 20 and order then.'],
       network: [listing('trailhead', 12, 'x11'), listing('palmetto', 9, 'x11'), listing('river', 2, 'x11')] },
     'Shimano B01S resin disc brake pads · Pair': { state: 'ok', quantity: 6,
       signal: { reason: 'Running low', proof: 'Sell ~2/wk' }, supplier: { status: 'available', note: 'Available' },
       network: [listing('palmetto', 10, 'b01s'), listing('river', 6, 'b01s'), listing('trailhead', 8, 'b01s'), listing('midtown', 2, 'b01s'), listing('upstate', 1, 'b01s')], onHand: 2, onOrder: 0, confidence: 'high', weeklySales: [1, 2, 1, 3, 2, 2, 3, 2, 3, 2, 2, 3],
-      reason: 'You sell about 2 a week and have 2 left, about a week’s worth.',
+      reason: 'The 2 you have will run out in about a week.',
       alternatives: ['Shimano J05A pads fit the same brakes and cost a little more.'] },
     'Maxxis Minion DHF · 29 × 2.5 WT EXO+': { state: 'review', quantity: 4,
       signal: { reason: 'Busier season ahead', proof: '5 sold last October' },

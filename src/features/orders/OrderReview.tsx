@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, useId, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { average, describeCover, describeWeeklyRate, formatMoney, plural } from '@/domain/language/plain'
+import { average, describeWeeklyRate, formatMoney, plural } from '@/domain/language/plain'
 import { EvidenceChart } from '@/features/recommendations/EvidenceChart'
 import { InlineQuestion } from '@/features/intelligence/InlineQuestion'
 import { ConfidenceMark } from '@/ui/Confidence'
@@ -36,36 +36,45 @@ function cost(amount: number, currency: string) {
 
 const supplierLabel = { available: 'Available', limited: 'Limited', delayed: 'Delayed', out: 'Out of stock' } as const
 
-/** The target the quantity was sized to (delivery has its own place in the evidence). */
-const targetOf = (line: OrderLineView) => line.assumptions.find((a) => !a.startsWith('Delivery'))
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
 
-/** Evidence: the full analysis, only at the deepest level. */
-function Evidence({ line, leadTimeDays }: { line: OrderLineView; leadTimeDays: number }) {
-  const perWeek = average(line.weeklySales)
+/**
+ * "Why N?": the analysis behind one line, using the full width. The sales
+ * chart and one sentence on the left, key facts on the right, what we assumed
+ * and other options underneath. Each fact appears once.
+ */
+function Analysis({ line, leadTimeDays }: { line: OrderLineView; leadTimeDays: number }) {
+  // Delivery is a key fact; don't list it again as an assumption.
+  const assumptions = line.assumptions.filter((a) => !a.startsWith('Delivery'))
+  const supplierOk = line.supplier.status === 'available'
   return (
-    <div className={styles.evidence}>
-      <EvidenceChart weeklySales={line.weeklySales} />
-      <dl className={styles.facts}>
-        <div><dt>You sell</dt><dd>{describeWeeklyRate(perWeek)}</dd></div>
-        <div><dt>On hand</dt><dd>{line.onHand > 0 ? `${line.onHand}, lasting ${describeCover(line.onHand, perWeek)}` : 'None'}</dd></div>
-        <div><dt>Supplier stock</dt><dd>
-          {line.supplier.status === 'available' ? line.availability : `${supplierLabel[line.supplier.status]} · ${line.supplier.note}`}
-        </dd></div>
-        <div><dt>Delivery</dt><dd>About {leadTimeDays} days</dd></div>
-        {line.season && <div><dt>Season</dt><dd>{line.season}</dd></div>}
-        <div><dt>Confidence</dt><dd><ConfidenceMark level={line.confidence} /></dd></div>
-      </dl>
-      <p className={styles.evidenceReason}>{line.reason}</p>
+    <div className={styles.analysis}>
+      <div className={styles.story}>
+        <EvidenceChart weeklySales={line.weeklySales} />
+        <p className={styles.storyText}>{line.reason}</p>
+      </div>
+      <section className={styles.keyFacts} aria-label="Key facts">
+        <dl>
+          <div><dt>Sales pace</dt><dd>{capitalize(describeWeeklyRate(average(line.weeklySales)))}</dd></div>
+          <div><dt>On hand</dt><dd>{line.onHand}</dd></div>
+          <div><dt>Supplier stock</dt><dd className={supplierOk ? undefined : styles.attention}>
+            {supplierOk ? line.availability : `${supplierLabel[line.supplier.status]} · ${line.supplier.note}`}
+          </dd></div>
+          <div><dt>Delivery</dt><dd>~{leadTimeDays} days</dd></div>
+          {line.season && <div><dt>Season</dt><dd>{line.season}</dd></div>}
+          <div><dt>Confidence</dt><dd><ConfidenceMark level={line.confidence} /></dd></div>
+        </dl>
+      </section>
       <div className={styles.notes}>
-        <div>
+        <section>
           <h2 className={styles.notesTitle}>What we assumed</h2>
-          <ul>{line.assumptions.map((a) => <li key={a}>{a}</li>)}</ul>
-        </div>
+          <ul>{assumptions.map((a) => <li key={a}>{a}</li>)}</ul>
+        </section>
         {line.alternatives.length > 0 && (
-          <div>
+          <section>
             <h2 className={styles.notesTitle}>Other options</h2>
             <ul>{line.alternatives.map((a) => <li key={a}>{a}</li>)}</ul>
-          </div>
+          </section>
         )}
       </div>
     </div>
@@ -91,82 +100,66 @@ function NetworkRow({ listing }: { listing: NetworkListing }) {
   )
 }
 
-/** Other retailers' stock: one short signal, the list only when asked for. */
-function Network({ match, prominent }: { match: Exclude<NetworkMatch, { kind: 'none' }>; prominent: boolean }) {
-  const [open, setOpen] = useState(false)
-  const listId = useId()
+/** Other retailers who made this item available: can cover it all first, then those with some. */
+function NetworkList({ id, match, hidden }: { id: string; match: Exclude<NetworkMatch, { kind: 'none' }>; hidden: boolean }) {
   return (
-    <div className={styles.network}>
-      <button type="button" className={[styles.more, prominent && styles.morePrimary].filter(Boolean).join(' ')}
-        aria-expanded={open} aria-controls={listId} onClick={() => setOpen((o) => !o)}>
-        {networkSignal(match)}<span className={styles.caret} aria-hidden="true"><Icon name="chevron-right" size={13} /></span>
-      </button>
-      <div id={listId} hidden={!open}>
-        {match.kind === 'full' ? (
-          <>
-            <ul className={styles.networkList} aria-label={`Can cover all ${match.needed}`}>
-              {match.cover.map((l) => <NetworkRow key={l.id} listing={l} />)}
-            </ul>
-            {match.some.length > 0 && (
-              <>
-                <p className={styles.networkGroup}>Other retailers with some</p>
-                <ul className={styles.networkList}>{match.some.map((l) => <NetworkRow key={l.id} listing={l} />)}</ul>
-              </>
-            )}
-          </>
-        ) : (
-          <ul className={styles.networkList} aria-label="Retailers with some">{match.some.map((l) => <NetworkRow key={l.id} listing={l} />)}</ul>
-        )}
-      </div>
-    </div>
+    <section id={id} hidden={hidden} className={styles.network} aria-label="Other retailers">
+      {match.kind === 'full' ? (
+        <>
+          <ul className={styles.networkList} aria-label={`Can cover all ${match.needed}`}>
+            {match.cover.map((l) => <NetworkRow key={l.id} listing={l} />)}
+          </ul>
+          {match.some.length > 0 && (
+            <>
+              <p className={styles.networkGroup}>Other retailers with some</p>
+              <ul className={styles.networkList}>{match.some.map((l) => <NetworkRow key={l.id} listing={l} />)}</ul>
+            </>
+          )}
+        </>
+      ) : (
+        <ul className={styles.networkList} aria-label="Retailers with some">{match.some.map((l) => <NetworkRow key={l.id} listing={l} />)}</ul>
+      )}
+    </section>
   )
 }
 
+const Caret = () => <span className={styles.caret} aria-hidden="true"><Icon name="chevron-right" size={13} /></span>
+
 /**
- * An opened line. First: the decision and one short reason. "Why N?" adds the
- * few facts behind the number; "View evidence" the full analysis. Other
- * retailers stay one collapsed line, raised only when the supplier is short.
+ * An opened line. A light strip first: one short reason, the quantity, "Why
+ * N?" and (when there are any) other retailers, each opening its own space.
+ * Other retailers are bold only when the supplier is out of stock or delayed.
  */
 function LineDetail({ line, quantity, setQuantity, leadTimeDays }: {
   line: OrderLineView; quantity: number; setQuantity: (n: number) => void; leadTimeDays: number
 }) {
   const [why, setWhy] = useState(false)
-  const [evidence, setEvidence] = useState(false)
+  const [showNetwork, setShowNetwork] = useState(false)
   const whyId = useId()
-  const evidenceId = useId()
+  const networkId = useId()
   const match = networkMatch(line.network, quantity)
-  const short = supplierShort(line.supplier.status)
-  const network = match.kind !== 'none' && <Network match={match} prominent={short} />
-  const target = targetOf(line)
   return (
     <div className={styles.detail}>
-      <p className={styles.answer}>{line.quantity === 0 ? 'Skip for now' : `Order ${line.quantity}`}</p>
       <p className={styles.reason}>{line.signal.reason}.</p>
-      {short && network}
       <div className={styles.controls}>
         <QuantityStepper compact value={quantity} onChange={setQuantity} label={`Quantity for ${line.product}`} />
         {quantity !== line.quantity && (
           <button type="button" className={styles.more} onClick={() => setQuantity(line.quantity)}>Back to {line.quantity}</button>
         )}
         <button type="button" className={styles.more} aria-expanded={why} aria-controls={whyId} onClick={() => setWhy((v) => !v)}>
-          Why {line.quantity}?<span className={styles.caret} aria-hidden="true"><Icon name="chevron-right" size={13} /></span>
+          Why {line.quantity}?<Caret />
         </button>
+        {match.kind !== 'none' && (
+          <button type="button" aria-expanded={showNetwork} aria-controls={networkId} onClick={() => setShowNetwork((v) => !v)}
+            className={[styles.more, supplierShort(line.supplier.status) ? styles.morePrimary : styles.moreQuiet].join(' ')}>
+            {networkSignal(match)}<Caret />
+          </button>
+        )}
       </div>
-      <div id={whyId} hidden={!why} className={styles.why}>
-        <ul className={styles.whyList}>
-          <li>{line.signal.proof}</li>
-          <li>{line.onHand} on hand</li>
-          <li>{line.onOrder || 'None'} already on order</li>
-          {target && <li>{target}</li>}
-        </ul>
-        <button type="button" className={styles.more} aria-expanded={evidence} aria-controls={evidenceId} onClick={() => setEvidence((v) => !v)}>
-          {evidence ? 'Hide evidence' : 'View evidence'}
-        </button>
-        <div id={evidenceId} hidden={!evidence}>
-          {evidence && <Evidence line={line} leadTimeDays={leadTimeDays} />}
-        </div>
+      {match.kind !== 'none' && <NetworkList id={networkId} match={match} hidden={!showNetwork} />}
+      <div id={whyId} hidden={!why}>
+        {why && <Analysis line={line} leadTimeDays={leadTimeDays} />}
       </div>
-      {!short && network}
     </div>
   )
 }

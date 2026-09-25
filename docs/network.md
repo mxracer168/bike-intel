@@ -14,12 +14,13 @@ Prominence follows relevance (`supplierShort`):
 
 | Supplier | Shown in the opened line |
 |---|---|
-| Available or limited | Last, after "Why N?", in the normal link style: "3 retailers have some ›". |
-| Out of stock or delayed | Directly under the reason ("Supplier out of stock."), in bold: "2 retailers can cover all 3 ›". |
+| Available or limited | After "Why N?" in the control strip, in grey: "3 retailers have some ›". |
+| Out of stock or delayed | Same place, in bold blue, under the reason "Supplier out of stock.": "2 retailers can cover all 3 ›". |
 
 - **The signal:** "1 retailer can cover all 3" (full match) or "3 retailers
   have some" (partial). No match shows nothing.
-- **The list** (only after clicking the signal, never open by default):
+- **The list** (only after clicking the signal, never open by default; in
+  its own outlined space, separate from the analysis):
   retailers who can cover the whole quantity on their own first, then "Other
   retailers with some", each with name, place, units available and "Request
   connection". A partial match lists everyone with at least one. The system

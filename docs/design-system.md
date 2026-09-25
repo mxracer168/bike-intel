@@ -54,9 +54,9 @@ anything, and is gone entirely when none are open), `InlineQuestion`
 (the same question shown where it matters; answered once),
 `OrderReview` (one supplier's order as a plain table of facts: product, on
 hand, on order, order quantity, cost; no reasons, labels, icons or questions
-in rows; clicking a row opens "Order N" and one short reason, then "Why N?"
-for the facts behind the number and "View evidence" for the full analysis;
-other retailers are one collapsed line; see "Order review" below and
+in rows; clicking a row opens "Order N" and one short reason and the controls, then "Why N?"
+for a full-width analysis (chart and sentence, key facts, assumptions and
+options); other retailers are one collapsed line; see "Order review" below and
 `docs/network.md`), `PriorityList`
 (Today's priorities: orders, deadlines, stock, sync problems, one row shape; each
 row with a destination is one link with a quiet chevron; the retailer can
@@ -88,19 +88,25 @@ table has to scan like a plain list.
 | Level | When | Shows |
 |---|---|---|
 | Default table | Always | Product description, on hand, on order, order quantity, cost. Nothing else: no reason, proof, confidence, supplier status, delivery, retailer availability, attention labels, icons, badges or questions. |
-| Row clicked | The buyer opens a line | "Order 3", one short reason ("Selling faster than usual."), the quantity control, "Why 3?". |
-| Why | "Why 3?" | The few facts behind the number, as a short list: "5 sold last October", "0 on hand", "None already on order", the target ("Enough to last about 3 weeks after it arrives"). |
-| Evidence | "View evidence" | Weekly sales chart, stock, supplier stock, delivery, season, confidence, the sentence behind the recommendation, all assumptions, alternatives. |
+| Row clicked | The buyer opens a line | A light strip across the full width: one short reason ("Busier season ahead."), the quantity control, "Why 4?" and, if any, the other-retailers signal. No heading: the quantity is already in the table and the control. |
+| Why | "Why 4?" | A full-width analysis: the weekly sales chart with one sentence under it on the left (about 60%, left open); key facts on the right (sales pace, on hand, supplier stock, delivery, season, confidence) as label and value on a white surface with a thin outline; "What we assumed" and "Other options" underneath, side by side, below a hairline. Stacked on a phone. |
 | Other retailers | Separate, collapsed | One line ("3 retailers have some ›"); the list only when clicked, never open by default. Placed under the reason, and bolder, only when the supplier is out of stock or delayed. |
 
 - Lines that need a look are found through the "Needs a look" filter, not
   by labeling rows. Questions that could change a recommendation stay in the
   intelligence-question system (shown once above the table, in the panel or
   the check-in), never inside a row.
+- **Each fact appears once** at its most useful level: the quantity in the
+  table and the control (no "Order 4" heading); pace, stock, supplier and
+  delivery as key facts (the sentence under the chart doesn't repeat them,
+  and delivery isn't listed again as an assumption).
+- Structure comes from layout, hairlines and at most a white surface with a
+  thin outline (key facts, the retailer list). No cards in cards, no shadows,
+  no icons beyond the turning caret.
 - Part numbers are left out for now.
 - Before adding anything to this screen ask: **would a buyer need this while
-  scanning 100 lines?** If not, it goes behind the row click, behind "Why",
-  or behind "View evidence".
+  scanning 100 lines?** If not, it goes behind the row click or behind
+  "Why".
 
 ## Information budget
 
