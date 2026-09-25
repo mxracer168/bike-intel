@@ -8,7 +8,7 @@ import { QuickAnswer } from '@/features/work/QuickAnswer'
 import { ConfidenceMark } from '@/ui/Confidence'
 import { Icon } from '@/ui/Icon'
 import { QuantityStepper } from '@/ui/QuantityStepper'
-import { networkMatch, networkSignal, retailerLabel, type NetworkMatch } from './network'
+import { networkMatch, networkProminence, networkSignal, retailerLabel, type NetworkMatch, type NetworkProminence } from './network'
 import { orderNote } from './OrderList'
 import { freightGap, lineTotal, orderTotal, sortForReview } from './summarize'
 import type { NetworkListing, OrderLineView, ProposedOrderView } from './types'
@@ -37,8 +37,10 @@ function cost(amount: number, currency: string) {
 
 const stateText = { ok: '', review: 'Worth a look', question: 'Needs your answer' } as const
 
-/** Level 3, on request: the evidence behind one line. */
-function Evidence({ line, supplier, leadTimeDays }: { line: OrderLineView; supplier: string; leadTimeDays: number }) {
+const supplierLabel = { available: 'Available', limited: 'Limited', delayed: 'Delayed', out: 'Out of stock' } as const
+
+/** Level 3, only on request: the evidence behind the recommendation. */
+function Evidence({ line }: { line: OrderLineView }) {
   const perWeek = average(line.weeklySales)
   return (
     <div className={styles.evidence}>
@@ -47,10 +49,10 @@ function Evidence({ line, supplier, leadTimeDays }: { line: OrderLineView; suppl
         <div><dt>You sell</dt><dd>{describeWeeklyRate(perWeek)}</dd></div>
         <div><dt>On hand</dt><dd>{line.onHand > 0 ? `${line.onHand}, lasting ${describeCover(line.onHand, perWeek)}` : 'None'}</dd></div>
         <div><dt>On order</dt><dd>{line.onOrder || 'None'}</dd></div>
-        <div><dt>Delivery</dt><dd>About {leadTimeDays} days from {supplier}</dd></div>
-        <div><dt>Supplier stock</dt><dd>{line.availability}</dd></div>
+        <div><dt>Supplier stock</dt><dd>
+          {line.supplier.status === 'available' ? line.availability : `${supplierLabel[line.supplier.status]} · ${line.supplier.note}`}
+        </dd></div>
         {line.season && <div><dt>Season</dt><dd>{line.season}</dd></div>}
-        <div><dt>How sure we are</dt><dd><ConfidenceMark level={line.confidence} /></dd></div>
       </dl>
       <div className={styles.notes}>
         <div>
@@ -68,7 +70,7 @@ function Evidence({ line, supplier, leadTimeDays }: { line: OrderLineView; suppl
   )
 }
 
-/** One other retailer and a (mocked) way to be introduced. No price: that's between the two stores. */
+/** One other retailer and a (mocked) introduction. No price: that's between the two stores. */
 function NetworkRow({ listing }: { listing: NetworkListing }) {
   const [requested, setRequested] = useState(false)
   const who = retailerLabel(listing)
@@ -80,42 +82,57 @@ function NetworkRow({ listing }: { listing: NetworkListing }) {
       </span>
       <span className={styles.networkQty}>{listing.available} available</span>
       {requested
-        ? <span className={styles.networkDone} role="status">Connection requested</span>
+        ? <span className={styles.networkDone} role="status">Requested · you’ll agree price and shipping directly</span>
         : <button type="button" className={styles.textButton} onClick={() => setRequested(true)}
             aria-label={`Request connection with ${who.name}`}>Request connection</button>}
     </li>
   )
 }
 
-/** Before buying from the supplier: other retailers may already have what you need. */
-function NetworkSection({ match }: { match: Exclude<NetworkMatch, { kind: 'none' }> }) {
-  const titleId = useId()
+/**
+ * Other retailers' stock for this line, behind one quiet signal. It opens by
+ * default only when the supplier can't fill the line (prominence follows
+ * relevance).
+ */
+function NetworkSection({ match, prominence }: { match: Exclude<NetworkMatch, { kind: 'none' }>; prominence: NetworkProminence }) {
+  const [open, setOpen] = useState(prominence === 'primary')
+  const listId = useId()
+  const signal = networkSignal(match)
   return (
-    <section className={styles.network} aria-labelledby={titleId}>
-      <h2 id={titleId} className={styles.notesTitle}>Available from other retailers</h2>
-      {match.kind === 'full' ? (
-        <>
-          <p className={styles.networkGroup}>Can cover all {match.needed}</p>
-          <ul className={styles.networkList}>{match.cover.map((l) => <NetworkRow key={l.id} listing={l} />)}</ul>
-          {match.some.length > 0 && (
-            <>
-              <p className={styles.networkGroup}>Have some available</p>
-              <ul className={styles.networkList}>{match.some.map((l) => <NetworkRow key={l.id} listing={l} />)}</ul>
-            </>
-          )}
-        </>
-      ) : (
-        <>
-          <p className={styles.networkGroup}>No single retailer has all {match.needed}, but these have some</p>
-          <ul className={styles.networkList}>{match.some.map((l) => <NetworkRow key={l.id} listing={l} />)}</ul>
-        </>
-      )}
-      <p className={styles.networkNote}>You agree price and shipping with them directly.</p>
-    </section>
+    <div className={styles.network}>
+      <button type="button" className={[styles.networkToggle, prominence !== 'quiet' && styles.networkStrong].filter(Boolean).join(' ')}
+        aria-expanded={open} aria-controls={listId} onClick={() => setOpen((o) => !o)}>
+        <Icon name="store" size={15} />
+        <span>{signal}</span>
+        <span className={styles.networkChevron} aria-hidden="true"><Icon name="chevron-down" size={14} /></span>
+      </button>
+      <div id={listId} hidden={!open}>
+        {match.kind === 'full' ? (
+          <>
+            <ul className={styles.networkList} aria-label={`Can cover all ${match.needed}`}>
+              {match.cover.map((l) => <NetworkRow key={l.id} listing={l} />)}
+            </ul>
+            {match.some.length > 0 && (
+              <>
+                <p className={styles.networkGroup}>Other retailers with some</p>
+                <ul className={styles.networkList}>{match.some.map((l) => <NetworkRow key={l.id} listing={l} />)}</ul>
+              </>
+            )}
+          </>
+        ) : (
+          <ul className={styles.networkList} aria-label="Retailers with some">{match.some.map((l) => <NetworkRow key={l.id} listing={l} />)}</ul>
+        )}
+      </div>
+    </div>
   )
 }
 
-/** Level 3: the answer, then one reason. Evidence waits behind a button. */
+/**
+ * Level 2, when a line is opened: the decision, the sentence behind the
+ * row's reason and proof, the few facts that matter, other retailers
+ * (collapsed unless the supplier can't supply). Level 3 evidence waits behind
+ * "Show the evidence".
+ */
 function LineDetail({ line, quantity, setQuantity, order, example }: {
   line: OrderLineView; quantity: number; setQuantity: (n: number) => void; order: ProposedOrderView; example: boolean
 }) {
@@ -123,17 +140,31 @@ function LineDetail({ line, quantity, setQuantity, order, example }: {
   const evidenceId = useId()
   const changed = quantity !== line.quantity
   const match = networkMatch(line.network, quantity)
+  const supplierOk = line.supplier.status === 'available'
+  // Delivery has its own fact; the key assumption is the next one.
+  const assumes = line.assumptions.find((a) => !a.startsWith('Delivery'))
   return (
     <div className={styles.detail}>
       <p className={styles.answer}>{line.quantity === 0 ? 'Skip for now' : `Order ${line.quantity}`}</p>
       <p className={styles.reason}>{line.reason}</p>
+      <dl className={styles.keyFacts}>
+        <div>
+          <dt><Icon name={supplierOk ? 'box' : 'alert'} size={15} />Supplier stock</dt>
+          <dd className={supplierOk ? undefined : styles.attention}>
+            {supplierOk ? 'Available' : `${supplierLabel[line.supplier.status]} · ${line.supplier.note}`}
+          </dd>
+        </div>
+        <div><dt><Icon name="truck" size={15} />Delivery</dt><dd>~{order.leadTimeDays} days</dd></div>
+        <div><dt>Confidence</dt><dd><ConfidenceMark level={line.confidence} /></dd></div>
+        {assumes && <div><dt>Assumes</dt><dd>{assumes}</dd></div>}
+      </dl>
       {line.question && (
         <div className={styles.question}>
           <p className={styles.questionText}>{line.question.prompt}</p>
           <QuickAnswer name={`q-${line.id}`} prompt={line.question.prompt} choices={line.question.choices} example={example} />
         </div>
       )}
-      {match.kind !== 'none' && <NetworkSection match={match} />}
+      {match.kind !== 'none' && <NetworkSection match={match} prominence={networkProminence(line.supplier.status)} />}
       <div className={styles.adjust}>
         <QuantityStepper value={quantity} onChange={setQuantity} label={`Quantity for ${line.product}`} />
         {changed && (
@@ -147,7 +178,7 @@ function LineDetail({ line, quantity, setQuantity, order, example }: {
         </button>
       </div>
       <div id={evidenceId} hidden={!showEvidence}>
-        {showEvidence && <Evidence line={line} supplier={order.supplier} leadTimeDays={order.leadTimeDays} />}
+        {showEvidence && <Evidence line={line} />}
       </div>
     </div>
   )
@@ -169,6 +200,8 @@ export function OrderReview({ order, eyebrow, example = false }: { order: Propos
   // Compared against what we'd order now, so it follows quantity changes.
   const matches = new Map(order.lines.map((l) => [l.id, networkMatch(l.network, qty(l))]))
   const fromNetwork = sorted.filter((l) => matches.get(l.id)?.kind !== 'none')
+  // The order-level note is only for lines the supplier can't fully supply.
+  const short = fromNetwork.filter((l) => networkProminence(l.supplier.status) !== 'quiet')
   const shown = filter === 'all' ? sorted : filter === 'attention' ? attention : fromNetwork
   const total = orderTotal(order.lines, quantities)
   const note = orderNote({ orderBy: order.orderBy, freightGap: freightGap(order, total), currency: order.currency })
@@ -190,10 +223,11 @@ export function OrderReview({ order, eyebrow, example = false }: { order: Propos
           {summary ? ` ${summary.charAt(0).toUpperCase()}${summary.slice(1)}.` : ' Nothing needs a second look.'}
           {note && <span className={styles.note}> {note}.</span>}
         </p>
-        {fromNetwork.length > 0 && (
+        {short.length > 0 && (
           <p className={styles.networkSummary}>
+            <Icon name="store" size={15} />
             <button type="button" className={styles.textButton} onClick={() => { setFilter('network'); setOpen(null) }}>
-              {fromNetwork.length === 1 ? '1 line may be available' : `${fromNetwork.length} lines may be available`} from other retailers
+              {plural(short.length, 'line')} short at {order.supplier}: other retailers have some
             </button>
           </p>
         )}
@@ -232,6 +266,7 @@ export function OrderReview({ order, eyebrow, example = false }: { order: Propos
             const isOpen = open === line.id
             const q = qty(line)
             const signal = networkSignal(matches.get(line.id) ?? { kind: 'none' })
+            const prominence = networkProminence(line.supplier.status)
             return (
               <Fragment key={line.id}>
                 <tr className={isOpen ? styles.openRow : undefined}>
@@ -240,10 +275,18 @@ export function OrderReview({ order, eyebrow, example = false }: { order: Propos
                       aria-controls={`${line.id}-detail`} onClick={() => setOpen(isOpen ? null : line.id)}>
                       <span className={styles.chevron} aria-hidden="true"><Icon name="chevron-right" size={14} /></span>
                       <span className={styles.name}>
-                        {line.product}
+                        <span className={styles.productName}>{line.product}</span>
                         {line.variant && <span className={styles.variant}>{line.variant}</span>}
                         {line.state !== 'ok' && <span className={[styles.state, styles.phoneOnly, line.state === 'question' && styles.ask].filter(Boolean).join(' ')}>{stateText[line.state]}</span>}
-                        {signal && <span className={styles.networkSignal}>{signal}</span>}
+                        <span className={styles.meta}>
+                          <span className={styles.metaReason}>{line.signal.reason}</span>
+                          <span className={styles.metaProof}>{line.signal.proof}</span>
+                          {signal && prominence !== 'quiet' && (
+                            <span className={[styles.metaNetwork, prominence === 'primary' && styles.metaNetworkStrong].filter(Boolean).join(' ')}>
+                              <Icon name="store" size={13} />{signal}
+                            </span>
+                          )}
+                        </span>
                       </span>
                     </button>
                   </th>

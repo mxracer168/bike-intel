@@ -52,11 +52,12 @@ composer shows a short "Answering: Trail tires"), can be
 collapsed to a single row ("Questions for you · 3") without dismissing
 anything, and is gone entirely when none are open), `InlineQuestion`
 (the same question shown where it matters; answered once),
-`OrderReview` (one supplier's order as a dense table;
-each line expands to answer → reason, evidence only on request; when other
-retailers have made the item available, a quiet summary under the header, a
-small note under the product and an "Available from other retailers" list in
-the line detail, never price; see `docs/network.md`), `PriorityList`
+`OrderReview` (one supplier's order as a dense table; under each product one
+reason and one piece of proof ("Seasonal demand ↑ · 5 sold last October");
+a line opens in place to the decision, a sentence, a row of key facts
+(supplier stock, delivery, confidence, the key assumption) and other
+retailers behind one collapsed signal; the evidence only on request; see
+"Information budget" below and `docs/network.md`), `PriorityList`
 (Today's priorities: orders, deadlines, stock, sync problems, one row shape; each
 row with a destination is one link with a quiet chevron; the retailer can
 reorder by dragging a grip that appears on hover/focus, with arrow keys on the
@@ -70,11 +71,43 @@ Built later with the features that need them: dialogs with undo.
 
 ## Three levels of information
 
+Across screens:
+
 | Level | Screen | Question it answers | Shows |
 |---|---|---|---|
 | 1 | Today | What deserves my attention? | A small health snapshot and one ranked priority list; an order appears as one priority (what it needs, lines, estimate). No line evidence. |
-| 2 | Proposed order | What should I buy from this supplier? | Every line: product, on hand, on order, quantity, cost, what needs a look. |
-| 3 | Line (expanded in place) | Why this quantity? | "Order 6", one reason; evidence (sales, stock, season, supplier stock, confidence, assumptions, alternatives) only when asked. |
+| 2 | Proposed order | What should I buy from this supplier? | Every line, scannable in hundreds. |
+| 3 | Line (expanded in place) | Why this quantity? | The reasoning, then the evidence only when asked. |
+
+Within an order line the same idea repeats:
+
+| Level | When | Shows |
+|---|---|---|
+| Scan | Always, one row | Product, on hand, on order, quantity, cost, **reason**, **proof**, whether it needs a look. |
+| Why | The line is opened | The decision ("Order 4"), one sentence, key facts (supplier stock, delivery, confidence, the key assumption), other retailers behind one signal. |
+| Evidence | "Show the evidence" | Weekly sales, stock, supplier stock detail, season, all assumptions, alternatives. |
+
+## Information budget
+
+Before anything goes on screen, ask: **does this need to be visible before
+the user asks for more?** If not, it goes one level down.
+
+- **Decision → reason → proof → more.** Every recommendation leads with the
+  decision, then one short reason ("Seasonal demand ↑"), then one short piece
+  of evidence ("5 sold last October"). Everything else waits.
+- **Signal + proof.** A reason never appears without one concrete piece of
+  evidence next to it, and never with more than one before the user asks.
+- **Facts, not prose.** Prefer label and value ("Supplier stock · Available",
+  "Delivery · ~7 days") to sentences. One sentence of prose at most per level.
+- **Prominence follows relevance.** The same information can be quiet or
+  primary depending on the situation. Other retailers' stock is a collapsed
+  signal when the supplier can supply, raised onto the row when the supplier
+  is limited or late, and open by default when the supplier is out
+  (`networkProminence`, `docs/network.md`).
+- **Icons sparingly**, only where they speed recognition: delivery, supplier
+  stock, other retailers, a warning. Always next to words.
+- **Dense by default.** Rows stay one product plus one short line, so a long
+  order stays scannable. No badges, paragraphs or nested borders in rows.
 
 ## Rules (enforced where possible)
 

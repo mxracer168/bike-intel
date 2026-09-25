@@ -28,7 +28,7 @@
   display: flex; align-items: baseline; gap: var(--sp-2); width: 100%; padding: 0; border: 0; background: none;
   text-align: left; cursor: pointer; color: var(--ink);
 }
-.lineButton:hover .name { text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+.lineButton:hover .productName { text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
 .chevron { color: var(--ink-3); display: inline-flex; transition: transform var(--t-fast) var(--ease); transform: translateY(2px); }
 .lineButton[aria-expanded='true'] .chevron { transform: translateY(2px) rotate(90deg); color: var(--ink-2); }
 .name { display: flex; flex-wrap: wrap; column-gap: var(--sp-2); }
@@ -41,6 +41,16 @@
 .phoneOnly { display: none; }
 .openRow > * { border-bottom-color: transparent !important; }
 
+/* Level 1 under the product: one reason, one proof; other retailers only when the supplier is short. */
+.meta {
+  display: block; flex-basis: 100%;
+  font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2);
+}
+.metaReason { font-weight: 500; color: var(--ink); }
+.metaProof::before, .metaNetwork::before { content: '·'; margin: 0 6px; color: var(--ink-3); }
+.metaNetwork svg { vertical-align: -2px; margin-right: 4px; }
+.metaNetworkStrong { color: var(--accent); font-weight: 500; }
+
 /* ---------- Line detail (level 3) ---------- */
 .detailRow > td { padding: 0 0 var(--sp-4) 22px; }
 .detail {
@@ -48,7 +58,15 @@
   background: var(--surface); border-radius: var(--r-lg); padding: var(--sp-4) var(--sp-5);
 }
 .answer { font-size: var(--fs-answer); line-height: var(--lh-answer); font-weight: 600; letter-spacing: -0.015em; }
-.reason { max-width: 60ch; }
+.reason { max-width: 60ch; color: var(--ink-2); }
+
+/* Level 2 facts: one line of label + value pairs, not sentences. */
+.keyFacts { margin: 0; display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-5); font-size: 14px; }
+.keyFacts > div { display: flex; align-items: baseline; gap: 6px; }
+.keyFacts dt { color: var(--ink-2); white-space: nowrap; }
+.keyFacts dt svg { vertical-align: -2px; margin-right: 5px; }
+.keyFacts dd { margin: 0; }
+.attention { color: var(--con); font-weight: 500; }
 .question { display: flex; flex-direction: column; gap: 2px; padding-top: var(--sp-2); }
 .questionText { font-weight: 600; }
 .adjust { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-4); padding-top: var(--sp-2); }
@@ -81,10 +99,19 @@
 }
 
 /* ---------- Other retailers: quiet, secondary to the buying recommendation ---------- */
-.networkSummary { font-size: 14px; }
-.networkSummary .textButton { font-size: 14px; padding: 0; }
-.networkSignal { flex-basis: 100%; font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
-.network { display: flex; flex-direction: column; gap: var(--sp-1); padding-top: var(--sp-3); margin-top: var(--sp-2); border-top: 1px solid var(--line); max-width: 640px; }
+.networkSummary { font-size: 14px; display: flex; align-items: baseline; gap: 6px; color: var(--accent); }
+.networkSummary svg { flex: none; transform: translateY(2px); }
+.networkSummary .textButton { font-size: 14px; padding: 0; text-align: left; }
+.network { display: flex; flex-direction: column; max-width: 640px; }
+.networkToggle {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; border: 0; background: none;
+  padding: 4px 0; font-size: 14px; color: var(--ink-2); cursor: pointer;
+}
+.networkToggle:hover { color: var(--ink); }
+.networkStrong { color: var(--accent); font-weight: 500; }
+.networkStrong:hover { color: var(--accent-hover); }
+.networkChevron { display: inline-flex; transition: transform var(--t-fast) var(--ease); }
+.networkToggle[aria-expanded='true'] .networkChevron { transform: rotate(180deg); }
 .networkGroup { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); padding-top: var(--sp-2); }
 .networkList { list-style: none; display: flex; flex-direction: column; }
 .networkRow {
@@ -97,7 +124,6 @@
 .networkPlace { color: var(--ink-2); }
 .networkQty { font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
 .networkDone { font-size: 14px; color: var(--pos); white-space: nowrap; }
-.networkNote { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); padding-top: var(--sp-2); }
 
 @media (max-width: 560px) {
   .networkRow { grid-template-columns: minmax(0, 1fr) auto; }

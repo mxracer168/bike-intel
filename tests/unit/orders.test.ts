@@ -5,6 +5,7 @@ import type { OrderLineView, ProposedOrderView } from '@/features/orders/types'
 function line(id: string, over: Partial<OrderLineView> = {}): OrderLineView {
   return {
     id, product: id, onHand: 0, onOrder: 0, quantity: 1, unitCost: 10, state: 'ok', reason: '',
+    signal: { reason: 'Restock', proof: '' }, supplier: { status: 'available', note: 'Available' },
     weeklySales: [], confidence: 'high', availability: '', assumptions: [], alternatives: [], ...over,
   }
 }

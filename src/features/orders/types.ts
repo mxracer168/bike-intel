@@ -20,6 +20,10 @@ export type NetworkListing = {
   available: number
 }
 
+/** available: normal · limited: few left · delayed: late delivery · out: can't supply now. */
+export type SupplierStatus = 'available' | 'limited' | 'delayed' | 'out'
+export type SupplierCondition = { status: SupplierStatus; note: string }
+
 export type OrderLineView = {
   id: string
   product: string
@@ -30,7 +34,11 @@ export type OrderLineView = {
   quantity: number
   unitCost: number
   state: LineState
-  /** The one reason behind the quantity, in plain words. */
+  /** Level 1, visible while scanning: one short reason and one piece of proof. */
+  signal: { reason: string; proof: string }
+  /** How well the supplier can fill this line right now. */
+  supplier: SupplierCondition
+  /** Level 2: the reason in a full plain sentence, shown when the line is opened. */
   reason: string
   /** Only when state is "question". */
   question?: { prompt: string; choices: string[] }

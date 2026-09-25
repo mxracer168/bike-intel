@@ -4,7 +4,7 @@
  * product names. Lines are generated deterministically so every load shows
  * the same numbers.
  */
-import { average, describeCover, describeWeeklyRate } from '@/domain/language/plain'
+import { average, describeCover, describeWeeklyRate, weeklyRateShort } from '@/domain/language/plain'
 import type { Confidence, LineState, NetworkListing, OrderLineView, ProposedOrderView } from '@/features/orders/types'
 
 /** Small seeded PRNG (mulberry32): same seed, same example data. */
@@ -68,6 +68,14 @@ function reasonFor(onHand: number, onOrder: number, perWeek: number): string {
   return `You sell ${rate}; the ${onHand} you have will last ${describeCover(onHand, perWeek)}${coming}.`
 }
 
+/** Level 1 signal for an ordinary restock: the reason and one fact that proves it. */
+function signalFor(onHand: number, perWeek: number, leadWeeks: number): OrderLineView['signal'] {
+  const rate = weeklyRateShort(perWeek)
+  if (onHand <= 0) return { reason: 'None left', proof: `Usually sell ${rate}` }
+  const weeks = perWeek > 0 ? onHand / perWeek : Infinity
+  return { reason: weeks <= leadWeeks + 1 ? 'Running low' : 'Restock', proof: `${onHand} left · ${rate}` }
+}
+
 function build(plan: Plan): ProposedOrderView {
   const rnd = random(plan.seed)
   const leadWeeks = plan.leadTimeDays / 7
@@ -91,13 +99,15 @@ function build(plan: Plan): ProposedOrderView {
       quantity,
       unitCost: item.cost,
       state,
+      signal: signalFor(onHand, perWeek, leadWeeks),
+      supplier: stock > quantity * 3 ? { status: 'available', note: 'Available' } : { status: 'limited', note: `${stock} left` },
       reason: reasonFor(onHand, onOrder, perWeek),
       weeklySales,
       confidence,
       season: item.season,
       availability: stock > quantity * 3
-        ? `${plan.supplier} shows plenty at its ${plan.warehouse} warehouse.`
-        : `${plan.supplier} shows ${stock} at its ${plan.warehouse} warehouse.`,
+        ? `Plenty · ${plan.warehouse} warehouse`
+        : `${stock} left · ${plan.warehouse} warehouse`,
       assumptions: [
         `Delivery in about ${plan.leadTimeDays} days`,
         `Enough to last about ${plan.coverWeeks} weeks after it arrives`,
@@ -172,26 +182,42 @@ const northline = build({
     { name: 'Velo Orange headset spacers', variants: ['1 1/8"'], cost: 6, rate: 0.3 },
   ],
   special: {
-    'KMC chain · X11': { state: 'ok',
+    'KMC chain · X11': { state: 'review',
+      signal: { reason: 'Supplier out of stock', proof: 'Back ~Oct 20' },
+      supplier: { status: 'out', note: 'Back ~Oct 20' }, onHand: 0, onOrder: 0,
+      reason: 'You sell about 1 a week and have none left. Northline is out until around October 20.',
       network: [listing('trailhead', 12, 'x11'), listing('palmetto', 9, 'x11'), listing('river', 2, 'x11')] },
     'Shimano B01S resin disc brake pads · Pair': { state: 'ok', quantity: 6,
+      signal: { reason: 'Running low', proof: '2 left · ~2/wk' }, supplier: { status: 'available', note: 'Available' },
       network: [listing('palmetto', 10, 'b01s'), listing('river', 6, 'b01s'), listing('trailhead', 8, 'b01s'), listing('midtown', 2, 'b01s'), listing('upstate', 1, 'b01s')], onHand: 2, onOrder: 0, confidence: 'high', weeklySales: [1, 2, 1, 3, 2, 2, 3, 2, 3, 2, 2, 3],
       reason: 'You sell about 2 a week and have 2 left, about a week’s worth.',
       alternatives: ['Shimano J05A pads fit the same brakes and cost a little more.'] },
     'Maxxis Minion DHF · 29 × 2.5 WT EXO+': { state: 'review', quantity: 4,
+      signal: { reason: 'Seasonal demand ↑', proof: '5 sold last October' },
       network: [listing('midtown', 2, 'dhf'), listing('upstate', 1, 'dhf'), listing('lowcountry', 3, 'dhf')], onHand: 1, onOrder: 0, weeklySales: [0, 1, 1, 0, 1, 2, 1, 1, 2, 1, 1, 2],
       reason: 'You sold 5 last October, more than your usual pace, so we added a little for fall.' },
-    'Park Tool CT-3.3 chain tool': { state: 'question', quantity: 2, onHand: 0, onOrder: 0, weeklySales: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+    'Park Tool CT-3.3 chain tool': { state: 'question', quantity: 2,
+      signal: { reason: 'New to your store', proof: '2 sold in 12 weeks' }, supplier: { status: 'available', note: 'Available' }, onHand: 0, onOrder: 0, weeklySales: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
       reason: 'This is new to your store, so we started small.',
       question: { prompt: 'Do you plan to keep chain tools on the shelf, or order them for customers as needed?', choices: ['Keep on the shelf', 'Order as needed'] } },
-    'Schwalbe inner tube · 29 × 2.1–2.4 Presta': { state: 'review', reason: 'Sales doubled in the last 3 weeks. We ordered for your usual pace; add more if you think it will last.' },
-    'Continental Grand Prix 5000 S TR · 700 × 28': { state: 'review', reason: 'Selling faster than usual for this time of year. We kept the order close to your normal amount.' },
-    'Maxxis Assegai · 29 × 2.5 WT EXO+': { state: 'review', reason: 'Northline has only a few left, so we suggest ordering now rather than next week.' },
-    'Continental Gatorskin · 700 × 25': { state: 'review', reason: 'You returned 2 of these last month. Worth checking before reordering.' },
-    'Shimano RT-MT800 rotor · 203 mm': { state: 'question', quantity: 2, reason: 'You haven’t stocked this size before, so we started small.',
+    'Schwalbe inner tube · 29 × 2.1–2.4 Presta': { state: 'review',
+      signal: { reason: 'Demand rising', proof: 'Sales doubled in 3 weeks' }, reason: 'Sales doubled in the last 3 weeks. We ordered for your usual pace; add more if you think it will last.' },
+    'Continental Grand Prix 5000 S TR · 700 × 28': { state: 'review',
+      signal: { reason: 'Supplier delay', proof: 'Expected in 18 days' },
+      supplier: { status: 'delayed', note: 'Expected in 18 days' },
+      network: [listing('river', 4, 'gp28'), listing('palmetto', 2, 'gp28')], reason: 'Selling faster than usual for this time of year. We kept the order close to your normal amount.' },
+    'Maxxis Assegai · 29 × 2.5 WT EXO+': { state: 'review',
+      signal: { reason: 'Supplier stock low', proof: '2 left at Northline' },
+      supplier: { status: 'limited', note: '2 left' }, reason: 'Northline has only a few left, so we suggest ordering now rather than next week.' },
+    'Continental Gatorskin · 700 × 25': { state: 'review',
+      signal: { reason: 'Returns', proof: '2 returned last month' }, reason: 'You returned 2 of these last month. Worth checking before reordering.' },
+    'Shimano RT-MT800 rotor · 203 mm': { state: 'question', quantity: 2,
+      signal: { reason: 'New size for you', proof: 'Not stocked before' }, reason: 'You haven’t stocked this size before, so we started small.',
       question: { prompt: 'Do you want to start stocking 203 mm rotors?', choices: ['Yes, keep a few', 'No, order as needed'] } },
-    'Lizard Skins DSP 2.5 bar tape · White': { state: 'review', reason: 'Road riders usually re-tape in spring. We kept this order light until then.' },
-    'Shimano Deore cassette CS-M6100 · 10–51T': { state: 'review', reason: 'This model is being replaced in the new year. We ordered just enough to get you there.' },
+    'Lizard Skins DSP 2.5 bar tape · White': { state: 'review',
+      signal: { reason: 'Off season', proof: 'Re-taping picks up in spring' }, reason: 'Road riders usually re-tape in spring. We kept this order light until then.' },
+    'Shimano Deore cassette CS-M6100 · 10–51T': { state: 'review',
+      signal: { reason: 'Model changing', proof: 'Replaced in the new year' }, reason: 'This model is being replaced in the new year. We ordered just enough to get you there.' },
   },
 })
 
@@ -221,9 +247,13 @@ const summit = build({
     { name: 'Cane Creek 40 headset', variants: ['IS42/ZS44'], cost: 58, rate: 0.2 },
   ],
   special: {
-    'RockShox 200-hour service kit · Pike': { state: 'review', reason: 'Service kits sell faster once riders stop riding. We ordered ahead of November.' },
-    'PNW Rainier dropper post · 150 mm': { state: 'review', reason: 'You already have more droppers than usual, so we kept this one small.' },
-    'Fox fork seal kit · 36 mm': { state: 'review', reason: 'Summit shows only 4 left, fewer than you’d usually want.' },
+    'RockShox 200-hour service kit · Pike': { state: 'review',
+      signal: { reason: 'Seasonal demand ↑', proof: 'Service picks up from November' }, reason: 'Service kits sell faster once riders stop riding. We ordered ahead of November.' },
+    'PNW Rainier dropper post · 150 mm': { state: 'review',
+      signal: { reason: 'Already well stocked', proof: 'More droppers than usual' }, reason: 'You already have more droppers than usual, so we kept this one small.' },
+    'Fox fork seal kit · 36 mm': { state: 'review',
+      signal: { reason: 'Supplier stock low', proof: '4 left at Summit' },
+      supplier: { status: 'limited', note: '4 left' }, reason: 'Summit shows only 4 left, fewer than you’d usually want.' },
   },
 })
 
@@ -248,9 +278,10 @@ const cascade: ProposedOrderView = {
     const perWeek = average([...sales])
     return {
       id: `cascade-${i + 1}`, product, variant: variant || undefined, onHand, onOrder, quantity, unitCost,
-      state: 'ok', reason: reasonFor(onHand, onOrder, perWeek), weeklySales: [...sales], confidence: 'high',
+      state: 'ok', signal: signalFor(onHand, perWeek, 4 / 7), supplier: { status: 'available', note: 'Available' },
+      reason: reasonFor(onHand, onOrder, perWeek), weeklySales: [...sales], confidence: 'high',
       season: winter,
-      availability: 'Cascade shows plenty at its Tacoma warehouse.',
+      availability: 'Plenty · Tacoma warehouse',
       assumptions: ['Delivery in about 4 days', 'Enough for the next few wheel builds', 'Based on your last 12 weeks of sales'],
       alternatives: [],
     }

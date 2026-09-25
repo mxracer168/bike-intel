@@ -1,5 +1,5 @@
 import { plural } from '@/domain/language/plain'
-import type { NetworkListing } from './types'
+import type { NetworkListing, SupplierStatus } from './types'
 
 export type NetworkMatch =
   | { kind: 'none' }
@@ -30,7 +30,22 @@ export function networkSignal(match: NetworkMatch): string | null {
       ? `1 retailer can cover all ${match.needed}`
       : `${match.cover.length} retailers can cover all ${match.needed}`
   }
-  return `${plural(match.some.length, 'retailer')} ${match.some.length === 1 ? 'has' : 'have'} some available`
+  return `${plural(match.some.length, 'retailer')} also ${match.some.length === 1 ? 'has' : 'have'} some`
+}
+
+/**
+ * Prominence follows relevance: how loudly to offer other retailers' stock
+ * depends on how good the supplier option is.
+ *  quiet   supplier can fill it normally: only a collapsed signal in the line detail
+ *  raised  supplier stock is limited or delivery is late: a signal in the table row too
+ *  primary supplier is out: a stronger signal, and the list opens by default
+ */
+export type NetworkProminence = 'quiet' | 'raised' | 'primary'
+
+export function networkProminence(supplier: SupplierStatus): NetworkProminence {
+  if (supplier === 'out') return 'primary'
+  if (supplier === 'limited' || supplier === 'delayed') return 'raised'
+  return 'quiet'
 }
 
 /**

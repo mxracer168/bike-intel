@@ -6,18 +6,31 @@ demonstration of the network today (example data only), not a marketplace.
 
 ## What the buyer sees
 
-- **On the order:** a quiet line, "3 lines may be available from other
-  retailers", which filters the order to those lines.
-- **On a line:** a small secondary note under the product, only when there is
-  something to say: "3 retailers can cover all 6" (full match) or
-  "3 retailers have some available" (partial). No match shows nothing.
-- **In the line detail:** "Available from other retailers". Retailers who can
-  cover the whole quantity on their own come first, then those with some,
-  each ordered by units available. A partial match lists everyone with at
-  least one. The system does not propose splitting an order across
-  retailers.
+Prominence follows relevance: how loudly we mention other retailers depends
+on whether the supplier can supply the line (`networkProminence`).
+
+| Supplier | Prominence | Shown |
+|---|---|---|
+| Available | Quiet | Nothing on the row. In the opened line, one collapsed signal: "3 retailers also have some". |
+| Limited or delayed | Raised | The signal on the row, after the reason and proof. Collapsed in the opened line. |
+| Out of stock | Primary | The signal on the row in blue, and the list open in the opened line: other retailers may be the main option. |
+
+- **On the order:** only when some lines are short at the supplier, one quiet
+  line ("2 lines short at Northline: other retailers have some") that filters
+  the order to lines other retailers have. The "Other retailers" filter lists
+  them all.
+- **The signal:** "2 retailers can cover all 4" (full match) or "3 retailers
+  also have some" (partial). No match shows nothing.
+- **The list** (expanded from the signal): retailers who can cover the whole
+  quantity on their own first, then "Other retailers with some", each with
+  name, place, units available and "Request connection". A partial match
+  lists everyone with at least one. The system does not propose splitting an
+  order across retailers.
 - **"Request connection"** introduces the two retailers (mocked today). Price
-  and shipping are agreed between them.
+  and shipping are agreed between them; the confirmation says so.
+
+The supplier conditions in the demo are example data. There is no supplier
+availability intelligence yet.
 
 Matching compares what we'd order now (following any quantity change) with
 what others made available (`features/orders/network.ts`).
