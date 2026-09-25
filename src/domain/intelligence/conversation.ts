@@ -1,4 +1,5 @@
 import type { Db } from '@/lib/supabase/types'
+import { isMissingTable } from '@/lib/supabase/schema'
 
 /** One entry in the retailer's conversation, shaped for display. */
 export type ConversationEntry = {
@@ -37,9 +38,6 @@ export type Conversation =
   | { available: false }
 
 /** PostgREST/Postgres codes for "that table doesn't exist" (migration not applied yet). */
-function missingTable(error: { code?: string } | null) {
-  return error?.code === '42P01' || error?.code === 'PGRST205'
-}
 
 /** How many entries the panel loads. Older history stays stored. */
 export const HISTORY_LIMIT = 200
@@ -54,7 +52,7 @@ export async function loadConversation(db: Db, organizationId: string, userId: s
       .limit(HISTORY_LIMIT),
     loadOpenQuestions(db, organizationId),
   ])
-  if (missingTable(messages.error) || questions === null) return { available: false }
+  if (isMissingTable(messages.error) || questions === null) return { available: false }
   if (messages.error) throw messages.error
 
   // Quick answers are structured (on the question), not conversation. Older
@@ -106,7 +104,7 @@ export async function loadOpenQuestions(db: Db, organizationId: string): Promise
     .order('priority', { ascending: false })
     .order('created_at', { ascending: true })
     .limit(10)
-  if (missingTable(error)) return null
+  if (isMissingTable(error)) return null
   if (error) throw error
   const now = Date.now()
   return (data ?? [])

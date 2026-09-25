@@ -32,6 +32,12 @@ work against.
 - **Business logic lives in application code and standard SQL.** Supabase
   provides Postgres, Auth, Storage and RLS; only `app.current_user_id()` and
   the storage migration depend on Supabase specifics.
+- **Code may deploy before its migration.** Migrations are applied to the
+  live project by hand, so reads of tables or columns added by a recent
+  migration recognize "not there yet" (`lib/supabase/schema.ts`) and fall
+  back to what the older schema can answer. A page must never fail because
+  an optional, newer column is missing; writes that need it report that
+  plainly instead.
 
 ## Conventions
 
