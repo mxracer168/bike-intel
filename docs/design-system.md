@@ -53,7 +53,10 @@ collapsed to a single row ("Questions for you · 3") without dismissing
 anything, and is gone entirely when none are open), `InlineQuestion`
 (the same question shown where it matters; answered once),
 `OrderReview` (one supplier's order as a dense table;
-each line expands to answer → reason, evidence only on request), `PriorityList`
+each line expands to answer → reason, evidence only on request; when other
+retailers have made the item available, a quiet summary under the header, a
+small note under the product and an "Available from other retailers" list in
+the line detail, never price; see `docs/network.md`), `PriorityList`
 (Today's priorities: orders, deadlines, stock, sync problems, one row shape; each
 row with a destination is one link with a quiet chevron; the retailer can
 reorder by dragging a grip that appears on hover/focus, with arrow keys on the

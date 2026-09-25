@@ -95,6 +95,8 @@ email + password and email confirmation.
   the question (`answer_choice`), not in the conversation. The assistant
   model (tell / ask / answer, and "retrieve, don't dump") is in
   [`intelligence.md`](intelligence.md).
+- **Retailer network** (inventory sharing) is example-only for now; principles
+  and the future model are in [`network.md`](network.md).
 - **Sync status** is one quiet line in the sidebar (example-only for now). Real data is mapped
   into them; they carry no schema commitments. A supplier page is an identity
   plus an ordered list of typed sections, so it can be sparse or rich.

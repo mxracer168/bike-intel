@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useId, useState, type ReactNode } from 'react'
+import { Fragment, useId, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { average, describeCover, describeWeeklyRate, formatMoney, plural } from '@/domain/language/plain'
 import { EvidenceChart } from '@/features/recommendations/EvidenceChart'
 import { InlineQuestion } from '@/features/intelligence/InlineQuestion'
@@ -8,11 +8,27 @@ import { QuickAnswer } from '@/features/work/QuickAnswer'
 import { ConfidenceMark } from '@/ui/Confidence'
 import { Icon } from '@/ui/Icon'
 import { QuantityStepper } from '@/ui/QuantityStepper'
+import { networkMatch, networkSignal, retailerLabel, type NetworkMatch } from './network'
 import { orderNote } from './OrderList'
 import { freightGap, lineTotal, orderTotal, sortForReview } from './summarize'
-import type { OrderLineView, ProposedOrderView } from './types'
+import type { NetworkListing, OrderLineView, ProposedOrderView } from './types'
 import page from './Orders.module.css'
 import styles from './OrderReview.module.css'
+
+const NARROW = '(max-width: 760px)'
+
+/** On narrow screens three columns are hidden; a detail row must span only the visible ones. */
+function useNarrow() {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mq = window.matchMedia(NARROW)
+      mq.addEventListener('change', onChange)
+      return () => mq.removeEventListener('change', onChange)
+    },
+    () => window.matchMedia(NARROW).matches,
+    () => false,
+  )
+}
 
 /** Line costs always show cents so the column lines up. */
 function cost(amount: number, currency: string) {
@@ -52,6 +68,53 @@ function Evidence({ line, supplier, leadTimeDays }: { line: OrderLineView; suppl
   )
 }
 
+/** One other retailer and a (mocked) way to be introduced. No price: that's between the two stores. */
+function NetworkRow({ listing }: { listing: NetworkListing }) {
+  const [requested, setRequested] = useState(false)
+  const who = retailerLabel(listing)
+  return (
+    <li className={styles.networkRow}>
+      <span className={styles.networkWho}>
+        <span className={styles.networkName}>{who.name}</span>
+        <span className={styles.networkPlace}>{who.place}</span>
+      </span>
+      <span className={styles.networkQty}>{listing.available} available</span>
+      {requested
+        ? <span className={styles.networkDone} role="status">Connection requested</span>
+        : <button type="button" className={styles.textButton} onClick={() => setRequested(true)}
+            aria-label={`Request connection with ${who.name}`}>Request connection</button>}
+    </li>
+  )
+}
+
+/** Before buying from the supplier: other retailers may already have what you need. */
+function NetworkSection({ match }: { match: Exclude<NetworkMatch, { kind: 'none' }> }) {
+  const titleId = useId()
+  return (
+    <section className={styles.network} aria-labelledby={titleId}>
+      <h2 id={titleId} className={styles.notesTitle}>Available from other retailers</h2>
+      {match.kind === 'full' ? (
+        <>
+          <p className={styles.networkGroup}>Can cover all {match.needed}</p>
+          <ul className={styles.networkList}>{match.cover.map((l) => <NetworkRow key={l.id} listing={l} />)}</ul>
+          {match.some.length > 0 && (
+            <>
+              <p className={styles.networkGroup}>Have some available</p>
+              <ul className={styles.networkList}>{match.some.map((l) => <NetworkRow key={l.id} listing={l} />)}</ul>
+            </>
+          )}
+        </>
+      ) : (
+        <>
+          <p className={styles.networkGroup}>No single retailer has all {match.needed}, but these have some</p>
+          <ul className={styles.networkList}>{match.some.map((l) => <NetworkRow key={l.id} listing={l} />)}</ul>
+        </>
+      )}
+      <p className={styles.networkNote}>You agree price and shipping with them directly.</p>
+    </section>
+  )
+}
+
 /** Level 3: the answer, then one reason. Evidence waits behind a button. */
 function LineDetail({ line, quantity, setQuantity, order, example }: {
   line: OrderLineView; quantity: number; setQuantity: (n: number) => void; order: ProposedOrderView; example: boolean
@@ -59,6 +122,7 @@ function LineDetail({ line, quantity, setQuantity, order, example }: {
   const [showEvidence, setShowEvidence] = useState(false)
   const evidenceId = useId()
   const changed = quantity !== line.quantity
+  const match = networkMatch(line.network, quantity)
   return (
     <div className={styles.detail}>
       <p className={styles.answer}>{line.quantity === 0 ? 'Skip for now' : `Order ${line.quantity}`}</p>
@@ -69,6 +133,7 @@ function LineDetail({ line, quantity, setQuantity, order, example }: {
           <QuickAnswer name={`q-${line.id}`} prompt={line.question.prompt} choices={line.question.choices} example={example} />
         </div>
       )}
+      {match.kind !== 'none' && <NetworkSection match={match} />}
       <div className={styles.adjust}>
         <QuantityStepper value={quantity} onChange={setQuantity} label={`Quantity for ${line.product}`} />
         {changed && (
@@ -95,12 +160,16 @@ function LineDetail({ line, quantity, setQuantity, order, example }: {
 export function OrderReview({ order, eyebrow, example = false }: { order: ProposedOrderView; eyebrow?: ReactNode; example?: boolean }) {
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [open, setOpen] = useState<string | null>(null)
-  const [filter, setFilter] = useState<'all' | 'attention'>('all')
+  const [filter, setFilter] = useState<'all' | 'attention' | 'network'>('all')
+  const narrow = useNarrow()
 
   const sorted = sortForReview(order.lines)
   const attention = sorted.filter((l) => l.state !== 'ok')
-  const shown = filter === 'all' ? sorted : attention
   const qty = (l: OrderLineView) => quantities[l.id] ?? l.quantity
+  // Compared against what we'd order now, so it follows quantity changes.
+  const matches = new Map(order.lines.map((l) => [l.id, networkMatch(l.network, qty(l))]))
+  const fromNetwork = sorted.filter((l) => matches.get(l.id)?.kind !== 'none')
+  const shown = filter === 'all' ? sorted : filter === 'attention' ? attention : fromNetwork
   const total = orderTotal(order.lines, quantities)
   const note = orderNote({ orderBy: order.orderBy, freightGap: freightGap(order, total), currency: order.currency })
   const questions = attention.filter((l) => l.state === 'question').length
@@ -121,6 +190,13 @@ export function OrderReview({ order, eyebrow, example = false }: { order: Propos
           {summary ? ` ${summary.charAt(0).toUpperCase()}${summary.slice(1)}.` : ' Nothing needs a second look.'}
           {note && <span className={styles.note}> {note}.</span>}
         </p>
+        {fromNetwork.length > 0 && (
+          <p className={styles.networkSummary}>
+            <button type="button" className={styles.textButton} onClick={() => { setFilter('network'); setOpen(null) }}>
+              {fromNetwork.length === 1 ? '1 line may be available' : `${fromNetwork.length} lines may be available`} from other retailers
+            </button>
+          </p>
+        )}
       </header>
 
       {order.intelligenceQuestionId && (
@@ -133,6 +209,11 @@ export function OrderReview({ order, eyebrow, example = false }: { order: Propos
         <button type="button" aria-pressed={filter === 'attention'} onClick={() => setFilter('attention')} disabled={attention.length === 0}>
           Needs a look {attention.length}
         </button>
+        {fromNetwork.length > 0 && (
+          <button type="button" aria-pressed={filter === 'network'} onClick={() => setFilter('network')}>
+            Other retailers {fromNetwork.length}
+          </button>
+        )}
       </div>
 
       <table className={styles.table} aria-label={`Proposed order from ${order.supplier}`}>
@@ -150,6 +231,7 @@ export function OrderReview({ order, eyebrow, example = false }: { order: Propos
           {shown.map((line) => {
             const isOpen = open === line.id
             const q = qty(line)
+            const signal = networkSignal(matches.get(line.id) ?? { kind: 'none' })
             return (
               <Fragment key={line.id}>
                 <tr className={isOpen ? styles.openRow : undefined}>
@@ -161,6 +243,7 @@ export function OrderReview({ order, eyebrow, example = false }: { order: Propos
                         {line.product}
                         {line.variant && <span className={styles.variant}>{line.variant}</span>}
                         {line.state !== 'ok' && <span className={[styles.state, styles.phoneOnly, line.state === 'question' && styles.ask].filter(Boolean).join(' ')}>{stateText[line.state]}</span>}
+                        {signal && <span className={styles.networkSignal}>{signal}</span>}
                       </span>
                     </button>
                   </th>
@@ -175,7 +258,7 @@ export function OrderReview({ order, eyebrow, example = false }: { order: Propos
                 </tr>
                 {isOpen && (
                   <tr className={styles.detailRow} id={`${line.id}-detail`}>
-                    <td colSpan={6}>
+                    <td colSpan={narrow ? 3 : 6}>
                       <LineDetail line={line} quantity={q} order={order} example={example}
                         setQuantity={(n) => setQuantities((prev) => ({ ...prev, [line.id]: n }))} />
                     </td>

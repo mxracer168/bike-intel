@@ -8,6 +8,18 @@ export type Confidence = 'high' | 'medium' | 'low'
 /** ok: nothing to look at · review: worth a second look · question: we need an answer first. */
 export type LineState = 'ok' | 'review' | 'question'
 
+/**
+ * Units another participating retailer has chosen to make available. The
+ * seller side (opting in, how many) happens elsewhere; this is what a buyer
+ * sees. No price: that is agreed between the two retailers.
+ */
+export type NetworkListing = {
+  id: string
+  /** How the other retailer is identified. How much is revealed, and when, is a policy decision not yet made. */
+  retailer: { name: string; place: string }
+  available: number
+}
+
 export type OrderLineView = {
   id: string
   product: string
@@ -29,6 +41,8 @@ export type OrderLineView = {
   availability: string
   assumptions: string[]
   alternatives: string[]
+  /** Other retailers' available units for this item (absent or empty: nothing to show). */
+  network?: NetworkListing[]
 }
 
 export type ProposedOrderView = {

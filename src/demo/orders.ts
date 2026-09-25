@@ -5,7 +5,7 @@
  * the same numbers.
  */
 import { average, describeCover, describeWeeklyRate } from '@/domain/language/plain'
-import type { Confidence, LineState, OrderLineView, ProposedOrderView } from '@/features/orders/types'
+import type { Confidence, LineState, NetworkListing, OrderLineView, ProposedOrderView } from '@/features/orders/types'
 
 /** Small seeded PRNG (mulberry32): same seed, same example data. */
 function random(seed: number) {
@@ -28,6 +28,21 @@ function catalog(families: Family[]) {
 }
 
 type Special = Partial<OrderLineView> & { state: LineState }
+
+/**
+ * Other participating retailers (fictional) and what they've made available.
+ * Example only: assumes they already opted in and chose how many to share.
+ */
+const shop = {
+  palmetto: { name: 'Palmetto Cycles', place: 'Charleston, SC' },
+  river: { name: 'River City Bikes', place: 'Columbia, SC' },
+  trailhead: { name: 'Trailhead Bicycle Co.', place: 'Greenville, SC' },
+  midtown: { name: 'Midtown Bikes', place: 'Columbia, SC' },
+  upstate: { name: 'Upstate Cycling', place: 'Spartanburg, SC' },
+  lowcountry: { name: 'Lowcountry Wheelworks', place: 'Beaufort, SC' },
+}
+const listing = (key: keyof typeof shop, available: number, item: string): NetworkListing =>
+  ({ id: `net-${item}-${key}`, retailer: shop[key], available })
 
 type Plan = {
   id: string
@@ -157,10 +172,14 @@ const northline = build({
     { name: 'Velo Orange headset spacers', variants: ['1 1/8"'], cost: 6, rate: 0.3 },
   ],
   special: {
-    'Shimano B01S resin disc brake pads · Pair': { state: 'ok', quantity: 6, onHand: 2, onOrder: 0, confidence: 'high', weeklySales: [1, 2, 1, 3, 2, 2, 3, 2, 3, 2, 2, 3],
+    'KMC chain · X11': { state: 'ok',
+      network: [listing('trailhead', 12, 'x11'), listing('palmetto', 9, 'x11'), listing('river', 2, 'x11')] },
+    'Shimano B01S resin disc brake pads · Pair': { state: 'ok', quantity: 6,
+      network: [listing('palmetto', 10, 'b01s'), listing('river', 6, 'b01s'), listing('trailhead', 8, 'b01s'), listing('midtown', 2, 'b01s'), listing('upstate', 1, 'b01s')], onHand: 2, onOrder: 0, confidence: 'high', weeklySales: [1, 2, 1, 3, 2, 2, 3, 2, 3, 2, 2, 3],
       reason: 'You sell about 2 a week and have 2 left, about a week’s worth.',
       alternatives: ['Shimano J05A pads fit the same brakes and cost a little more.'] },
-    'Maxxis Minion DHF · 29 × 2.5 WT EXO+': { state: 'review', quantity: 4, onHand: 1, onOrder: 0, weeklySales: [0, 1, 1, 0, 1, 2, 1, 1, 2, 1, 1, 2],
+    'Maxxis Minion DHF · 29 × 2.5 WT EXO+': { state: 'review', quantity: 4,
+      network: [listing('midtown', 2, 'dhf'), listing('upstate', 1, 'dhf'), listing('lowcountry', 3, 'dhf')], onHand: 1, onOrder: 0, weeklySales: [0, 1, 1, 0, 1, 2, 1, 1, 2, 1, 1, 2],
       reason: 'You sold 5 last October, more than your usual pace, so we added a little for fall.' },
     'Park Tool CT-3.3 chain tool': { state: 'question', quantity: 2, onHand: 0, onOrder: 0, weeklySales: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
       reason: 'This is new to your store, so we started small.',
