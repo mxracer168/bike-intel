@@ -21,10 +21,3 @@ export function formatFit(score: number): string {
   return score.toFixed(1)
 }
 
-/** Plain-words band for a score. Shown only inside the explanation. */
-export function fitBand(score: number): string {
-  if (score >= 4.5) return 'Exceptional fit'
-  if (score >= 4) return 'Strong fit'
-  if (score >= 3) return 'Worth considering'
-  return 'Limited fit'
-}

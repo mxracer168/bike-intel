@@ -4,6 +4,7 @@
  * purpose, to show the page works either way.
  */
 import type { DirectoryEntry, RelationshipView, SupplierPresentation } from '@/features/suppliers/presentation'
+import type { SupplierAccountView } from '@/features/suppliers/account'
 import type { ProgramFitMap } from '@/features/suppliers/programFit'
 
 type DemoSupplier = { entry: DirectoryEntry; presentation: SupplierPresentation; relationship: RelationshipView }
@@ -31,8 +32,7 @@ export const demoSuppliers: DemoSupplier[] = [
       {
         type: 'about',
         paragraphs: [
-          'Northline is an independent distributor serving specialty bicycle retailers across the United States and Canada.',
-          'Most orders placed by 3 pm ship the same day from one of three warehouses, so the majority of shops receive them the next business day.',
+          'Northline is an independent distributor serving specialty bicycle retailers across the United States and Canada. They carry parts, tires and accessories from hundreds of brands and ship next day to most shops.',
         ],
       },
       {
@@ -44,10 +44,6 @@ export const demoSuppliers: DemoSupplier[] = [
           { label: 'Warehouses', value: 'Reno, Chicago, Harrisburg' },
           { label: 'Typical delivery', value: '1–2 business days' },
         ],
-      },
-      {
-        type: 'brands',
-        brands: ['Shimano', 'SRAM', 'Maxxis', 'Park Tool', 'Continental', 'Topeak', 'Lezyne', 'Stan’s NoTubes', 'WTB', 'Kenda', 'Pedro’s', 'Bontrager'],
       },
       {
         type: 'programs',
@@ -63,10 +59,9 @@ export const demoSuppliers: DemoSupplier[] = [
           { role: 'Your sales rep', name: 'Jordan Ellis', email: 'jordan.ellis@example.com', phone: '(555) 010-4471' },
           { role: 'Customer service', email: 'orders@example.com', phone: '(555) 010-4400' },
         ],
-        note: 'Weekdays, 7 am to 6 pm Central.',
       },
     ],
-    'https://example.com/northline',
+    'https://northlinedistribution.com',
   ),
   supplier(
     'demo-ridgeline', 'Ridgeline Bicycle Co.', 'brand',
@@ -167,4 +162,14 @@ const exampleFit: Record<string, ProgramFitMap> = {
 
 export function demoProgramFit(supplierId: string): ProgramFitMap {
   return exampleFit[supplierId] ?? {}
+}
+
+/** EXAMPLE account details the retailer keeps for a supplier (private to them). */
+const exampleAccounts: Record<string, SupplierAccountView> = {
+  'demo-northline': { accountNumber: 'PW-18472', connection: { mode: 'api', lastSynced: 'Today at 8:24 AM' } },
+  'demo-summit': { accountNumber: 'SC-00931', connection: { mode: 'email', destination: 'orders@summitparts.example' } },
+}
+
+export function demoSupplierAccount(supplierId: string): SupplierAccountView {
+  return exampleAccounts[supplierId] ?? {}
 }

@@ -1,18 +1,26 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ExampleMarker } from '@/ui/Example'
-import { Icon } from '@/ui/Icon'
-import { kindLabel, monogram, type RelationshipView, type SupplierPresentation, type SupplierSection } from './presentation'
-import { ProgramFit } from './ProgramFit'
+import { connectionText, type SupplierAccountView } from './account'
+import { monogram, type RelationshipView, type SupplierPresentation, type SupplierSection } from './presentation'
+import { FitScore, ProgramFit } from './ProgramFit'
 import type { ProgramFitMap } from './programFit'
-import { RelationshipTag } from './RelationshipTag'
+import { CopyButton, ManageConnection, UploadProgram } from './SupplierActions'
 import styles from './Suppliers.module.css'
 
 /** What the retailer brings to the page (never part of the supplier's own presentation). */
-type RetailerContext = { retailerName: string; programFit: ProgramFitMap }
+type RetailerContext = { retailerName: string; supplierName: string; programFit: ProgramFitMap }
 
-/** One renderer per section type. New types are added here, not by reshaping the page. */
-const renderers: { [K in SupplierSection['type']]: (s: Extract<SupplierSection, { type: K }>, ctx: RetailerContext) => ReactNode } = {
+type Contact = Extract<SupplierSection, { type: 'contact' }>
+
+/**
+ * The main column: about, ordering details, then programs, the reason to come
+ * back. Brands aren't shown (product search will cover them) and contacts
+ * live in the "Your account" rail.
+ */
+const ORDER: SupplierSection['type'][] = ['about', 'facts', 'programs']
+
+const renderers: { [K in 'about' | 'facts' | 'programs']: (s: Extract<SupplierSection, { type: K }>, ctx: RetailerContext) => ReactNode } = {
   about: (s) => (
     <div className={styles.prose}>{s.paragraphs.map((p, i) => <p key={i}>{p}</p>)}</div>
   ),
@@ -21,88 +29,81 @@ const renderers: { [K in SupplierSection['type']]: (s: Extract<SupplierSection, 
       {s.items.map((f) => <div key={f.label}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}
     </dl>
   ),
-  brands: (s) => (
-    <ul className={styles.brands}>{s.brands.map((b) => <li key={b}>{b}</li>)}</ul>
-  ),
   programs: (s, ctx) => (
     <ul className={styles.programs}>
       {s.programs.map((p) => {
         const fit = ctx.programFit[p.name]
         return (
           <li key={p.name} className={styles.program}>
-            <div className={styles.programMain}>
-              <span className={styles.programName}>{p.name}</span>
-              {p.season && <span className={styles.programMeta}>{p.season}</span>}
-              <p className={styles.programSummary}>{p.summary}</p>
+            <div className={styles.programTop}>
+              <h3 className={styles.programName}>{p.name}</h3>
+              {fit && <FitScore fit={fit} />}
             </div>
-            {fit
-              ? <ProgramFit fit={fit} closes={p.closes} retailerName={ctx.retailerName} programName={p.name} />
-              : p.closes && <div className={styles.programSide}><p className={styles.programMeta}>Closes {p.closes}</p></div>}
+            <div className={styles.programTop}>
+              {p.season ? <span className={styles.programMeta}>{p.season}</span> : <span />}
+              {p.closes && <span className={styles.programMeta}>Closes {p.closes}</span>}
+            </div>
+            <p className={styles.programSummary}>{p.summary}</p>
+            {fit && <ProgramFit fit={fit} retailerName={ctx.retailerName} programName={p.name} />}
           </li>
         )
       })}
     </ul>
   ),
-  contact: (s) => (
-    <>
-      <ul className={styles.people}>
-        {s.people.map((p) => (
-          <li key={p.role} className={styles.person}>
-            <span className={styles.personRole}>{p.role}</span>
-            {p.name && <b>{p.name}</b>}
-            {p.email && <a href={`mailto:${p.email}`}>{p.email}</a>}
-            {p.phone && <span>{p.phone}</span>}
-          </li>
-        ))}
-      </ul>
-      {s.note && <p className={styles.note}>{s.note}</p>}
-    </>
-  ),
 }
 
-const defaultTitle: Record<SupplierSection['type'], string> = {
-  about: 'About',
-  facts: 'At a glance',
-  brands: 'Brands',
-  programs: 'Programs',
-  contact: 'Contacts',
-}
+const defaultTitle = { about: 'About', facts: 'Ordering', programs: 'Programs' } as const
 
 function Section({ section, index, ctx }: { section: SupplierSection; index: number; ctx: RetailerContext }) {
+  if (section.type !== 'about' && section.type !== 'facts' && section.type !== 'programs') return null
   const render = renderers[section.type] as (s: SupplierSection, ctx: RetailerContext) => ReactNode
   const id = `supplier-section-${index}`
   return (
-    <section className={styles.section} aria-labelledby={id}>
-      <h2 id={id} className={styles.sectionTitle}>{section.title ?? defaultTitle[section.type]}</h2>
+    <section className={[styles.section, section.type === 'programs' && styles.programsSection].filter(Boolean).join(' ')} aria-labelledby={id}>
+      <div className={styles.sectionHead}>
+        <h2 id={id} className={section.type === 'facts' ? styles.sectionTitleSmall : styles.sectionTitle}>
+          {section.title ?? defaultTitle[section.type]}
+        </h2>
+        {section.type === 'programs' && <UploadProgram supplierName={ctx.supplierName} />}
+      </div>
       {render(section, ctx)}
     </section>
   )
 }
 
-function relationshipText(r: RelationshipView, name: string) {
+/** The retailer's standing with this supplier, above the name. */
+function relationshipLabel(r: RelationshipView): string {
   switch (r.status) {
     case 'verified':
     case 'claimed':
-      return r.preference === 'preferred'
-        ? `${name} is one of your preferred suppliers. We’ll lean toward them when options are close.`
-        : `You buy from ${name}.`
-    case 'inactive':
-    case 'suspended':
-      return `You’re not buying from ${name} at the moment.`
+      return r.preference === 'preferred' ? 'Preferred supplier' : 'Your supplier'
     default:
-      return `You haven’t told us you buy from ${name}.`
+      return 'Not currently a supplier'
   }
 }
 
+const displayUrl = (url: string) => url.replace(/^https?:\/\//, '').replace(/\/$/, '')
+
 /**
- * A supplier's page: identity, then whatever sections the supplier has, then
- * the retailer's own relationship. Sparse and rich pages share one layout.
+ * A supplier's page: identity with the retailer's standing, then about,
+ * ordering and programs. A sticky rail holds the retailer's private account
+ * details and how we connect to the supplier.
  */
-export function SupplierProfile({ presentation, relationship, retailerName, programFit = {}, example = false }: {
-  presentation: SupplierPresentation; relationship: RelationshipView; retailerName: string; programFit?: ProgramFitMap; example?: boolean
+export function SupplierProfile({ presentation, relationship, retailerName, programFit = {}, account = {}, example = false }: {
+  presentation: SupplierPresentation
+  relationship: RelationshipView
+  retailerName: string
+  programFit?: ProgramFitMap
+  account?: SupplierAccountView
+  example?: boolean
 }) {
   const { identity, sections } = presentation
-  const ctx = { retailerName, programFit }
+  const ctx = { retailerName, supplierName: identity.name, programFit }
+  const main = ORDER.flatMap((type) => sections.filter((s) => s.type === type))
+  const contact = sections.find((s): s is Contact => s.type === 'contact')
+  const current = relationship.status === 'claimed' || relationship.status === 'verified'
+  const connection = account.connection ?? { mode: 'manual' as const }
+
   return (
     <>
       <Link href="/suppliers" className={styles.back}>← All suppliers</Link>
@@ -110,36 +111,68 @@ export function SupplierProfile({ presentation, relationship, retailerName, prog
       <header className={styles.hero}>
         <span className={`${styles.monogram} ${styles.monogramLarge}`} aria-hidden="true">{monogram(identity.name)}</span>
         <div className={styles.heroText}>
-          {example && <span><ExampleMarker /></span>}
+          <p className={[styles.status, current && styles.statusCurrent].filter(Boolean).join(' ')}>
+            {relationshipLabel(relationship)}{example && <ExampleMarker />}
+          </p>
           <h1 className={styles.heroName}>{identity.name}</h1>
-          {identity.tagline && <p className={styles.heroTagline}>{identity.tagline}</p>}
-          <div className={styles.heroMeta}>
-            {identity.kind && <span>{kindLabel[identity.kind]}</span>}
-            {identity.markets.length > 0 && <span>Serves {identity.markets.map((m) => m.name).join(' and ')}</span>}
-            {identity.website && (
-              <a href={identity.website} target="_blank" rel="noopener noreferrer">
-                Website <Icon name="external" size={12} />
-              </a>
-            )}
-          </div>
         </div>
       </header>
 
       <div className={styles.layout}>
         <div className={styles.main}>
-          {sections.length > 0
-            ? sections.map((s, i) => <Section key={i} section={s} index={i} ctx={ctx} />)
+          {main.length > 0
+            ? main.map((s, i) => <Section key={i} section={s} index={i} ctx={ctx} />)
             : <p className={styles.sparse}>{identity.name} hasn’t added more about themselves yet.</p>}
         </div>
 
-        <aside className={styles.aside} aria-label="Your relationship">
-          <section className={styles.panel}>
-            <h2 className={styles.panelTitle}>Your relationship</h2>
-            {relationship.status !== 'none' && <div className={styles.tagRow}><RelationshipTag relationship={relationship} /></div>}
-            <p className={styles.panelText}>{relationshipText(relationship, identity.name)}</p>
-            <p className={styles.panelText}>
-              Your terms, pricing and history with {identity.name} will show here. Only your business sees them.
+        <aside className={styles.aside} aria-label="Your account and connection">
+          <section className={styles.panel} aria-labelledby="supplier-account">
+            <h2 id="supplier-account" className={styles.panelTitle}>Your account</h2>
+            <dl className={styles.railList}>
+              {account.accountNumber && (
+                <div>
+                  <dt>Account number</dt>
+                  <dd className={styles.accountNumber}>
+                    <span>{account.accountNumber}</span>
+                    <CopyButton value={account.accountNumber} label="account number" />
+                  </dd>
+                </div>
+              )}
+              {identity.website && (
+                <div>
+                  <dt>Website</dt>
+                  <dd><a href={identity.website} target="_blank" rel="noopener noreferrer">{displayUrl(identity.website)}</a></dd>
+                </div>
+              )}
+              {contact?.people.map((p) => (
+                <div key={p.role}>
+                  <dt>{p.role}</dt>
+                  <dd className={styles.person}>
+                    {p.name && <b>{p.name}</b>}
+                    {p.email && <a href={`mailto:${p.email}`}>{p.email}</a>}
+                    {p.phone && <span>{p.phone}</span>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            {!account.accountNumber && !identity.website && !contact && (
+              <p className={styles.railNote}>Your account number and contacts at {identity.name} will show here. Only your business sees them.</p>
+            )}
+          </section>
+
+          <section className={styles.panel} aria-labelledby="supplier-connection">
+            <h2 id="supplier-connection" className={styles.panelTitle}>Connection</h2>
+            <p className={styles.connection}>
+              <span className={[styles.dot, connection.mode === 'api' && styles.dotOn].filter(Boolean).join(' ')} aria-hidden="true" />
+              <b>{connectionText[connection.mode].title}</b>
             </p>
+            <p className={styles.railNote}>{connectionText[connection.mode].detail}</p>
+            {connection.lastSynced && (
+              <dl className={styles.railList}>
+                <div><dt>Last synced</dt><dd>{connection.lastSynced}</dd></div>
+              </dl>
+            )}
+            <ManageConnection />
           </section>
         </aside>
       </div>

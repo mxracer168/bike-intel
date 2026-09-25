@@ -24,26 +24,19 @@ retailer under every explanation.
   quieter. No stars, rings, gauges, colors or badges, nothing that reads like
   a public review, and never an ordinal rank ("#2") on a supplier page.
 - "Why this fit?" (a text button) opens the explanation at the bottom of the
-  card, on the same light Harbor-blue wash with a left accent edge as an
-  opened order line. The blue means "analysis you opened", for every score;
+  card, on a full-width pale Harbor-blue analysis area below a subtle
+  divider (no accent stripe). The blue means "analysis you opened", for every score;
   it never signals a good fit. A low fit is never red, never a warning, never
   an icon: it's decision support, not an alert. Inside:
-  "Why this is a 4.6 fit for {retailer}", the band in words, the three to
+  "Why this is a 4.6 fit for {retailer}", the three to
   five main factors in plain language (a short title and one sentence each,
   two columns on wide screens), optionally one sentence weighing them when
   they pull in different directions, and the trust statement (including that
   another retailer may see a different fit for the same program). Factors, not the equation: weights and formulas
   are never shown to the retailer; methodology belongs in help and internal
   documentation.
-- Bands, shown only inside the explanation so the card stays quiet:
-
-  | Score | Words |
-  |---|---|
-  | 4.5–5.0 | Exceptional fit |
-  | 4.0–4.4 | Strong fit |
-  | 3.0–3.9 | Worth considering |
-  | below 3.0 | Limited fit |
-
+- No band labels ("Exceptional fit" and the like): the number and the
+  reasons are enough, and a label turns fit into a grade.
 - Fit is not part of the supplier's own page content
   (`SupplierPresentation`); it's the retailer's, passed separately
   (`features/suppliers/programFit.ts`).
