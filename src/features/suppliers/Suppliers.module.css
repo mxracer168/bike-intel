@@ -45,9 +45,34 @@
 .brands { list-style: none; display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .brands li { font-size: 14px; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface); }
 .programs { list-style: none; display: flex; flex-direction: column; gap: var(--sp-3); }
-.program { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-4) var(--sp-5); display: flex; flex-direction: column; gap: 4px; }
-.programHead { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--sp-2); align-items: baseline; }
+.program {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-4) var(--sp-5);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-2) var(--sp-5); align-items: start;
+}
+.programMain { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .programName { font-size: 16px; font-weight: 600; }
+/* Right side: Program fit and the closing date, quieter than the name. */
+.programSide { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
+.fit { font-size: 14px; line-height: 20px; white-space: nowrap; }
+.fitScore { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.fitScale { color: var(--ink-2); }
+.fitWhy { border: 0; background: none; padding: 2px 0; font-size: 14px; color: var(--accent); cursor: pointer; }
+.fitWhy:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* "Why this fit?": the main reasons in plain words, across the card. */
+.fitDetail { grid-column: 1 / -1; border-top: 1px solid var(--line); margin-top: var(--sp-2); padding-top: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-3); }
+.fitTitle { font-weight: 600; }
+.fitBand { font-weight: 400; color: var(--ink-2); }
+.fitFactors { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3) var(--sp-5); }
+.fitFactors dt { font-size: 15px; font-weight: 600; }
+.fitFactors dd { margin: 2px 0 0; font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.fitTrust { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); max-width: 72ch; }
+
+@media (max-width: 640px) {
+  .program { grid-template-columns: minmax(0, 1fr); padding: var(--sp-4); }
+  .programSide { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 2px var(--sp-3); text-align: left; }
+  .fitFactors { grid-template-columns: minmax(0, 1fr); }
+}
 .programMeta { font-size: var(--fs-label); color: var(--ink-2); }
 .programSummary { font-size: 15px; color: var(--ink-2); }
 .people { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }

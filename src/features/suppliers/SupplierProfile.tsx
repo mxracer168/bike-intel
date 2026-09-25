@@ -3,11 +3,16 @@ import type { ReactNode } from 'react'
 import { ExampleMarker } from '@/ui/Example'
 import { Icon } from '@/ui/Icon'
 import { kindLabel, monogram, type RelationshipView, type SupplierPresentation, type SupplierSection } from './presentation'
+import { ProgramFit } from './ProgramFit'
+import type { ProgramFitMap } from './programFit'
 import { RelationshipTag } from './RelationshipTag'
 import styles from './Suppliers.module.css'
 
+/** What the retailer brings to the page (never part of the supplier's own presentation). */
+type RetailerContext = { retailerName: string; programFit: ProgramFitMap }
+
 /** One renderer per section type. New types are added here, not by reshaping the page. */
-const renderers: { [K in SupplierSection['type']]: (s: Extract<SupplierSection, { type: K }>) => ReactNode } = {
+const renderers: { [K in SupplierSection['type']]: (s: Extract<SupplierSection, { type: K }>, ctx: RetailerContext) => ReactNode } = {
   about: (s) => (
     <div className={styles.prose}>{s.paragraphs.map((p, i) => <p key={i}>{p}</p>)}</div>
   ),
@@ -19,18 +24,23 @@ const renderers: { [K in SupplierSection['type']]: (s: Extract<SupplierSection, 
   brands: (s) => (
     <ul className={styles.brands}>{s.brands.map((b) => <li key={b}>{b}</li>)}</ul>
   ),
-  programs: (s) => (
+  programs: (s, ctx) => (
     <ul className={styles.programs}>
-      {s.programs.map((p) => (
-        <li key={p.name} className={styles.program}>
-          <div className={styles.programHead}>
-            <span className={styles.programName}>{p.name}</span>
-            {p.closes && <span className={styles.programMeta}>Closes {p.closes}</span>}
-          </div>
-          {p.season && <span className={styles.programMeta}>{p.season}</span>}
-          <p className={styles.programSummary}>{p.summary}</p>
-        </li>
-      ))}
+      {s.programs.map((p) => {
+        const fit = ctx.programFit[p.name]
+        return (
+          <li key={p.name} className={styles.program}>
+            <div className={styles.programMain}>
+              <span className={styles.programName}>{p.name}</span>
+              {p.season && <span className={styles.programMeta}>{p.season}</span>}
+              <p className={styles.programSummary}>{p.summary}</p>
+            </div>
+            {fit
+              ? <ProgramFit fit={fit} closes={p.closes} retailerName={ctx.retailerName} programName={p.name} />
+              : p.closes && <div className={styles.programSide}><p className={styles.programMeta}>Closes {p.closes}</p></div>}
+          </li>
+        )
+      })}
     </ul>
   ),
   contact: (s) => (
@@ -58,13 +68,13 @@ const defaultTitle: Record<SupplierSection['type'], string> = {
   contact: 'Contacts',
 }
 
-function Section({ section, index }: { section: SupplierSection; index: number }) {
-  const render = renderers[section.type] as (s: SupplierSection) => ReactNode
+function Section({ section, index, ctx }: { section: SupplierSection; index: number; ctx: RetailerContext }) {
+  const render = renderers[section.type] as (s: SupplierSection, ctx: RetailerContext) => ReactNode
   const id = `supplier-section-${index}`
   return (
     <section className={styles.section} aria-labelledby={id}>
       <h2 id={id} className={styles.sectionTitle}>{section.title ?? defaultTitle[section.type]}</h2>
-      {render(section)}
+      {render(section, ctx)}
     </section>
   )
 }
@@ -88,10 +98,11 @@ function relationshipText(r: RelationshipView, name: string) {
  * A supplier's page: identity, then whatever sections the supplier has, then
  * the retailer's own relationship. Sparse and rich pages share one layout.
  */
-export function SupplierProfile({ presentation, relationship, example = false }: {
-  presentation: SupplierPresentation; relationship: RelationshipView; example?: boolean
+export function SupplierProfile({ presentation, relationship, retailerName, programFit = {}, example = false }: {
+  presentation: SupplierPresentation; relationship: RelationshipView; retailerName: string; programFit?: ProgramFitMap; example?: boolean
 }) {
   const { identity, sections } = presentation
+  const ctx = { retailerName, programFit }
   return (
     <>
       <Link href="/suppliers" className={styles.back}>← All suppliers</Link>
@@ -117,7 +128,7 @@ export function SupplierProfile({ presentation, relationship, example = false }:
       <div className={styles.layout}>
         <div className={styles.main}>
           {sections.length > 0
-            ? sections.map((s, i) => <Section key={i} section={s} index={i} />)
+            ? sections.map((s, i) => <Section key={i} section={s} index={i} ctx={ctx} />)
             : <p className={styles.sparse}>{identity.name} hasn’t added more about themselves yet.</p>}
         </div>
 

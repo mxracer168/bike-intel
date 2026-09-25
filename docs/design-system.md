@@ -69,7 +69,7 @@ reorder by dragging a grip that appears on hover/focus, with arrow keys on the
 grip, or from a "⋯" menu (always visible on touch); no rank numbers; "Back to
 suggested order" appears only once the order has changed), `EvidenceChart`
 (weekly sales; single series, per-bar tooltip, screen-reader table),
-`SupplierProfile` (identity + ordered typed sections), `SupplierDirectory`
+`SupplierProfile` (identity + ordered typed sections; program cards show the retailer's Program fit, `4.6 / 5 · Program fit`, beside the closing date, with "Why this fit?" opening the main reasons and the trust statement; see `docs/programs.md`), `SupplierDirectory`
 (instant name search).
 
 Built later with the features that need them: dialogs with undo.

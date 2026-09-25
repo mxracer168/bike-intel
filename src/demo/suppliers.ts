@@ -4,6 +4,7 @@
  * purpose, to show the page works either way.
  */
 import type { DirectoryEntry, RelationshipView, SupplierPresentation } from '@/features/suppliers/presentation'
+import type { ProgramFitMap } from '@/features/suppliers/programFit'
 
 type DemoSupplier = { entry: DirectoryEntry; presentation: SupplierPresentation; relationship: RelationshipView }
 
@@ -109,4 +110,47 @@ export const demoSuppliers: DemoSupplier[] = [
 
 export function findDemoSupplier(id: string) {
   return demoSuppliers.find((s) => s.entry.id === id) ?? null
+}
+
+/**
+ * EXAMPLE Program fit for the signed-in retailer, per supplier and program.
+ * Hand-written, believable values: there is no scoring yet. Kept apart from
+ * the suppliers' own pages above, because fit belongs to the retailer.
+ */
+const exampleFit: Record<string, ProgramFitMap> = {
+  'demo-northline': {
+    'Winter service parts program': {
+      score: 4.6,
+      factors: [
+        { title: 'Strong historical demand', detail: 'You sell these parts consistently through the winter service season.' },
+        { title: 'Good inventory timing', detail: 'December delivery lines up with when you usually start needing them.' },
+        { title: 'Meaningful margin benefit', detail: 'The extra 8% improves the economics compared with your normal terms.' },
+        { title: 'Manageable commitment', detail: 'The booking is in line with what you have sold in past winters.' },
+      ],
+    },
+    'Tire pre-season': {
+      score: 4.2,
+      factors: [
+        { title: 'Steady tire demand', detail: 'Tires are among your most consistent sellers from March onward.' },
+        { title: 'Delivery split matches your spring', detail: 'Two delivery dates follow the way your tire sales build through spring.' },
+        { title: 'Modest discount at your volume', detail: 'At 24 to 36 tires you would reach the first tier, not the deeper ones.' },
+      ],
+    },
+  },
+  'demo-ridgeline': {
+    'Spring 2027 booking': {
+      score: 3.2,
+      factors: [
+        { title: 'Strong demand for trail bikes', detail: 'Trail bikes in this price range have been your fastest-growing category over the last two seasons, especially from April to June.' },
+        { title: 'Large commitment for a new brand', detail: 'Twelve bikes is more than you have booked from any single brand before, and you have no sales history with Ridgeline yet to judge how they would sell.' },
+        { title: 'Helpful terms', detail: 'Net 90 on spring bookings would mean paying for most bikes after they have started selling.' },
+        { title: 'Timing is tight', detail: 'The booking closes October 2, before your usual fall review of spring plans.' },
+        { title: 'Overlaps what you carry', detail: 'Several models sit close to trail bikes you already stock, so some sales may shift rather than grow.' },
+      ],
+    },
+  },
+}
+
+export function demoProgramFit(supplierId: string): ProgramFitMap {
+  return exampleFit[supplierId] ?? {}
 }
