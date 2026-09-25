@@ -46,10 +46,9 @@
 .openRow .go { color: var(--accent); }
 .openRow .go svg { transform: translateY(3px) rotate(90deg); }
 .openRow .lineButton { font-weight: 600; }
-.table .detailRow > td { background: var(--accent-wash); padding: 2px var(--sp-5) var(--sp-5) 48px; border-bottom: 1px solid var(--accent-muted); }
+.table .detailRow > td { background: var(--accent-wash); padding: 2px var(--sp-5) var(--sp-4) 48px; border-bottom: 1px solid var(--accent-muted); }
 
 .detail { display: flex; flex-direction: column; gap: var(--sp-3); }
-.reason { font-size: var(--fs-answer); line-height: var(--lh-answer); font-weight: 600; letter-spacing: -0.015em; color: var(--ink); }
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); }
 
 /* "Why 4?" and other retailers: outlined disclosures matching the quantity control. */
@@ -125,7 +124,6 @@
   .table .detailRow > td { padding: 2px var(--sp-3) var(--sp-4) var(--sp-4); }
   /* The chevron column is hidden here, so the accent moves to the product cell. */
   .openRow > .product { box-shadow: inset 3px 0 0 var(--accent); padding-left: var(--sp-4); }
-  .reason { font-size: var(--fs-heading); line-height: var(--lh-heading); }
   .zones, .zonesBoth { grid-template-columns: minmax(0, 1fr); margin-left: 0; }
   .panel { padding: var(--sp-3) var(--sp-4); }
   .keyFacts dl > div { grid-template-columns: 108px minmax(0, 1fr); }

@@ -40,9 +40,3 @@ export function plural(count: number, one: string, many = `${one}s`): string {
   return `${count} ${count === 1 ? one : many}`
 }
 
-/** Compact rate for scanning: "~3/wk", "<1/wk". */
-export function weeklyRateShort(perWeek: number): string {
-  if (perWeek <= 0) return 'no recent sales'
-  if (perWeek < 0.75) return '<1/wk'
-  return `~${Math.round(perWeek)}/wk`
-}

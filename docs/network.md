@@ -15,7 +15,7 @@ Prominence follows relevance (`supplierShort`):
 | Supplier | Shown in the opened line |
 |---|---|
 | Available or limited | An outlined disclosure after "Why N?": "3 retailers have some ⌄". |
-| Out of stock or delayed | The same disclosure in bold with a stronger outline, under the reason "Supplier out of stock.": "2 retailers can cover all 3 ⌄". |
+| Out of stock or delayed | The same disclosure in bold with a stronger outline: "2 retailers can cover all 3 ⌄". The supplier's status is in the key facts under "Why N?". |
 
 - **The signal:** "1 retailer can cover all 3" (full match) or "3 retailers
   have some" (partial). No match shows nothing.

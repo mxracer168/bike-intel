@@ -147,7 +147,6 @@ function LineDetail({ line, quantity, setQuantity, leadTimeDays }: {
   const network = showNetwork && match.kind !== 'none' ? match : null
   return (
     <div className={styles.detail}>
-      <p className={styles.reason}>{line.signal.reason}.</p>
       <div className={styles.controls}>
         <QuantityStepper compact value={quantity} onChange={setQuantity} label={`Quantity for ${line.product}`} />
         <button type="button" className={styles.disclosure} aria-expanded={why} aria-controls={whyId} onClick={() => setWhy((v) => !v)}>

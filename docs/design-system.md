@@ -60,7 +60,7 @@ in the panel and check-in; on a phone the strip is one line until Answer),
 `OrderReview` (one supplier's order as a plain table of facts: product, on
 hand, on order, order quantity, cost; no reasons, labels, icons or questions
 in rows beyond a quiet chevron; clicking a row opens it as one washed,
-accent-edged surface: one short reason, then quantity, "Why N?" and other
+accent-edged surface: quantity, "Why N?" and other
 retailers as outlined disclosures, each opening its own panel; see "Order review" below and
 `docs/network.md`), `PriorityList`
 (Today's priorities: orders, deadlines, stock, sync problems, one row shape; each
@@ -93,7 +93,7 @@ table has to scan like a plain list.
 | Level | When | Shows |
 |---|---|---|
 | Default table | Always | Product description, on hand, on order, order quantity, cost. Nothing else: no reason, proof, confidence, supplier status, delivery, retailer availability, attention labels, icons, badges or questions. |
-| Row clicked | The buyer opens a line | The row and its detail become one surface across the full table width: a very light blue wash (`--accent-wash`), a 3px accent edge on the left, the product name in bold. Inside: one short reason ("Busier season ahead.") and one line of controls: quantity, "Why 4? ⌄", "3 retailers have some ⌄". No heading: the quantity is already in the table and the control. |
+| Row clicked | The buyer opens a line | The row and its detail become one surface across the full table width: a very light blue wash (`--accent-wash`), a 3px accent edge on the left, the product name in bold. Inside: one line of controls: quantity, "Why 4? ⌄", "3 retailers have some ⌄". No heading and no one-line reason: the quantity is already in the table and the control, and the reasoning is behind "Why 4?". |
 | Why | "Why 4?" | A white panel: the weekly sales chart and one sentence on the left, "Key facts" (sales pace, on hand, supplier stock, delivery, season, confidence) as label and value on a faint tint on the right. Below it, "What we assumed" and "Other options" as two smaller white panels, side by side where there's room. |
 | Other retailers | Separate, collapsed | The signal is an outlined disclosure, bold only when the supplier is out of stock or delayed. Opened, "Other retailers" is its own white panel: name, place, units available, "Request connection". |
 
@@ -125,10 +125,9 @@ controls. On a phone everything stacks in the same order.
 Before anything goes on screen, ask: **does this need to be visible before
 the user asks for more?** If not, it goes one level down.
 
-- **Decision → reason → proof → more.** When a recommendation is shown, it
-  leads with the decision, then one short reason, then (on request) the
-  evidence. On screens built for scanning, even the reason waits for a click
-  (see "Order review").
+- **Decision first, reasons on request.** A recommendation leads with the
+  decision; the reasons and evidence wait until the user asks ("Why 4?").
+  On order lines there is no one-line reason in between (see "Order review").
 - **One reason, one step at a time.** Never several explanations at once.
 - **Facts, not prose.** Prefer short facts ("5 sold last October") to
   sentences. Prose only at the deepest level, and only when needed.

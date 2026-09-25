@@ -34,8 +34,6 @@ export type OrderLineView = {
   quantity: number
   unitCost: number
   state: LineState
-  /** Level 1, visible while scanning: one short reason and one piece of proof. */
-  signal: { reason: string; proof: string }
   /** How well the supplier can fill this line right now. */
   supplier: SupplierCondition
   /** Level 2: the reason in a full plain sentence, shown when the line is opened. */
