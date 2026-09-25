@@ -74,7 +74,7 @@ reorder by dragging a grip that appears on hover/focus, with arrow keys on the
 grip, or from a "⋯" menu (always visible on touch); no rank numbers; "Back to
 suggested order" appears only once the order has changed), `EvidenceChart`
 (weekly sales; single series, per-bar tooltip, screen-reader table),
-`InventoryView` (health cards, ranked brand/category bars that filter the item table, and the item table; see `docs/inventory.md`), `SupplierProfile` (identity + ordered typed sections; program cards show the retailer's Program fit, `4.6 / 5 · Program fit`, beside the closing date, with "Why this fit?" opening the main reasons and the trust statement; see `docs/programs.md`), `SupplierDirectory`
+`InsightsView` (performance cards, a recommendation / approved / demand comparison, patterns and opportunities as outlined lists; a question the data can't answer sits in the soft Harbor blue of "Questions for you"; see `docs/insights.md`), `InventoryView` (health cards, ranked brand/category bars that filter the item table, and the item table; see `docs/inventory.md`), `SupplierProfile` (identity + ordered typed sections; program cards show the retailer's Program fit, `4.6 / 5 · Program fit`, beside the closing date, with "Why this fit?" opening the main reasons and the trust statement; see `docs/programs.md`), `SupplierDirectory`
 (instant name search).
 
 Built later with the features that need them: dialogs with undo.

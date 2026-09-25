@@ -1,0 +1,92 @@
+/* ---------- Page ---------- */
+.head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.title { font-size: var(--fs-title); line-height: var(--lh-title); font-weight: 600; letter-spacing: -0.015em; }
+.controls { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.control {
+  display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px;
+  border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface); font-size: 14px;
+}
+.control select { border: 0; background: transparent; font: inherit; color: var(--ink); padding: 6px 0; cursor: pointer; }
+.control select:focus-visible { box-shadow: none; }
+.control:has(select:focus-visible) { box-shadow: var(--focus-ring); }
+
+/* Three areas, separated by space rather than chrome. */
+.zones { display: flex; flex-direction: column; gap: var(--sp-8); }
+.zone { display: flex; flex-direction: column; gap: var(--sp-4); }
+.zoneTitle { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-4); }
+.panelTitle { font-size: 16px; line-height: 24px; font-weight: 600; }
+
+/* ---------- How recent decisions played out ---------- */
+.decisions { display: flex; flex-direction: column; gap: var(--sp-5); }
+.legend { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; }
+.swRecommended, .swApproved { width: 14px; height: 8px; border-radius: 0 2px 2px 0; }
+.swRecommended { background: var(--ink-3); }
+.swApproved { background: var(--accent); }
+.swDemand { width: 2px; height: 14px; background: var(--ink); }
+
+.decisionGroup { display: flex; flex-direction: column; gap: var(--sp-2); }
+.groupTitle { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 600; color: var(--ink-2); padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+.decisionList { list-style: none; display: flex; flex-direction: column; }
+.decision {
+  display: grid; grid-template-columns: minmax(0, 17rem) minmax(0, 1fr) minmax(0, 20rem); gap: var(--sp-2) var(--sp-5);
+  align-items: center; padding: var(--sp-3) 0; border-bottom: 1px solid var(--line);
+}
+.decision:last-child { border-bottom: 0; }
+.decisionItem { font-weight: 600; }
+.decisionNumbers { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.decisionNumbers b { font-weight: 600; color: var(--ink); }
+.decisionNumbers span, .decisionNumbers b { white-space: nowrap; }
+.decisionNote { font-size: 14px; line-height: 20px; color: var(--ink-2); }
+/* Room on the right for the numbers at the bar ends. */
+.decisionPlot { padding: 6px var(--sp-3) 6px 0; }
+.track { position: relative; display: flex; flex-direction: column; gap: 4px; }
+.barLine { display: flex; align-items: center; gap: 6px; height: 10px; }
+.recommended, .approved { flex: none; height: 10px; border-radius: 0 3px 3px 0; }
+.recommended { background: var(--ink-3); }
+.approved { background: var(--accent); }
+/* Demand: a dark mark across both bars. */
+.demand { position: absolute; top: -6px; bottom: -6px; width: 2px; margin-left: -1px; background: var(--ink); }
+
+/* ---------- Patterns and opportunities: one outlined list each, hairline rows ---------- */
+.rows { list-style: none; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 0 var(--sp-5); }
+.row { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4); padding: var(--sp-4) 0; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.rowMain { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.rowTitle { font-weight: 600; }
+.rowFacts { font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.fit { font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.fit b { color: var(--ink); font-weight: 600; }
+.action { flex: none; display: inline-flex; align-items: center; gap: 2px; font-size: 14px; color: var(--accent); text-decoration: none; padding-top: 2px; white-space: nowrap; }
+.action:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* A question the data can't answer: the soft Harbor blue of "Questions for you". */
+.question {
+  margin-top: var(--sp-2); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-4);
+  background: var(--accent-soft); border-radius: var(--r-md); padding: var(--sp-3) var(--sp-4);
+}
+.questionTitle { font-weight: 600; }
+.questionLead { font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.questionActions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-4); }
+.questionPrimary {
+  min-height: 34px; padding: 5px 14px; border: 1px solid var(--accent-muted); border-radius: var(--r-md);
+  background: var(--surface); color: var(--accent); font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.questionPrimary:hover { border-color: var(--accent); }
+.questionQuiet { border: 0; background: none; padding: 4px 0; font-size: 14px; color: var(--ink-2); cursor: pointer; }
+.questionQuiet:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 900px) {
+  .decision { grid-template-columns: minmax(0, 13rem) minmax(0, 1fr); }
+  .decisionNote { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .zones { gap: var(--sp-7); }
+  .panel { padding: var(--sp-4); }
+  .decision { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .rows { padding: 0 var(--sp-4); }
+  .row { flex-direction: column; gap: var(--sp-2); }
+}

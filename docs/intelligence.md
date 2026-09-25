@@ -26,7 +26,8 @@ The Business profile's "What we know about your business" shows
 ## Questions
 
 - **One question, many places.** A question shown in the panel, during an
-  order review or in the weekly check-in is the same `intelligence_question`
+  order review, on Insights (when an outcome can't be explained by the data;
+  see `insights.md`) or in the weekly check-in is the same `intelligence_question`
   row. Answering it anywhere resolves it everywhere (`answer_intelligence_question`),
   so it isn't asked again.
 - **Rare and earned.** A question exists only if the answer could change a
