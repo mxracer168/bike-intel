@@ -31,14 +31,22 @@
 
 /* ---------- Business instructions: the retailer's own long-form guidance ---------- */
 .sections { display: flex; flex-direction: column; gap: var(--sp-7); }
-.instructionsHead { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4); }
 .editButton, .quietButton {
-  flex: none; border: 0; background: none; padding: 4px 0; font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer;
+  flex: none; border: 0; background: none; padding: 4px 0; min-height: 32px; font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer;
 }
 .quietButton { color: var(--ink-2); font-weight: 500; }
 .editButton:hover, .quietButton:hover { text-decoration: underline; text-underline-offset: 3px; }
 .instructionsBody { display: flex; flex-direction: column; gap: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--line); }
 .updated { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+.instructionsFoot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-5); }
+/* About six lines of body text; a soft fade says there's more. */
+.collapsed { max-height: 11.5rem; overflow: hidden; }
+.faded { mask-image: linear-gradient(to bottom, black 65%, transparent); -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent); }
+.readMore {
+  align-self: flex-start; border: 0; background: none; padding: 4px 0; min-height: 32px;
+  font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer;
+}
+.readMore:hover { text-decoration: underline; text-underline-offset: 3px; }
 .instructionsEmpty {
   display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-3);
   padding-top: var(--sp-3); border-top: 1px solid var(--line); font-size: 15px; color: var(--ink-2);
@@ -52,7 +60,7 @@
 .saveButton:disabled { color: var(--ink-3); cursor: default; }
 
 /* Reading measure, document typography: the retailer's words, not a form. */
-.prose { max-width: 72ch; font-size: 16px; line-height: 26px; color: var(--ink); }
+.prose { font-size: 16px; line-height: 26px; color: var(--ink); }
 .prose > * + *, .prose :global(.ProseMirror) > * + * { margin-top: var(--sp-3); }
 .prose h3 { font-size: 17px; line-height: 24px; font-weight: 600; margin-top: var(--sp-5); }
 .prose h4 { font-size: 16px; line-height: 24px; font-weight: 600; margin-top: var(--sp-4); }
@@ -68,7 +76,7 @@
 
 .instructionsForm { display: flex; flex-direction: column; gap: var(--sp-3); }
 .editorFrame {
-  border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface); max-width: 72ch;
+  border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface);
 }
 .editorFrame:focus-within { border-color: var(--accent); box-shadow: var(--focus-ring); }
 .toolbar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--line); }
@@ -81,9 +89,10 @@
 .toolText { font-size: 13px; font-weight: 600; }
 .toolGlyph { font-size: 15px; font-weight: 600; font-family: var(--font); }
 .editorSurface:focus-visible { box-shadow: none; }
-.editorSurface { min-height: 220px; max-height: 60vh; overflow-y: auto; padding: var(--sp-4); outline: none; }
+.editorSurface { min-height: 320px; max-height: 70vh; overflow-y: auto; padding: var(--sp-4) var(--sp-5); outline: none; }
+@media (max-width: 640px) { .editorSurface { min-height: 260px; padding: var(--sp-3) var(--sp-4); } }
 .editorSurface :global(p.is-editor-empty:first-child::before) {
   content: attr(data-placeholder); float: left; height: 0; color: var(--ink-3); pointer-events: none;
 }
 .editorButtons { display: flex; align-items: center; gap: var(--sp-4); }
-.saveError { font-size: 14px; color: var(--risk); max-width: 72ch; }
+.saveError { font-size: 14px; color: var(--risk); }

@@ -2,7 +2,7 @@
 
 import { Placeholder } from '@tiptap/extensions'
 import { EditorContent, useEditor, useEditorState, type Editor } from '@tiptap/react'
-import { useMemo, useState, useTransition } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, useTransition } from 'react'
 import { EMPTY_DOC, type InstructionsDoc } from '@/domain/instructions/document'
 import { instructionExtensions } from '@/domain/instructions/extensions'
 import type { BusinessInstructions as Instructions } from '@/domain/instructions/read'
@@ -99,6 +99,41 @@ function InstructionsEditor({ initial, basedOn, onDone }: { initial: Instruction
 }
 
 /**
+ * The saved document, collapsed to a short preview. Read more appears only
+ * when the document is taller than the preview.
+ */
+function InstructionsPreview({ doc }: { doc: InstructionsDoc }) {
+  const [expanded, setExpanded] = useState(false)
+  const [overflows, setOverflows] = useState(false)
+  const box = useRef<HTMLDivElement>(null)
+  const id = useId()
+
+  useEffect(() => {
+    const el = box.current
+    if (!el) return
+    // Measured while collapsed; +1 absorbs sub-pixel rounding.
+    const measure = () => { if (!expanded) setOverflows(el.scrollHeight > el.clientHeight + 1) }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [expanded, doc])
+
+  return (
+    <>
+      <div ref={box} id={id} className={[styles.prose, !expanded && styles.collapsed, !expanded && overflows && styles.faded].filter(Boolean).join(' ')}>
+        <InstructionsContent doc={doc} />
+      </div>
+      {(overflows || expanded) && (
+        <button type="button" className={styles.readMore} aria-expanded={expanded} aria-controls={id} onClick={() => setExpanded((e) => !e)}>
+          {expanded ? 'Show less' : 'Read more'}
+        </button>
+      )}
+    </>
+  )
+}
+
+/**
  * Business instructions: one long-form document of the retailer's own
  * guidance, the most authoritative thing we know about the business. Owners
  * and admins edit it; everyone else reads it. Every save is a new version.
@@ -110,17 +145,13 @@ export function BusinessInstructions({ instructions, canEdit }: { instructions: 
 
   return (
     <section className={styles.group} aria-labelledby="business-instructions">
-      <div className={styles.instructionsHead}>
-        <div className={styles.knowHead}>
-          <h2 id="business-instructions" className={styles.knowTitle}>Business instructions</h2>
-          <p className={styles.small}>Guidance about your business that we always consider when making recommendations.</p>
-        </div>
-        {canEdit && !editing && !empty && (
-          <button type="button" className={styles.editButton} onClick={() => setEditing(true)}>Edit</button>
-        )}
+      <div className={styles.knowHead}>
+        <h2 id="business-instructions" className={styles.knowTitle}>Business instructions</h2>
+        <p className={styles.small}>Guidance about your business that we always consider when making recommendations.</p>
       </div>
 
       {editing ? (
+        // Always the full document, whatever the preview showed.
         <InstructionsEditor initial={instructions.content ?? EMPTY_DOC} basedOn={instructions.version} onDone={() => setEditing(false)} />
       ) : empty ? (
         <div className={styles.instructionsEmpty}>
@@ -133,8 +164,13 @@ export function BusinessInstructions({ instructions, canEdit }: { instructions: 
         </div>
       ) : (
         <div className={styles.instructionsBody}>
-          <div className={styles.prose}><InstructionsContent doc={instructions.content!} /></div>
-          {instructions.updatedAt && <p className={styles.updated}>Updated {updated(instructions.updatedAt)}</p>}
+          <InstructionsPreview doc={instructions.content!} />
+          {(instructions.updatedAt || canEdit) && (
+            <div className={styles.instructionsFoot}>
+              {instructions.updatedAt && <p className={styles.updated}>Updated {updated(instructions.updatedAt)}</p>}
+              {canEdit && <button type="button" className={styles.editButton} onClick={() => setEditing(true)}>Edit</button>}
+            </div>
+          )}
         </div>
       )}
     </section>
