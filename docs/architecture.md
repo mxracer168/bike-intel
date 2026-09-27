@@ -109,7 +109,7 @@ email + password and email confirmation.
 - **Example data** lives in `src/demo/`, gated by `DEMO_PREVIEW` (default on
   only under `next dev`), always visibly marked, never written to the database.
 
-## Tables (37)
+## Tables (38)
 
 Visibility key: **G** global/shared · **R** retailer-private ·
 **Rel** relationship-specific (retailer side only in V1) · **O** owner-scoped
@@ -147,7 +147,8 @@ Visibility key: **G** global/shared · **R** retailer-private ·
 | | `program_rule` | follows program | Tiers, thresholds, benefits, original wording |
 | | `program_eligibility` | follows program | What qualifies (or unresolved source lines) |
 | | `program_link` | R | Private program → official program; never merged |
-| Context | `context_item` | R | Scoped (incl. category/product), evergreen/seasonal/temporary, stated/inferred beliefs, review date, source message/document |
+| Context | `business_rule` | R | The retailer's explicit decisions; organization-wide; active → stopped; written only by a signed-in owner/admin (enforced by trigger); history in `change_log` |
+| | `context_item` | R | Scoped (incl. category/product), evergreen/seasonal/temporary, stated/inferred beliefs, review date, source message/document |
 | Intelligence | `intelligence_message` | R | The retailer's one ongoing conversation; append-only |
 | | `intelligence_question` | R | Questions worth asking, with lifecycle; answered once wherever shown |
 | Decisions | `recommendation` | R | Immutable output; status open / acted_on / dismissed / expired / unaddressed; `actionable_until` |

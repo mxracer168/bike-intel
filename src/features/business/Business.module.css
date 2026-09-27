@@ -28,3 +28,52 @@
   .grid, .locations { grid-template-columns: minmax(0, 1fr); }
   .facts div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
 }
+
+/* ---------- Business rules: what the retailer has decided ---------- */
+.rules { list-style: none; display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+.rule {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4);
+  padding: var(--sp-3) 0; border-bottom: 1px solid var(--line);
+}
+.ruleText { font-size: 16px; line-height: 24px; font-weight: 500; color: var(--ink); min-width: 0; overflow-wrap: anywhere; }
+.ruleActions { display: flex; gap: var(--sp-3); flex: none; }
+/* Quiet until the row is in use, on devices that can hover. */
+@media (hover: hover) {
+  .ruleActions { opacity: 0; transition: opacity var(--t-fast) var(--ease); }
+  .rule:hover .ruleActions, .rule:focus-within .ruleActions { opacity: 1; }
+}
+.ruleQuiet {
+  border: 0; background: none; padding: 2px 0; font-size: 14px; font-weight: 500; color: var(--ink-2); cursor: pointer;
+}
+.ruleQuiet:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.ruleQuiet:disabled { cursor: default; opacity: .6; }
+.ruleAdd {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; margin-top: var(--sp-1);
+  border: 0; background: none; padding: 4px 0; font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer;
+}
+.ruleAdd:hover { text-decoration: underline; text-underline-offset: 3px; }
+.rulesEmpty { font-size: 15px; color: var(--ink-2); padding: var(--sp-3) 0; border-top: 1px solid var(--line); }
+.ruleAddOpen { padding-top: var(--sp-2); }
+
+.ruleEditor { flex: 1; display: flex; flex-direction: column; gap: var(--sp-2); }
+.ruleInput {
+  width: 100%; resize: vertical; min-height: 64px; padding: 10px 12px; border: 1px solid var(--line-strong);
+  border-radius: var(--r-md); background: var(--surface); font: inherit; font-size: 16px; line-height: 24px; color: var(--ink);
+}
+.ruleInput:focus-visible { border-color: var(--accent); }
+.ruleButtons { display: flex; align-items: center; gap: var(--sp-4); }
+.ruleSave {
+  min-height: 36px; padding: 6px 16px; border: 1px solid var(--line-strong); border-radius: var(--r-md);
+  background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.ruleSave:hover { background: var(--subtle); }
+.ruleSave:disabled { color: var(--ink-3); background: var(--surface); cursor: default; }
+.ruleError { font-size: 14px; color: var(--risk); }
+.ruleStatus { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-3); font-size: 14px; color: var(--ink-2); }
+.ruleUndo { border: 0; background: none; padding: 0; font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer; }
+.ruleUndo:hover { text-decoration: underline; text-underline-offset: 3px; }
+.sections { display: flex; flex-direction: column; gap: var(--sp-7); }
+@media (max-width: 640px) {
+  .rule { flex-direction: column; align-items: stretch; gap: 2px; }
+  .ruleActions { opacity: 1 !important; gap: var(--sp-4); }
+}

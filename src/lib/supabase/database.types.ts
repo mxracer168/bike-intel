@@ -30,6 +30,29 @@ export type Database = {
         }
         Relationships: []
       }
+      business_rule: {
+        Row: {
+          id: string
+          organization_id: string
+          statement: string
+          status: string
+          created_by: string
+          created_at: string
+          updated_by: string
+          updated_at: string
+          stopped_by: string | null
+          stopped_at: string | null
+        }
+        Insert: {
+          organization_id: string
+          statement: string
+        }
+        Update: {
+          statement?: string
+          status?: string
+        }
+        Relationships: []
+      }
       category: {
         Row: {
           id: string

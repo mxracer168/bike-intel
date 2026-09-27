@@ -830,6 +830,139 @@ select t.expect_count($$select * from public.document where id = 'd1000000-0000-
 select t.expect_count('select * from public.intelligence_question', 1, 'B sees only its own question');
 
 -- ===========================================================================
+-- 9d. Business rules: owner/admin authority, history, no system writes
+-- ===========================================================================
+:as_server
+insert into auth.users (id, email) values
+  ('00000000-0000-0000-0000-0000000000a2', 'a-member@example.com'),
+  ('00000000-0000-0000-0000-0000000000a3', 'a-admin@example.com');
+insert into public.membership (organization_id, user_id, role) values
+  ('10000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a2', 'member'),
+  ('10000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a3', 'admin');
+\set as_a_member 'set role authenticated; select set_config(''request.jwt.claims'', ''{"sub":"00000000-0000-0000-0000-0000000000a2"}'', false) \\g /dev/null'
+\set as_a_admin 'set role authenticated; select set_config(''request.jwt.claims'', ''{"sub":"00000000-0000-0000-0000-0000000000a3"}'', false) \\g /dev/null'
+
+-- An owner adds rules; the database records who.
+:as_a
+select t.expect_affected($$insert into public.business_rule (organization_id, statement)
+                           values ('10000000-0000-0000-0000-0000000000a1', 'We do not sell road bikes.')$$,
+                         1, 'owner can add a business rule');
+select t.expect_affected($$insert into public.business_rule (organization_id, statement)
+                           values ('10000000-0000-0000-0000-0000000000a1', 'We only place distributor orders twice a month.')$$,
+                         1, 'owner can add a second rule');
+select t.expect_count($$select * from public.business_rule where status = 'active'$$, 2, 'rules persist');
+select t.expect_equal((select created_by::text from public.business_rule where statement = 'We do not sell road bikes.'),
+                      '00000000-0000-0000-0000-0000000000a1', 'the author is the signed-in owner');
+select t.expect_error($$insert into public.business_rule (organization_id, statement, created_by)
+                        values ('10000000-0000-0000-0000-0000000000a1', 'x', '00000000-0000-0000-0000-0000000000b1')$$,
+                      'the author cannot be supplied by the caller');
+select t.expect_error($$insert into public.business_rule (organization_id, statement) values ('10000000-0000-0000-0000-0000000000a1', '   ')$$,
+                      'an empty rule is rejected');
+select t.expect_error($$insert into public.business_rule (organization_id, statement)
+                        values ('10000000-0000-0000-0000-0000000000b1', 'We sell only tandems.')$$,
+                      'A cannot add a rule for B');
+
+-- Editing keeps the previous wording, who changed it and when.
+select t.expect_affected($$update public.business_rule set statement = 'We do not sell road or gravel bikes.'
+                           where statement = 'We do not sell road bikes.'$$, 1, 'owner can edit a rule');
+select t.expect_count($$select * from public.change_log
+                        where table_name = 'business_rule' and action = 'update'
+                          and changes -> 'statement' ->> 'old' = 'We do not sell road bikes.'
+                          and changes -> 'statement' ->> 'new' = 'We do not sell road or gravel bikes.'
+                          and actor_user_id = '00000000-0000-0000-0000-0000000000a1'
+                          and actor_type = 'user'$$, 1, 'an edit is audited with the previous wording and the editor');
+select t.expect_error($$update public.business_rule set organization_id = '10000000-0000-0000-0000-0000000000b1'$$,
+                      'a rule cannot be moved to another organization');
+select t.expect_error($$update public.business_rule set created_by = '00000000-0000-0000-0000-0000000000b1'$$,
+                      'the author cannot be rewritten');
+
+-- Stopping keeps the row; a stopped rule is final.
+select t.expect_affected($$update public.business_rule set status = 'stopped'
+                           where statement = 'We only place distributor orders twice a month.'$$, 1, 'owner can stop a rule');
+select t.expect_equal((select stopped_by::text || ' ' || (stopped_at is not null)::text from public.business_rule
+                        where statement = 'We only place distributor orders twice a month.'),
+                      '00000000-0000-0000-0000-0000000000a1 true', 'stopping records who and when');
+select t.expect_count($$select * from public.business_rule$$, 2, 'a stopped rule is kept');
+select t.expect_error($$update public.business_rule set statement = 'Changed after stopping'
+                        where status = 'stopped'$$, 'a stopped rule cannot be edited');
+select t.expect_error($$update public.business_rule set status = 'active' where status = 'stopped'$$,
+                      'a stopped rule cannot be quietly restarted');
+select t.expect_error($$delete from public.business_rule$$, 'users cannot delete rules');
+select t.expect_count($$select * from public.change_log where table_name = 'business_rule' and action = 'update'
+                          and changes -> 'status' ->> 'new' = 'stopped'$$, 1, 'stopping is audited');
+
+-- A member reads the rules but cannot change them.
+:as_a_member
+select t.expect_count($$select * from public.business_rule$$, 2, 'a member can read the rules');
+select t.expect_error($$insert into public.business_rule (organization_id, statement)
+                        values ('10000000-0000-0000-0000-0000000000a1', 'Members make rules too.')$$,
+                      'a member cannot add a rule');
+select t.expect_affected($$update public.business_rule set statement = 'Edited by a member'$$, 0, 'a member cannot edit a rule');
+select t.expect_affected($$update public.business_rule set status = 'stopped'$$, 0, 'a member cannot stop a rule');
+
+-- An admin has the same authority as an owner, and is recorded as themselves.
+:as_a_admin
+select t.expect_affected($$insert into public.business_rule (organization_id, statement)
+                           values ('10000000-0000-0000-0000-0000000000a1', 'HLC is our preferred distributor when pricing is close.')$$,
+                         1, 'an admin can add a rule');
+select t.expect_affected($$update public.business_rule set statement = 'HLC is our preferred distributor when pricing is reasonably close.'
+                           where statement = 'HLC is our preferred distributor when pricing is close.'$$, 1, 'an admin can edit a rule');
+select t.expect_equal((select created_by::text || ' ' || updated_by::text from public.business_rule where statement like 'HLC%'),
+                      '00000000-0000-0000-0000-0000000000a3 00000000-0000-0000-0000-0000000000a3', 'the admin is recorded as the author');
+
+-- Retailer B: no reading, no tampering by id.
+:as_server
+select id as rule_a from public.business_rule where statement = 'We do not sell road or gravel bikes.' \gset
+:as_b
+select t.expect_count($$select * from public.business_rule$$, 0, 'B cannot see A''s rules');
+select t.expect_affected(format('update public.business_rule set statement = %L where id = %L', 'Hacked', :'rule_a'),
+                         0, 'B cannot edit A''s rule by id');
+select t.expect_affected(format('update public.business_rule set status = %L where id = %L', 'stopped', :'rule_a'),
+                         0, 'B cannot stop A''s rule by id');
+select t.expect_error(format('delete from public.business_rule where id = %L', :'rule_a'), 'B cannot delete A''s rule by id');
+
+-- Automated writers: no user session means no authority, even when RLS is bypassed.
+:as_service
+select t.expect_error($$insert into public.business_rule (organization_id, statement, created_by, updated_by)
+                        values ('10000000-0000-0000-0000-0000000000a1', 'Inferred: stock road bikes.',
+                                '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')$$,
+                      'the service role cannot create a rule');
+select t.expect_error(format('update public.business_rule set statement = %L where id = %L', 'AI rewrite', :'rule_a'),
+                      'the service role cannot edit a rule');
+select t.expect_error(format('delete from public.business_rule where id = %L', :'rule_a'),
+                      'the service role cannot delete a rule');
+-- Claiming to be the owner doesn't help: the request still isn't the owner's session.
+set role service_role;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1"}', false) \g /dev/null
+select t.expect_error($$insert into public.business_rule (organization_id, statement, created_by, updated_by)
+                        values ('10000000-0000-0000-0000-0000000000a1', 'Masquerade.',
+                                '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')$$,
+                      'a service process cannot masquerade as the owner to create a rule');
+select t.expect_error(format('update public.business_rule set status = %L where id = %L', 'stopped', :'rule_a'),
+                      'a service process cannot masquerade as the owner to stop a rule');
+:as_server
+select t.expect_error($$insert into public.business_rule (organization_id, statement, created_by, updated_by)
+                        values ('10000000-0000-0000-0000-0000000000a1', 'Background job rule.',
+                                '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')$$,
+                      'server-side jobs cannot create a rule');
+select t.expect_error(format('update public.business_rule set statement = %L where id = %L', 'Job rewrite', :'rule_a'),
+                      'server-side jobs cannot edit a rule');
+select t.expect_error(format('delete from public.business_rule where id = %L', :'rule_a'),
+                      'server-side jobs cannot delete a single rule');
+select t.expect_error('truncate public.business_rule', 'server-side jobs cannot truncate rules');
+:as_service
+select t.expect_error('truncate public.business_rule', 'the service role cannot truncate rules');
+:as_a
+select t.expect_error('truncate public.business_rule', 'users cannot truncate rules');
+:as_server
+select t.expect_count($$select * from public.change_log where table_name = 'business_rule'
+                          and (actor_type <> 'user' or actor_user_id not in ('00000000-0000-0000-0000-0000000000a1',
+                                                                             '00000000-0000-0000-0000-0000000000a3'))$$,
+                      0, 'every recorded rule change was made by an owner or admin');
+select t.expect_equal((select statement from public.business_rule where id = :'rule_a'),
+                      'We do not sell road or gravel bikes.', 'the rule is unchanged by every refused attempt');
+
+-- ===========================================================================
 -- 10. Server-side integrity
 -- ===========================================================================
 :as_server
@@ -861,6 +994,8 @@ select t.expect_error($$set constraints all immediate; delete from public.locati
 delete from public.organization where id = '10000000-0000-0000-0000-0000000000a1';
 select t.expect_count($$select * from public.purchase_order where organization_id = '10000000-0000-0000-0000-0000000000a1'$$,
                       0, 'retailer deletion cascades through orders');
+select t.expect_count($$select * from public.business_rule where organization_id = '10000000-0000-0000-0000-0000000000a1'$$,
+                      0, 'retailer deletion removes its business rules');
 select t.expect_count($$select * from public.product where origin_organization_id = '10000000-0000-0000-0000-0000000000a1'$$,
                       0, 'retailer deletion removes its private provisional products');
 select t.expect_count($$select * from public.program where id = 'a0000000-0000-0000-0000-000000000001'$$,

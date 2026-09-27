@@ -18,10 +18,13 @@ conversation, not a new one.
 | `intelligence_message` | The conversation as it happened: what the retailer told or asked, written answers, attachments, check-in markers, and (later) the assistant's replies. Append-only; never rewritten. | The memory. Nothing reads it as fact without interpretation. |
 | `intelligence_question` | What we want to learn: prompt, quick-answer choices, why we're asking, priority, scope and lifecycle (`open` → `answered` / `deferred` / `withdrawn`). A quick answer is stored here (`answer_choice`) and is not a message. | Conversation. |
 | `context_item` | What we have learned, structured: the statement, scope (organization, location, supplier relationship, category, product, program, order), lifespan (evergreen, seasonal, temporary), stated or inferred, confidence, review or expiry date, who provided it, and the source message or file. | Written today. It is filled only by real interpretation, later. |
+| `business_rule` | The retailer's explicit decisions ("We do not sell road bikes"), highest authority, organization-wide, created and changed only by an owner or admin in person. See `business-rules.md`. | Context. The assistant never writes one; it may only suggest one for the retailer to confirm (future). |
 | `document` | Original files (PDF, image, spreadsheet, text), kept as uploaded, with uploader and time. | Interpreted. The conversation says so. |
 
-The Business profile's "What we know about your business" shows
-`context_item`, never raw conversation.
+The Business profile shows **Business rules** first, then "What we know
+about your business" (`context_item`, never raw conversation). Rules outrank
+context, context outranks inference, and none of them is silently overridden
+by operating data (see `business-rules.md`).
 
 ## Questions
 

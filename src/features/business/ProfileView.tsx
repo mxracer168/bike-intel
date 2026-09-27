@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react'
 import type { ContextEntry } from '@/domain/context/list'
 import type { OrganizationDetails } from '@/domain/organization/details'
+import type { BusinessRule } from '@/domain/rules/list'
 import { OpenConversationLink } from '@/features/intelligence/OpenConversationLink'
+import { BusinessRules } from './BusinessRules'
 import { countryName, industryLabel } from './labels'
 import styles from './Business.module.css'
 
@@ -53,8 +55,15 @@ function Knowledge({ entries }: { entries: ContextEntry[] }) {
   )
 }
 
-/** Everything we hold about the retailer, facts they gave us kept apart from what we inferred. */
-export function ProfileView({ org, context }: { org: OrganizationDetails; context: ContextEntry[] }) {
+/**
+ * Everything we hold about the retailer: their details, the rules they've
+ * decided (highest authority), then what we know, with what they told us kept
+ * apart from what we inferred. `rules` is null before the business-rules
+ * migration is applied.
+ */
+export function ProfileView({ org, context, rules, canManageRules }: {
+  org: OrganizationDetails; context: ContextEntry[]; rules: BusinessRule[] | null; canManageRules: boolean
+}) {
   const billing = [org.billing.line1, org.billing.line2, [org.billing.city, org.billing.region, org.billing.postalCode].filter(Boolean).join(', '), countryName(org.billing.country)].filter(Boolean)
 
   return (
@@ -80,20 +89,25 @@ export function ProfileView({ org, context }: { org: OrganizationDetails; contex
         </section>
       </div>
 
-      <section className={styles.group} aria-labelledby="what-we-know">
-        <div className={styles.knowHead}>
-          <h2 id="what-we-know" className={styles.knowTitle}>What we know about your business</h2>
-        </div>
-        {context.length === 0 ? (
-          <p className={styles.small}>
-            Nothing yet. What you tell us in the conversation will show up here once we’ve understood it.{' '}
-            <OpenConversationLink />
-          </p>
-        ) : (
-          // What you told us first, then what we've inferred; ongoing before temporary.
-          <Knowledge entries={[...context].sort(knowledgeOrder)} />
-        )}
-      </section>
+      <div className={styles.sections}>
+        {rules && <BusinessRules rules={rules} canManage={canManageRules} />}
+
+        <section className={styles.group} aria-labelledby="what-we-know">
+          <div className={styles.knowHead}>
+            <h2 id="what-we-know" className={styles.knowTitle}>What we know about your business</h2>
+            <p className={styles.small}>What you’ve told us and what we’ve noticed. It shapes recommendations, but never overrides your rules.</p>
+          </div>
+          {context.length === 0 ? (
+            <p className={styles.small}>
+              Nothing yet. What you tell us in the conversation will show up here once we’ve understood it.{' '}
+              <OpenConversationLink />
+            </p>
+          ) : (
+            // What you told us first, then what we've inferred; ongoing before temporary.
+            <Knowledge entries={[...context].sort(knowledgeOrder)} />
+          )}
+        </section>
+      </div>
     </>
   )
 }
