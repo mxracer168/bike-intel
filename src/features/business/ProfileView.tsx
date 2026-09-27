@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 import type { ContextEntry } from '@/domain/context/list'
 import type { OrganizationDetails } from '@/domain/organization/details'
-import type { BusinessRule } from '@/domain/rules/list'
+import type { BusinessInstructions as Instructions } from '@/domain/instructions/read'
 import { OpenConversationLink } from '@/features/intelligence/OpenConversationLink'
-import { BusinessRules } from './BusinessRules'
+import { BusinessInstructions } from './BusinessInstructions'
 import { countryName, industryLabel } from './labels'
 import styles from './Business.module.css'
 
@@ -56,13 +56,13 @@ function Knowledge({ entries }: { entries: ContextEntry[] }) {
 }
 
 /**
- * Everything we hold about the retailer: their details, the rules they've
- * decided (highest authority), then what we know, with what they told us kept
- * apart from what we inferred. `rules` is null before the business-rules
- * migration is applied.
+ * Everything we hold about the retailer: their details, their business
+ * instructions (highest authority), then what we know, with what they told us
+ * kept apart from what we inferred. `instructions` is null before the
+ * business-instructions migration is applied.
  */
-export function ProfileView({ org, context, rules, canManageRules }: {
-  org: OrganizationDetails; context: ContextEntry[]; rules: BusinessRule[] | null; canManageRules: boolean
+export function ProfileView({ org, context, instructions, canEditInstructions }: {
+  org: OrganizationDetails; context: ContextEntry[]; instructions: Instructions | null; canEditInstructions: boolean
 }) {
   const billing = [org.billing.line1, org.billing.line2, [org.billing.city, org.billing.region, org.billing.postalCode].filter(Boolean).join(', '), countryName(org.billing.country)].filter(Boolean)
 
@@ -90,12 +90,12 @@ export function ProfileView({ org, context, rules, canManageRules }: {
       </div>
 
       <div className={styles.sections}>
-        {rules && <BusinessRules rules={rules} canManage={canManageRules} />}
+        {instructions && <BusinessInstructions instructions={instructions} canEdit={canEditInstructions} />}
 
         <section className={styles.group} aria-labelledby="what-we-know">
           <div className={styles.knowHead}>
             <h2 id="what-we-know" className={styles.knowTitle}>What we know about your business</h2>
-            <p className={styles.small}>What you’ve told us and what we’ve noticed. It shapes recommendations, but never overrides your rules.</p>
+            <p className={styles.small}>What you’ve told us and what we’ve noticed. It shapes recommendations, but never overrides your instructions.</p>
           </div>
           {context.length === 0 ? (
             <p className={styles.small}>

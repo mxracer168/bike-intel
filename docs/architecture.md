@@ -109,7 +109,7 @@ email + password and email confirmation.
 - **Example data** lives in `src/demo/`, gated by `DEMO_PREVIEW` (default on
   only under `next dev`), always visibly marked, never written to the database.
 
-## Tables (38)
+## Tables (39)
 
 Visibility key: **G** global/shared · **R** retailer-private ·
 **Rel** relationship-specific (retailer side only in V1) · **O** owner-scoped
@@ -147,7 +147,8 @@ Visibility key: **G** global/shared · **R** retailer-private ·
 | | `program_rule` | follows program | Tiers, thresholds, benefits, original wording |
 | | `program_eligibility` | follows program | What qualifies (or unresolved source lines) |
 | | `program_link` | R | Private program → official program; never merged |
-| Context | `business_rule` | R | The retailer's explicit decisions; organization-wide; active → stopped; written only by a signed-in owner/admin (enforced by trigger); history in `change_log` |
+| Context | `business_instructions_version` | R (history: owners/admins) | The retailer's long-form instructions; append-only versions; version assigned under a per-org lock with a stale-save check; written only by a signed-in owner/admin (enforced by trigger); members read the current version only |
+| | `business_rule` | R | Superseded by business instructions; in the database, unused |
 | | `context_item` | R | Scoped (incl. category/product), evergreen/seasonal/temporary, stated/inferred beliefs, review date, source message/document |
 | Intelligence | `intelligence_message` | R | The retailer's one ongoing conversation; append-only |
 | | `intelligence_question` | R | Questions worth asking, with lifecycle; answered once wherever shown |
@@ -156,7 +157,8 @@ Visibility key: **G** global/shared · **R** retailer-private ·
 | | `purchase_order` | R | draft → approved → submitted, or discarded; POS-origin mirrored |
 | | `purchase_order_line` | R | Recommended / working / approved / submitted values; live validation |
 
-Plus the view `organization_agreement_current` (latest decision per agreement type),
+Plus the views `organization_agreement_current` (latest decision per agreement type) and
+`business_instructions_current` (latest instructions),
 the server-only function `bootstrap_retailer_organization` and
 `answer_intelligence_question` (runs as the user).
 

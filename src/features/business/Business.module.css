@@ -29,51 +29,61 @@
   .facts div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
 }
 
-/* ---------- Business rules: what the retailer has decided ---------- */
-.rules { list-style: none; display: flex; flex-direction: column; border-top: 1px solid var(--line); }
-.rule {
-  display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4);
-  padding: var(--sp-3) 0; border-bottom: 1px solid var(--line);
+/* ---------- Business instructions: the retailer's own long-form guidance ---------- */
+.sections { display: flex; flex-direction: column; gap: var(--sp-7); }
+.instructionsHead { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4); }
+.editButton, .quietButton {
+  flex: none; border: 0; background: none; padding: 4px 0; font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer;
 }
-.ruleText { font-size: 16px; line-height: 24px; font-weight: 500; color: var(--ink); min-width: 0; overflow-wrap: anywhere; }
-.ruleActions { display: flex; gap: var(--sp-3); flex: none; }
-/* Quiet until the row is in use, on devices that can hover. */
-@media (hover: hover) {
-  .ruleActions { opacity: 0; transition: opacity var(--t-fast) var(--ease); }
-  .rule:hover .ruleActions, .rule:focus-within .ruleActions { opacity: 1; }
+.quietButton { color: var(--ink-2); font-weight: 500; }
+.editButton:hover, .quietButton:hover { text-decoration: underline; text-underline-offset: 3px; }
+.instructionsBody { display: flex; flex-direction: column; gap: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--line); }
+.updated { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+.instructionsEmpty {
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-3);
+  padding-top: var(--sp-3); border-top: 1px solid var(--line); font-size: 15px; color: var(--ink-2);
 }
-.ruleQuiet {
-  border: 0; background: none; padding: 2px 0; font-size: 14px; font-weight: 500; color: var(--ink-2); cursor: pointer;
-}
-.ruleQuiet:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
-.ruleQuiet:disabled { cursor: default; opacity: .6; }
-.ruleAdd {
-  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; margin-top: var(--sp-1);
-  border: 0; background: none; padding: 4px 0; font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer;
-}
-.ruleAdd:hover { text-decoration: underline; text-underline-offset: 3px; }
-.rulesEmpty { font-size: 15px; color: var(--ink-2); padding: var(--sp-3) 0; border-top: 1px solid var(--line); }
-.ruleAddOpen { padding-top: var(--sp-2); }
-
-.ruleEditor { flex: 1; display: flex; flex-direction: column; gap: var(--sp-2); }
-.ruleInput {
-  width: 100%; resize: vertical; min-height: 64px; padding: 10px 12px; border: 1px solid var(--line-strong);
-  border-radius: var(--r-md); background: var(--surface); font: inherit; font-size: 16px; line-height: 24px; color: var(--ink);
-}
-.ruleInput:focus-visible { border-color: var(--accent); }
-.ruleButtons { display: flex; align-items: center; gap: var(--sp-4); }
-.ruleSave {
+.instructionsEmpty p { max-width: 64ch; }
+.writeButton, .saveButton {
   min-height: 36px; padding: 6px 16px; border: 1px solid var(--line-strong); border-radius: var(--r-md);
   background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 600; cursor: pointer;
 }
-.ruleSave:hover { background: var(--subtle); }
-.ruleSave:disabled { color: var(--ink-3); background: var(--surface); cursor: default; }
-.ruleError { font-size: 14px; color: var(--risk); }
-.ruleStatus { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-3); font-size: 14px; color: var(--ink-2); }
-.ruleUndo { border: 0; background: none; padding: 0; font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer; }
-.ruleUndo:hover { text-decoration: underline; text-underline-offset: 3px; }
-.sections { display: flex; flex-direction: column; gap: var(--sp-7); }
-@media (max-width: 640px) {
-  .rule { flex-direction: column; align-items: stretch; gap: 2px; }
-  .ruleActions { opacity: 1 !important; gap: var(--sp-4); }
+.writeButton:hover, .saveButton:hover { background: var(--subtle); }
+.saveButton:disabled { color: var(--ink-3); cursor: default; }
+
+/* Reading measure, document typography: the retailer's words, not a form. */
+.prose { max-width: 72ch; font-size: 16px; line-height: 26px; color: var(--ink); }
+.prose > * + *, .prose :global(.ProseMirror) > * + * { margin-top: var(--sp-3); }
+.prose h3 { font-size: 17px; line-height: 24px; font-weight: 600; margin-top: var(--sp-5); }
+.prose h4 { font-size: 16px; line-height: 24px; font-weight: 600; margin-top: var(--sp-4); }
+.prose :global(.ProseMirror) h2 { font-size: 17px; line-height: 24px; font-weight: 600; margin-top: var(--sp-5); }
+.prose :global(.ProseMirror) h3 { font-size: 16px; line-height: 24px; font-weight: 600; margin-top: var(--sp-4); }
+.prose > :first-child, .prose :global(.ProseMirror) > :first-child { margin-top: 0; }
+.prose ul, .prose ol { padding-left: 1.4em; }
+.prose ul { list-style: disc; }
+.prose ol { list-style: decimal; }
+.prose li + li { margin-top: 4px; }
+.prose li > ul, .prose li > ol { margin-top: 4px; }
+.prose strong { font-weight: 600; }
+
+.instructionsForm { display: flex; flex-direction: column; gap: var(--sp-3); }
+.editorFrame {
+  border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface); max-width: 72ch;
 }
+.editorFrame:focus-within { border-color: var(--accent); box-shadow: var(--focus-ring); }
+.toolbar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--line); }
+.tool {
+  min-width: 32px; height: 32px; padding: 0 8px; display: inline-grid; place-items: center; border: 0; border-radius: var(--r-sm);
+  background: none; color: var(--ink-2); cursor: pointer;
+}
+.tool:hover { background: var(--subtle); color: var(--ink); }
+.tool[aria-pressed='true'] { background: var(--accent-soft); color: var(--accent-pressed); }
+.toolText { font-size: 13px; font-weight: 600; }
+.toolGlyph { font-size: 15px; font-weight: 600; font-family: var(--font); }
+.editorSurface:focus-visible { box-shadow: none; }
+.editorSurface { min-height: 220px; max-height: 60vh; overflow-y: auto; padding: var(--sp-4); outline: none; }
+.editorSurface :global(p.is-editor-empty:first-child::before) {
+  content: attr(data-placeholder); float: left; height: 0; color: var(--ink-3); pointer-events: none;
+}
+.editorButtons { display: flex; align-items: center; gap: var(--sp-4); }
+.saveError { font-size: 14px; color: var(--risk); max-width: 72ch; }

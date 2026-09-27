@@ -963,6 +963,103 @@ select t.expect_equal((select statement from public.business_rule where id = :'r
                       'We do not sell road or gravel bikes.', 'the rule is unchanged by every refused attempt');
 
 -- ===========================================================================
+-- 9e. Business instructions: one append-only document, owner/admin authority,
+--     members read the current version only, safe concurrent saves
+-- ===========================================================================
+\set doc1 '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"We do not sell road bikes."}]}]}'
+\set doc2 '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"We do not sell road or gravel bikes."}]}]}'
+\set doc3 '{"type":"doc","content":[{"type":"paragraph"}]}'
+
+-- The owner writes the first version; the database numbers it and records who.
+:as_a
+select t.expect_affected(format($f$insert into public.business_instructions_version (organization_id, based_on_version, content, content_text)
+                                   values ('10000000-0000-0000-0000-0000000000a1', null, %L, 'We do not sell road bikes.')$f$, :'doc1'),
+                         1, 'owner can save the first version');
+select t.expect_equal((select version || ' ' || created_by from public.business_instructions_version),
+                      '1 00000000-0000-0000-0000-0000000000a1', 'the database numbers the version and records the author');
+select t.expect_error(format($f$insert into public.business_instructions_version (organization_id, based_on_version, content, content_text, version)
+                                values ('10000000-0000-0000-0000-0000000000a1', 1, %L, 'x', 7)$f$, :'doc2'),
+                      'the caller cannot choose the version number');
+select t.expect_error(format($f$insert into public.business_instructions_version (organization_id, based_on_version, content, content_text, created_by)
+                                values ('10000000-0000-0000-0000-0000000000a1', 1, %L, 'x', '00000000-0000-0000-0000-0000000000b1')$f$, :'doc2'),
+                      'the caller cannot choose the author');
+
+-- An admin edits from version 1; the edit becomes version 2.
+:as_a_admin
+select t.expect_affected(format($f$insert into public.business_instructions_version (organization_id, based_on_version, content, content_text)
+                                   values ('10000000-0000-0000-0000-0000000000a1', 1, %L, 'We do not sell road or gravel bikes.')$f$, :'doc2'),
+                         1, 'an admin can save a new version');
+select t.expect_equal((select version || ' ' || created_by from public.business_instructions_current),
+                      '2 00000000-0000-0000-0000-0000000000a3', 'the current version is the admin''s edit');
+
+-- The owner saves from a stale copy (version 1): refused, nothing overwritten.
+:as_a
+select t.expect_error(format($f$insert into public.business_instructions_version (organization_id, based_on_version, content, content_text)
+                                values ('10000000-0000-0000-0000-0000000000a1', 1, %L, 'Stale edit')$f$, :'doc1'),
+                      'a save based on an old version is refused');
+select t.expect_error(format($f$insert into public.business_instructions_version (organization_id, based_on_version, content, content_text)
+                                values ('10000000-0000-0000-0000-0000000000a1', null, %L, 'Pretend first')$f$, :'doc1'),
+                      'a save claiming to be the first version is refused once one exists');
+select t.expect_count('select * from public.business_instructions_version', 2, 'owner reads every version');
+
+-- Clearing saves an empty version; history stays.
+select t.expect_affected(format($f$insert into public.business_instructions_version (organization_id, based_on_version, content, content_text)
+                                   values ('10000000-0000-0000-0000-0000000000a1', 2, %L, '')$f$, :'doc3'),
+                         1, 'clearing the instructions saves an empty version');
+select t.expect_equal((select version || ':' || content_text from public.business_instructions_current), '3:', 'the current version is empty');
+select t.expect_count('select * from public.business_instructions_version', 3, 'earlier versions are kept');
+
+-- Append-only, for everyone.
+select t.expect_error($$update public.business_instructions_version set content_text = 'rewritten'$$, 'owner cannot edit a saved version');
+select t.expect_error($$delete from public.business_instructions_version$$, 'owner cannot delete versions');
+select t.expect_error('truncate public.business_instructions_version', 'owner cannot truncate versions');
+select t.expect_error(format($f$insert into public.business_instructions_version (organization_id, based_on_version, content, content_text)
+                                values ('10000000-0000-0000-0000-0000000000a1', 3, %L, 'x')$f$, '{"type":"paragraph"}'),
+                      'content must be a document');
+
+-- A member reads the current version only.
+:as_a_member
+select t.expect_count('select * from public.business_instructions_version', 1, 'a member sees one version');
+select t.expect_equal((select version::text from public.business_instructions_version), '3', 'a member sees only the current version');
+select t.expect_count($$select * from public.business_instructions_version where content_text like '%road%'$$, 0,
+                      'a member cannot read removed wording');
+select t.expect_count('select * from public.business_instructions_current', 1, 'a member reads the current document');
+select t.expect_error(format($f$insert into public.business_instructions_version (organization_id, based_on_version, content, content_text)
+                                values ('10000000-0000-0000-0000-0000000000a1', 3, %L, 'Member edit')$f$, :'doc1'),
+                      'a member cannot save a version');
+
+-- Retailer B: nothing visible, nothing writable.
+:as_b
+select t.expect_count('select * from public.business_instructions_version', 0, 'B cannot see A''s instructions');
+select t.expect_count('select * from public.business_instructions_current', 0, 'B cannot see A''s current instructions');
+select t.expect_error(format($f$insert into public.business_instructions_version (organization_id, based_on_version, content, content_text)
+                                values ('10000000-0000-0000-0000-0000000000a1', 3, %L, 'Planted')$f$, :'doc1'),
+                      'B cannot save instructions for A');
+
+-- Automated writers: no user session, no authority, even when RLS is bypassed.
+:as_service
+select t.expect_error(format($f$insert into public.business_instructions_version (organization_id, based_on_version, content, content_text, created_by)
+                                values ('10000000-0000-0000-0000-0000000000a1', 3, %L, 'Inferred', '00000000-0000-0000-0000-0000000000a1')$f$, :'doc1'),
+                      'the service role cannot save instructions');
+select t.expect_error($$update public.business_instructions_version set content_text = 'AI rewrite'$$, 'the service role cannot rewrite a version');
+select t.expect_error($$delete from public.business_instructions_version$$, 'the service role cannot delete versions');
+select t.expect_error('truncate public.business_instructions_version', 'the service role cannot truncate versions');
+set role service_role;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1"}', false) \g /dev/null
+select t.expect_error(format($f$insert into public.business_instructions_version (organization_id, based_on_version, content, content_text)
+                                values ('10000000-0000-0000-0000-0000000000a1', 3, %L, 'Masquerade')$f$, :'doc1'),
+                      'a service process cannot masquerade as the owner');
+:as_server
+select t.expect_error(format($f$insert into public.business_instructions_version (organization_id, based_on_version, content, content_text, created_by)
+                                values ('10000000-0000-0000-0000-0000000000a1', 3, %L, 'Job', '00000000-0000-0000-0000-0000000000a1')$f$, :'doc1'),
+                      'server-side jobs cannot save instructions');
+select t.expect_error($$update public.business_instructions_version set content_text = 'Job rewrite'$$, 'server-side jobs cannot rewrite a version');
+select t.expect_error($$delete from public.business_instructions_version where version = 1$$, 'server-side jobs cannot delete a version');
+select t.expect_equal((select string_agg(version || '=' || created_by, ',' order by version) from public.business_instructions_version),
+                      '1=00000000-0000-0000-0000-0000000000a1,2=00000000-0000-0000-0000-0000000000a3,3=00000000-0000-0000-0000-0000000000a1',
+                      'every version was saved by an owner or admin, and nothing else was added');
+
+-- ===========================================================================
 -- 10. Server-side integrity
 -- ===========================================================================
 :as_server
@@ -996,6 +1093,8 @@ select t.expect_count($$select * from public.purchase_order where organization_i
                       0, 'retailer deletion cascades through orders');
 select t.expect_count($$select * from public.business_rule where organization_id = '10000000-0000-0000-0000-0000000000a1'$$,
                       0, 'retailer deletion removes its business rules');
+select t.expect_count($$select * from public.business_instructions_version where organization_id = '10000000-0000-0000-0000-0000000000a1'$$,
+                      0, 'retailer deletion removes its business instructions');
 select t.expect_count($$select * from public.product where origin_organization_id = '10000000-0000-0000-0000-0000000000a1'$$,
                       0, 'retailer deletion removes its private provisional products');
 select t.expect_count($$select * from public.program where id = 'a0000000-0000-0000-0000-000000000001'$$,

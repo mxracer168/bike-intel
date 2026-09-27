@@ -30,27 +30,24 @@ export type Database = {
         }
         Relationships: []
       }
-      business_rule: {
+      business_instructions_version: {
         Row: {
           id: string
           organization_id: string
-          statement: string
-          status: string
+          version: number
+          based_on_version: number | null
+          content: Json
+          content_text: string
           created_by: string
           created_at: string
-          updated_by: string
-          updated_at: string
-          stopped_by: string | null
-          stopped_at: string | null
         }
         Insert: {
           organization_id: string
-          statement: string
+          based_on_version: number | null
+          content: Json
+          content_text: string
         }
-        Update: {
-          statement?: string
-          status?: string
-        }
+        Update: never
         Relationships: []
       }
       category: {
@@ -2140,6 +2137,17 @@ export type Database = {
       }
     }
     Views: {
+      business_instructions_current: {
+        Row: {
+          organization_id: string
+          version: number
+          content: Json
+          content_text: string
+          created_by: string
+          created_at: string
+        }
+        Relationships: []
+      }
       organization_agreement_current: {
         Row: {
           organization_id: string | null
