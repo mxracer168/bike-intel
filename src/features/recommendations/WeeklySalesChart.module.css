@@ -1,0 +1,50 @@
+.figure { margin: 0; container-type: inline-size; }
+/* Axis gutter, plot, room on the right for the average label. */
+.chart {
+  display: grid; grid-template-columns: 20px minmax(0, 1fr) 52px; grid-template-rows: 150px auto;
+  column-gap: var(--sp-2); row-gap: 6px;
+}
+.yAxis { position: relative; }
+.yAxis span {
+  position: absolute; right: 0; transform: translateY(50%);
+  font-size: var(--fs-label); line-height: 1; color: var(--ink-3); font-variant-numeric: tabular-nums;
+}
+.plot { position: relative; grid-column: 2; }
+.grid, .baseline { position: absolute; left: 0; right: 0; height: 0; border-top: 1px solid var(--line); }
+.baseline { border-top-color: var(--line-strong); }
+
+/* The average: a dashed line labelled at its right end, outside the bars. */
+.avg { position: absolute; left: 0; right: calc(-52px - var(--sp-2)); height: 0; border-top: 1.5px dashed var(--ink-3); z-index: 1; pointer-events: none; }
+.avgLabel {
+  position: absolute; right: 0; bottom: 3px; font-size: var(--fs-label); line-height: var(--lh-label);
+  font-weight: 500; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+
+.bars { list-style: none; position: absolute; inset: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.slot { position: relative; display: flex; align-items: flex-end; justify-content: center; }
+.slot:hover { background: var(--subtle); border-radius: var(--r-sm) var(--r-sm) 0 0; }
+.bar { width: min(62%, 36px); background: var(--accent-muted); border-radius: 4px 4px 0 0; transition: background var(--t-fast); }
+.slot:hover .bar { background: var(--accent-hover); }
+/* A week without sales still says so. */
+.zero { margin-bottom: 4px; font-size: var(--fs-label); line-height: 1; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.tooltip {
+  position: absolute; left: 50%; transform: translateX(-50%); z-index: 2; pointer-events: none; white-space: nowrap;
+  background: var(--inverse); color: var(--on-inverse); border-radius: var(--r-sm); padding: 6px 10px;
+  font-size: var(--fs-label); line-height: var(--lh-label); box-shadow: var(--sh-2);
+}
+.tooltip b { font-weight: 600; margin-right: 6px; }
+
+.xAxis {
+  list-style: none; grid-column: 2; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
+  font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); text-align: center; white-space: nowrap;
+}
+/* Narrower: every other week is labelled, then every third; the bars all stay. */
+@container (max-width: 560px) {
+  .xAxis li:nth-child(even) { visibility: hidden; }
+  .chart { grid-template-rows: 130px auto; }
+}
+@container (max-width: 400px) {
+  .xAxis li { visibility: hidden; }
+  .xAxis li:nth-child(3n + 1) { visibility: visible; }
+}

@@ -22,7 +22,12 @@ export type NetworkListing = {
 
 /** available: normal · limited: few left · delayed: late delivery · out: can't supply now. */
 export type SupplierStatus = 'available' | 'limited' | 'delayed' | 'out'
-export type SupplierCondition = { status: SupplierStatus; note: string }
+export type SupplierCondition = {
+  status: SupplierStatus
+  note: string
+  /** When an out-of-stock or delayed item is expected back at the supplier, if known. */
+  expectedInDays?: number
+}
 
 export type OrderLineView = {
   id: string
@@ -42,8 +47,11 @@ export type OrderLineView = {
   question?: { prompt: string; choices: string[] }
   // Evidence: shown only on request.
   weeklySales: number[]
+  /** Placeholder until confidence scoring exists: example data only. */
   confidence: Confidence
   season?: string
+  /** How much faster (+) or slower (−) than normal for this time of year, e.g. 0.2. Example data only. */
+  seasonalPace?: number
   availability: string
   assumptions: string[]
   alternatives: string[]

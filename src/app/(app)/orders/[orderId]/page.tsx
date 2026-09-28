@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { isDemoPreviewEnabled } from '@/demo/config'
 import { findDemoOrder } from '@/demo/orders'
 import { OrderReview } from '@/features/orders/OrderReview'
+import { completeWeekStarts } from '@/features/orders/why'
 import { requireOrganization } from '@/server/session'
 import { ExampleMarker } from '@/ui/Example'
 import { Page } from '@/ui/Layout'
@@ -19,7 +20,7 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
 
   return (
     <Page>
-      <OrderReview order={order} example eyebrow={<><Link href="/orders">Orders</Link><ExampleMarker /></>} />
+      <OrderReview order={order} example weekStarts={completeWeekStarts(12, new Date())} eyebrow={<><Link href="/orders">Orders</Link><ExampleMarker /></>} />
     </Page>
   )
 }

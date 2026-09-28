@@ -192,8 +192,11 @@ const northline = build({
       question: { prompt: 'Do you plan to keep chain tools on the shelf, or order them for customers as needed?', choices: ['Keep on the shelf', 'Order as needed'] } },
     'Schwalbe inner tube · 29 × 2.1–2.4 Presta': { state: 'review',
       reason: 'Sales doubled in the last 3 weeks. We ordered for your usual pace; add more if you think it will last.' },
-    'Continental Grand Prix 5000 S TR · 700 × 28': { state: 'review',
-            supplier: { status: 'delayed', note: 'Expected in 18 days' },
+    // The reference "Why 3?" example: out at the supplier, selling a little faster than usual for the season.
+    'Continental Grand Prix 5000 S TR · 700 × 28': { state: 'review', quantity: 3, onHand: 0, onOrder: 0, confidence: 'medium',
+      weeklySales: [1, 2, 1, 1, 0, 1, 1, 1, 0, 1, 2, 1], seasonalPace: 0.2,
+      supplier: { status: 'out', note: 'Expected in 18 days', expectedInDays: 18 },
+      availability: 'None at the Reno warehouse. Northline expects its next shipment in about 18 days.',
       network: [listing('river', 4, 'gp28'), listing('palmetto', 2, 'gp28')], reason: 'Selling faster than usual for this time of year. We kept the order close to your normal amount.' },
     'Maxxis Assegai · 29 × 2.5 WT EXO+': { state: 'review',
             supplier: { status: 'limited', note: '2 left' }, reason: 'Northline has only a few left, so we suggest ordering now rather than next week.' },

@@ -73,20 +73,81 @@
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--sp-4) var(--sp-5); min-width: 0; }
 .panelTitle { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; margin-bottom: var(--sp-3); }
 
-.whyPanel { container-type: inline-size; }
-.whyGrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4) var(--sp-5); align-items: start; }
-@container (min-width: 640px) { .whyGrid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); } }
-.story { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
-.storyText { color: var(--ink-2); max-width: 60ch; }
+/* ---------- Why N?: answer, reason, evidence; beside it what we considered ---------- */
+.whyPanel { container-type: inline-size; padding: var(--sp-5) var(--sp-6); }
+.whyLayout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
+@container (min-width: 820px) {
+  .whyLayout { grid-template-columns: minmax(0, 1fr) minmax(260px, 30%); gap: var(--sp-7); }
+  .whyAside { border-left: 1px solid var(--line); padding-left: var(--sp-6); }
+}
+.whyMain { display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; }
+.whyTitle { font-size: var(--fs-title); line-height: var(--lh-title); font-weight: 600; letter-spacing: -0.015em; }
+.explanation { font-size: 17px; line-height: 26px; color: var(--ink); max-width: 68ch; margin-top: calc(-1 * var(--sp-3)); }
+.extra { font-size: 15px; line-height: 22px; color: var(--ink-2); max-width: 68ch; margin-top: calc(-1 * var(--sp-4)); }
 
-.keyFacts { background: var(--accent-wash); border-radius: var(--r-sm); padding: var(--sp-3) var(--sp-4) var(--sp-2); }
-.keyFactsTitle { font-size: 15px; line-height: 22px; font-weight: 600; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
-.keyFacts dl { margin: 0; display: flex; flex-direction: column; }
-.keyFacts dl > div { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: var(--sp-3); padding: 7px 0; border-top: 1px solid var(--line); }
-.keyFacts dl > div:first-child { border-top: 0; }
-.keyFacts dt { color: var(--ink-2); }
-.keyFacts dd { margin: 0; }
-.attention { color: var(--con); font-weight: 500; }
+/* One connected calculation: demand − on hand − ordered = recommended. */
+.calc {
+  margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden;
+}
+.calc > div { display: flex; flex-direction: column; gap: 4px; padding: var(--sp-3) var(--sp-4); min-width: 0; }
+.calc > div + div { border-left: 1px solid var(--line); }
+.calc dt { display: flex; align-items: baseline; gap: 8px; font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.op { font-size: 17px; font-weight: 500; color: var(--ink-3); width: 10px; }
+.calc dd { margin: 0; display: flex; flex-direction: column; gap: 2px; }
+.calc dd b { font-size: var(--fs-answer); line-height: var(--lh-answer); font-weight: 600; font-variant-numeric: tabular-nums; padding-left: 18px; }
+.calc > div:first-child dd b { padding-left: 0; }
+.calc dd span { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); padding-left: 18px; }
+.calc > div:first-child dd span { padding-left: 0; }
+.calcResult { background: var(--accent-wash); }
+.calcResult dt, .calcResult dd b { color: var(--accent-pressed); }
+.calcResult .op { color: var(--accent); }
+/* Narrow: a short receipt, label left and value right. */
+@container (max-width: 560px) {
+  .calc { grid-template-columns: minmax(0, 1fr); }
+  .calc > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: var(--sp-3); padding: var(--sp-2) var(--sp-3); }
+  .calc > div + div { border-left: 0; border-top: 1px solid var(--line); }
+  .calc dd { align-items: flex-end; text-align: right; }
+  .calc dd b { font-size: 17px; line-height: 24px; padding-left: 0; }
+  .calc dd span { padding-left: 0; }
+}
+
+.sales { container-type: inline-size; display: flex; flex-direction: column; gap: var(--sp-3); }
+.salesHead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--sp-3); }
+.salesHead h3 { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; }
+.salesNote { font-size: 14px; color: var(--ink-2); }
+.salesAvg { margin-left: auto; font-size: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.salesAvg b { color: var(--ink); font-weight: 600; }
+
+/* Evidence: quiet rows, not cards. */
+.evidence { list-style: none; display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+.evidenceRow { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: var(--sp-3); align-items: start; padding: var(--sp-3) 0; border-bottom: 1px solid var(--line); }
+.evidenceIcon { color: var(--ink-2); padding-top: 3px; }
+.evidenceText h4 { font-size: 15px; line-height: 22px; font-weight: 600; }
+.evidenceText p { font-size: 15px; line-height: 22px; color: var(--ink-2); }
+.evidenceMore { margin-top: 4px; }
+.viewDetails {
+  display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; padding: 2px 0; min-height: 32px;
+  font-size: 14px; font-weight: 500; color: var(--accent); cursor: pointer; white-space: nowrap;
+}
+.viewDetails:hover { text-decoration: underline; text-underline-offset: 3px; }
+@container (max-width: 560px) {
+  .evidenceRow { grid-template-columns: 20px minmax(0, 1fr); }
+  .viewDetails { grid-column: 2; justify-self: start; }
+}
+
+.whyAside { display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; }
+.considered h3, .nextStep h3 { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; }
+.considered dl { margin: var(--sp-2) 0 0; display: flex; flex-direction: column; }
+.considered dl > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: var(--sp-3); padding: 10px 0; border-top: 1px solid var(--line); }
+.considered dt { font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.considered dd { margin: 0; display: flex; flex-direction: column; gap: 1px; }
+.considered dd b { font-size: 15px; line-height: 22px; font-weight: 600; }
+.considered dd span { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+.attention { color: var(--con) !important; }
+.nextStep { background: var(--accent-wash); border-radius: var(--r-md); padding: var(--sp-4); display: flex; flex-direction: column; gap: 6px; }
+.nextStep h3 { font-size: 15px; line-height: 22px; color: var(--accent-pressed); }
+.nextStep p { font-size: 15px; line-height: 22px; }
 
 .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--sp-4); }
 .notes ul { padding-left: 18px; color: var(--ink-2); display: flex; flex-direction: column; gap: 2px; }
@@ -126,5 +187,5 @@
   .openRow > .product { box-shadow: inset 3px 0 0 var(--accent); padding-left: var(--sp-4); }
   .zones, .zonesBoth { grid-template-columns: minmax(0, 1fr); margin-left: 0; }
   .panel { padding: var(--sp-3) var(--sp-4); }
-  .keyFacts dl > div { grid-template-columns: 108px minmax(0, 1fr); }
+  .whyPanel { padding: var(--sp-4); }
 }

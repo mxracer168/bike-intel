@@ -1,8 +1,8 @@
 'use client'
 
 import { Fragment, useId, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { average, describeWeeklyRate, formatMoney, plural } from '@/domain/language/plain'
-import { EvidenceChart } from '@/features/recommendations/EvidenceChart'
+import { average, formatMoney, plural } from '@/domain/language/plain'
+import { WeeklySalesChart } from '@/features/recommendations/WeeklySalesChart'
 import { AnchoredQuestion } from '@/features/intelligence/AnchoredQuestion'
 import { ConfidenceMark } from '@/ui/Confidence'
 import { Icon } from '@/ui/Icon'
@@ -11,6 +11,7 @@ import { networkMatch, networkSignal, retailerLabel, supplierShort, type Network
 import { orderNote } from './OrderList'
 import { freightGap, lineTotal, orderTotal, sortForReview } from './summarize'
 import type { NetworkListing, OrderLineView, ProposedOrderView } from './types'
+import { calculation, explanation, extraReason, nextStep, oneDecimal, paceWords, seasonView, supplierView, supplierWaiting } from './why'
 import page from './Orders.module.css'
 import styles from './OrderReview.module.css'
 
@@ -34,55 +35,133 @@ function cost(amount: number, currency: string) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency, minimumFractionDigits: 2 }).format(amount)
 }
 
-const supplierLabel = { available: 'Available', limited: 'Limited', delayed: 'Delayed', out: 'Out of stock' } as const
-
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
 
-/** Why N? panel: the sales chart and one sentence, beside the key facts. */
-function WhyPanel({ line, leadTimeDays }: { line: OrderLineView; leadTimeDays: number }) {
-  const supplierOk = line.supplier.status === 'available'
+/** An evidence row: a quiet icon, a title and one sentence, and an optional "View details" disclosure. */
+function EvidenceRow({ icon, title, sentence, details }: { icon: ReactNode; title: string; sentence: string; details?: string }) {
+  const [open, setOpen] = useState(false)
+  const id = useId()
+  return (
+    <li className={styles.evidenceRow}>
+      <span className={styles.evidenceIcon} aria-hidden="true">{icon}</span>
+      <div className={styles.evidenceText}>
+        <h4>{title}</h4>
+        <p>{sentence}</p>
+        {open && details && <p id={id} className={styles.evidenceMore}>{details}</p>}
+      </div>
+      {details && (
+        <button type="button" className={styles.viewDetails} aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)}>
+          {open ? 'Hide details' : 'View details'}<Icon name={open ? 'chevron-down' : 'arrow-right'} size={14} />
+        </button>
+      )}
+    </li>
+  )
+}
+
+/**
+ * "Why N?": the answer first (a plain explanation and the arithmetic), then
+ * the evidence (weekly sales, seasonality, supplier). Beside it, what we
+ * considered and the recommended next step, which can differ from "order N
+ * now" when the supplier can't ship (docs/recommendations.md).
+ */
+function WhyPanel({ line, supplier, leadTimeDays, orderBy, weekStarts }: {
+  line: OrderLineView; supplier: string; leadTimeDays: number; orderBy?: string; weekStarts?: string[]
+}) {
+  const calc = calculation(line)
+  const extra = extraReason(line)
+  const avg = average(line.weeklySales)
+  const sup = supplierView(line, supplierShortName(supplier), leadTimeDays)
+  const season = seasonView(line)
+  const salesId = `${line.id}-sales`
   return (
     <section className={[styles.panel, styles.whyPanel].join(' ')} aria-labelledby={`${line.id}-why`}>
-      <h2 id={`${line.id}-why`} className={styles.panelTitle}>Why {line.quantity}?</h2>
-      <div className={styles.whyGrid}>
-        <div className={styles.story}>
-          <EvidenceChart weeklySales={line.weeklySales} />
-          <p className={styles.storyText}>{line.reason}</p>
-        </div>
-        <section className={styles.keyFacts} aria-labelledby={`${line.id}-facts`}>
-          <h3 id={`${line.id}-facts`} className={styles.keyFactsTitle}>Key facts</h3>
-          <dl>
-            <div><dt>Sales pace</dt><dd>{capitalize(describeWeeklyRate(average(line.weeklySales)))}</dd></div>
-            <div><dt>On hand</dt><dd>{line.onHand}</dd></div>
-            <div><dt>Supplier stock</dt><dd className={supplierOk ? undefined : styles.attention}>
-              {supplierOk ? line.availability : `${supplierLabel[line.supplier.status]} · ${line.supplier.note}`}
-            </dd></div>
-            <div><dt>Delivery</dt><dd>~{leadTimeDays} days</dd></div>
-            {line.season && <div><dt>Season</dt><dd>{line.season}</dd></div>}
-            <div><dt>Confidence</dt><dd><ConfidenceMark level={line.confidence} /></dd></div>
+      <div className={styles.whyLayout}>
+        <div className={styles.whyMain}>
+          <h2 id={`${line.id}-why`} className={styles.whyTitle}>Why {line.quantity}?</h2>
+          <p className={styles.explanation}>{explanation(line)}</p>
+          {extra && <p className={styles.extra}>{extra}</p>}
+
+          <dl className={styles.calc} aria-label="How we got there">
+            <div>
+              <dt>Expected demand</dt>
+              <dd><b>{calc.expectedDemand}</b><span>{calc.demandNote}</span></dd>
+            </div>
+            <div>
+              <dt><span className={styles.op} aria-hidden="true">−</span>On hand</dt>
+              <dd><b>{calc.onHand}</b><span>Available to sell</span></dd>
+            </div>
+            <div>
+              <dt><span className={styles.op} aria-hidden="true">−</span>Already ordered</dt>
+              <dd><b>{calc.onOrder}</b><span>On purchase orders</span></dd>
+            </div>
+            <div className={styles.calcResult}>
+              <dt><span className={styles.op} aria-hidden="true">=</span>Recommended</dt>
+              <dd><b>{calc.recommended}</b><span>{calc.recommended === 1 ? 'Unit' : 'Units'} to order</span></dd>
+            </div>
           </dl>
-        </section>
+
+          <section className={styles.sales} aria-labelledby={salesId}>
+            <div className={styles.salesHead}>
+              <h3 id={salesId}>Recent weekly sales</h3>
+              <span className={styles.salesNote}>Last {line.weeklySales.length} weeks (excluding current week)</span>
+              <span className={styles.salesAvg}>{line.weeklySales.length}-week average: <b>{oneDecimal(avg)}</b> per week</span>
+            </div>
+            <WeeklySalesChart weeklySales={line.weeklySales} weekStarts={weekStarts} titleId={salesId} />
+          </section>
+
+          <ul className={styles.evidence}>
+            {season && (
+              <EvidenceRow icon={<Icon name="trend-up" size={16} />} title="Seasonality" sentence={season.sentence}
+                // Deeper seasonal evidence (the same weeks in past years) isn't built yet.
+                details={line.seasonalPace !== undefined ? 'A week-by-week comparison with the same weeks in past years will show here.' : undefined} />
+            )}
+            <EvidenceRow icon={<Icon name={sup.attention ? 'alert' : 'check'} size={16} />} title="Supplier availability"
+              sentence={sup.sentence} details={line.availability} />
+          </ul>
+        </div>
+
+        <aside className={styles.whyAside} aria-label="What we considered">
+          <section className={styles.considered} aria-labelledby={`${line.id}-considered`}>
+            <h3 id={`${line.id}-considered`}>What we considered</h3>
+            <dl>
+              <div><dt>Recent sales</dt><dd><b>{capitalize(paceWords(avg))}</b><span>{line.weeklySales.length}-week average</span></dd></div>
+              <div><dt>Supplier availability</dt><dd>
+                <b className={sup.attention ? styles.attention : undefined}>{sup.value}</b><span>{sup.detail}</span>
+              </dd></div>
+              <div><dt>Typical delivery time</dt><dd>
+                <b>~{leadTimeDays} days</b><span>{supplierWaiting(line.supplier) ? 'After it becomes available' : 'After you order'}</span>
+              </dd></div>
+              {sup.toShelfDays !== undefined && (
+                <div><dt>Lead time to stock</dt><dd>
+                  <b>~{sup.toShelfDays} days</b><span>{line.supplier.expectedInDays} days + {leadTimeDays} days</span>
+                </dd></div>
+              )}
+              {season && <div><dt>Seasonal trend</dt><dd><b>{season.value}</b><span>{season.detail}</span></dd></div>}
+              <div><dt>Confidence</dt><dd><ConfidenceMark level={line.confidence} /></dd></div>
+            </dl>
+          </section>
+          <section className={styles.nextStep} aria-labelledby={`${line.id}-next`}>
+            <h3 id={`${line.id}-next`}>Recommended next step</h3>
+            <p>{nextStep(line, supplierShortName(supplier), orderBy)}</p>
+          </section>
+        </aside>
       </div>
     </section>
   )
 }
 
-/** Under the Why panel: what we assumed and the other options, each its own quiet panel. */
+/** "Northline Distribution" → "Northline" in running text. */
+const supplierShortName = (name: string) => name.split(' ')[0] ?? name
+
+/** Under the Why panel: other options, if any. What we assumed is now said in the explanation. */
 function Notes({ line }: { line: OrderLineView }) {
-  // Delivery is a key fact; don't list it again as an assumption.
-  const assumptions = line.assumptions.filter((a) => !a.startsWith('Delivery'))
+  if (line.alternatives.length === 0) return null
   return (
     <div className={styles.notes}>
       <section className={styles.panel}>
-        <h2 className={styles.notesTitle}>What we assumed</h2>
-        <ul>{assumptions.map((a) => <li key={a}>{a}</li>)}</ul>
+        <h2 className={styles.notesTitle}>Other options</h2>
+        <ul>{line.alternatives.map((a) => <li key={a}>{a}</li>)}</ul>
       </section>
-      {line.alternatives.length > 0 && (
-        <section className={styles.panel}>
-          <h2 className={styles.notesTitle}>Other options</h2>
-          <ul>{line.alternatives.map((a) => <li key={a}>{a}</li>)}</ul>
-        </section>
-      )}
     </div>
   )
 }
@@ -136,8 +215,8 @@ const Caret = () => <span className={styles.caret} aria-hidden="true"><Icon name
  * (about two thirds), other retailers on the right; whichever is open alone
  * takes the full width. Assumptions and options sit underneath.
  */
-function LineDetail({ line, quantity, setQuantity, leadTimeDays }: {
-  line: OrderLineView; quantity: number; setQuantity: (n: number) => void; leadTimeDays: number
+function LineDetail({ line, quantity, setQuantity, order, weekStarts }: {
+  line: OrderLineView; quantity: number; setQuantity: (n: number) => void; order: ProposedOrderView; weekStarts?: string[]
 }) {
   const [why, setWhy] = useState(false)
   const [showNetwork, setShowNetwork] = useState(false)
@@ -164,7 +243,7 @@ function LineDetail({ line, quantity, setQuantity, leadTimeDays }: {
       </div>
       {(why || network) && (
         <div className={[styles.zones, why && network && styles.zonesBoth].filter(Boolean).join(' ')}>
-          {why && <div id={whyId} className={styles.whyZone}><WhyPanel line={line} leadTimeDays={leadTimeDays} /></div>}
+          {why && <div id={whyId} className={styles.whyZone}><WhyPanel line={line} supplier={order.supplier} leadTimeDays={order.leadTimeDays} orderBy={order.orderBy} weekStarts={weekStarts} /></div>}
           {network && <NetworkPanel id={networkId} match={network} />}
           {why && <Notes line={line} />}
         </div>
@@ -178,7 +257,11 @@ function LineDetail({ line, quantity, setQuantity, leadTimeDays }: {
  * quantity, cost. Built to scan hundreds of lines; every reason lives behind a
  * click on the row. Quantities change locally only.
  */
-export function OrderReview({ order, eyebrow }: { order: ProposedOrderView; eyebrow?: ReactNode; example?: boolean }) {
+export function OrderReview({ order, eyebrow, weekStarts }: {
+  order: ProposedOrderView; eyebrow?: ReactNode; example?: boolean
+  /** Start dates of the complete weeks in each line's weekly sales, oldest first. */
+  weekStarts?: string[]
+}) {
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [open, setOpen] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'attention' | 'network'>('all')
@@ -258,7 +341,7 @@ export function OrderReview({ order, eyebrow }: { order: ProposedOrderView; eyeb
                   {isOpen && (
                     <tr className={styles.detailRow} id={`${line.id}-detail`}>
                       <td colSpan={narrow ? 4 : 6}>
-                        <LineDetail line={line} quantity={q} leadTimeDays={order.leadTimeDays}
+                        <LineDetail line={line} quantity={q} order={order} weekStarts={weekStarts}
                           setQuantity={(n) => setQuantities((prev) => ({ ...prev, [line.id]: n }))} />
                       </td>
                     </tr>

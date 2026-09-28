@@ -96,7 +96,9 @@ export function EvidenceChart({ weeklySales }: { weeklySales: number[] }) {
         <span>{weeksAgoLabel(n - 1)}</span>
         <span>This week</span>
       </div>
-      <table className="visually-hidden">
+      {/* Wrapped: a table ignores the 1px width of visually-hidden and would widen the page. */}
+      <div className="visually-hidden">
+      <table>
         <caption>{summary}</caption>
         <thead><tr><th scope="col">Week</th><th scope="col">Sold</th></tr></thead>
         <tbody>
@@ -105,6 +107,7 @@ export function EvidenceChart({ weeklySales }: { weeklySales: number[] }) {
           ))}
         </tbody>
       </table>
+      </div>
     </figure>
   )
 }
