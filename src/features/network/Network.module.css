@@ -1,0 +1,9 @@
+.vs {
+  display: inline-flex; align-items: center; gap: 3px; white-space: nowrap;
+  font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500;
+}
+.below { color: var(--pos); }
+.above { color: var(--risk); }
+.reputation { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+.reputation b { font-weight: 600; color: var(--ink); }
+.star { color: var(--ink-2); }

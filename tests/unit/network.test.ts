@@ -2,16 +2,24 @@ import { describe, expect, it } from 'vitest'
 import { networkMatch, networkSignal, supplierShort } from '@/features/orders/network'
 import type { NetworkListing } from '@/features/orders/types'
 
-const l = (id: string, available: number): NetworkListing => ({ id, retailer: { name: id, place: 'Somewhere, SC' }, available })
+const l = (id: string, available: number, price = 10): NetworkListing =>
+  ({ id, retailer: { name: id, place: 'Somewhere, SC', reputation: { reviews: 0, completed: 0 } }, available, price })
 
 describe('retailer network matches', () => {
-  it('full: retailers who can each cover the whole quantity come first, largest first', () => {
+  it('full: retailers who can each cover the whole quantity come first; at the same price, largest first', () => {
     const m = networkMatch([l('a', 2), l('b', 8), l('c', 4), l('d', 5), l('e', 1)], 4)
     expect(m.kind).toBe('full')
     if (m.kind !== 'full') return
     expect(m.cover.map((x) => x.id)).toEqual(['b', 'd', 'c'])
     expect(m.some.map((x) => x.id)).toEqual(['a', 'e'])
     expect(networkSignal(m)).toBe('3 retailers can cover all 4')
+  })
+
+  it('within each group, the lowest network price comes first', () => {
+    const m = networkMatch([l('a', 6, 12), l('b', 8, 9.5), l('c', 4, 9.5), l('d', 2, 8), l('e', 1, 7)], 4)
+    if (m.kind !== 'full') throw new Error('expected full')
+    expect(m.cover.map((x) => x.id)).toEqual(['b', 'c', 'a'])
+    expect(m.some.map((x) => x.id)).toEqual(['e', 'd'])
   })
 
   it('partial: some available, nobody has all of it, and no split is proposed', () => {

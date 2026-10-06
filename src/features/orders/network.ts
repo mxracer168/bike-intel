@@ -6,19 +6,21 @@ export type NetworkMatch =
   | { kind: 'full'; needed: number; cover: NetworkListing[]; some: NetworkListing[] }
   | { kind: 'partial'; needed: number; some: NetworkListing[] }
 
-const byAvailable = (a: NetworkListing, b: NetworkListing) => b.available - a.available
+/** Cheapest first, so offers compare at a glance; then most available. */
+const byOffer = (a: NetworkListing, b: NetworkListing) => a.price - b.price || b.available - a.available
 
 /**
  * Compare what we suggest ordering with what other retailers made available.
  * Full: at least one retailer can cover the whole quantity on its own.
+ * Within each group, the lowest network price comes first.
  * Partial: some have units, none has enough alone (we don't propose splits).
  * None: nothing to show, and nothing is shown.
  */
 export function networkMatch(listings: readonly NetworkListing[] | undefined, needed: number): NetworkMatch {
   const available = (listings ?? []).filter((l) => l.available > 0)
   if (needed <= 0 || available.length === 0) return { kind: 'none' }
-  const cover = available.filter((l) => l.available >= needed).sort(byAvailable)
-  const some = available.filter((l) => l.available < needed).sort(byAvailable)
+  const cover = available.filter((l) => l.available >= needed).sort(byOffer)
+  const some = available.filter((l) => l.available < needed).sort(byOffer)
   return cover.length > 0 ? { kind: 'full', needed, cover, some } : { kind: 'partial', needed, some }
 }
 
@@ -44,10 +46,10 @@ export function supplierShort(supplier: SupplierStatus): boolean {
 }
 
 /**
- * How another retailer is named on screen. One place to change when we decide
- * whether names are shown, partly hidden until connection, or revealed only
- * after both sides agree.
+ * How another retailer is named on screen. Sellers are named alongside their
+ * reputation; one place to change if the identity policy (docs/network.md)
+ * changes.
  */
-export function retailerLabel(listing: NetworkListing): { name: string; place: string } {
+export function retailerLabel(listing: NetworkListing): NetworkListing['retailer'] {
   return listing.retailer
 }

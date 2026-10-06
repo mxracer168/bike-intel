@@ -23,6 +23,12 @@ export const businessTabs: NavItem[] = [
   { href: '/business/team', label: 'Team' },
 ]
 
+/** In-page tabs within Inventory. */
+export const inventoryTabs: NavItem[] = [
+  { href: '/inventory', label: 'Inventory' },
+  { href: '/inventory/excess', label: 'Excess inventory' },
+]
+
 /** The item a path belongs to (exact match or a sub-page of it). */
 export function isCurrent(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`)

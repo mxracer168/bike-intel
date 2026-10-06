@@ -1,15 +1,15 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { businessTabs, isCurrent, navigation } from '@/content/navigation'
+import { businessTabs, inventoryTabs, isCurrent, navigation } from '@/content/navigation'
 
 describe('primary navigation', () => {
   it('is the approved flat list, starting with Today', () => {
     expect(navigation.map((i) => i.label)).toEqual(['Today', 'Orders', 'Inventory', 'Programs', 'Suppliers', 'Insights', 'Connections', 'Business'])
   })
 
-  it('points every item and business tab at a real page', () => {
-    const missing = [...navigation, ...businessTabs]
+  it('points every item and in-page tab at a real page', () => {
+    const missing = [...navigation, ...businessTabs, ...inventoryTabs]
       .map((i) => i.href)
       .filter((href) => !existsSync(join('src/app/(app)', href, 'page.tsx')))
     expect(missing).toEqual([])

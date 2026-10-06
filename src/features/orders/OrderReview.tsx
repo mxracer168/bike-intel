@@ -4,8 +4,11 @@ import { Fragment, useId, useState, useSyncExternalStore, type ReactNode } from 
 import { average, formatMoney, plural } from '@/domain/language/plain'
 import { WeeklySalesChart } from '@/features/recommendations/WeeklySalesChart'
 import { AnchoredQuestion } from '@/features/intelligence/AnchoredQuestion'
+import { PriceVsMarket, ReputationLine } from '@/features/network/NetworkBits'
+import { compareToMarket, unitPrice, WMV_HELP, WMV_TERM } from '@/features/network/pricing'
 import { ConfidenceMark } from '@/ui/Confidence'
 import { Icon } from '@/ui/Icon'
+import { InfoTip } from '@/ui/InfoTip'
 import { QuantityStepper } from '@/ui/QuantityStepper'
 import { networkMatch, networkSignal, retailerLabel, supplierShort, type NetworkMatch } from './network'
 import { orderNote } from './OrderList'
@@ -166,42 +169,68 @@ function Notes({ line }: { line: OrderLineView }) {
   )
 }
 
-/** One other retailer and a (mocked) introduction. No price: that's between the two stores. */
-function NetworkRow({ listing }: { listing: NetworkListing }) {
+/**
+ * One other retailer's offer: who they are and their reputation, how many,
+ * and their network price against Wholesale Market Value, so the trade is
+ * understandable before anyone is contacted. The introduction is mocked.
+ */
+function NetworkRow({ listing, wholesaleMarketValue }: { listing: NetworkListing; wholesaleMarketValue?: number }) {
   const [requested, setRequested] = useState(false)
   const who = retailerLabel(listing)
   return (
     <li className={styles.networkRow}>
-      <span className={styles.networkName}>{who.name}</span>
+      <span className={styles.networkWho}>
+        <span className={styles.networkName}>{who.name}</span>
+        <span className={styles.networkPlace}>{who.place}</span>
+        <ReputationLine reputation={who.reputation} />
+      </span>
       <span className={styles.networkQty}>{listing.available} available</span>
-      <span className={styles.networkPlace}>{who.place}</span>
-      {requested
-        ? <span className={styles.networkDone} role="status">Requested · you’ll agree price and shipping directly</span>
-        : <button type="button" className={styles.textButton} onClick={() => setRequested(true)}
-            aria-label={`Request connection with ${who.name}`}>Request connection</button>}
+      <span className={styles.networkPrice}>
+        <span><b>{unitPrice(listing.price)}</b> each</span>
+        {wholesaleMarketValue !== undefined && <PriceVsMarket comparison={compareToMarket(listing.price, wholesaleMarketValue)} short />}
+      </span>
+      <span className={styles.networkAct}>
+        {requested
+          ? <span className={styles.networkDone} role="status">Requested · you’ll arrange payment and shipping directly</span>
+          : <button type="button" className={styles.textButton} onClick={() => setRequested(true)}
+              aria-label={`Contact ${who.name}`}>Contact retailer</button>}
+      </span>
     </li>
   )
 }
 
-/** Other retailers who made this item available: those who can cover it all first, then those with some. */
-function NetworkPanel({ id, match }: { id: string; match: Exclude<NetworkMatch, { kind: 'none' }> }) {
+/**
+ * Other retailers who made this item available: those who can cover it all
+ * first, then those with some, cheapest first within each. Wholesale Market
+ * Value is the same for every offer, so it's said once, above the list.
+ */
+function NetworkPanel({ id, match, wholesaleMarketValue }: {
+  id: string; match: Exclude<NetworkMatch, { kind: 'none' }>; wholesaleMarketValue?: number
+}) {
+  const row = (l: NetworkListing) => <NetworkRow key={l.id} listing={l} wholesaleMarketValue={wholesaleMarketValue} />
   return (
     <section id={id} className={[styles.panel, styles.networkPanel].join(' ')} aria-labelledby={`${id}-title`}>
-      <h2 id={`${id}-title`} className={styles.panelTitle}>Other retailers</h2>
+      <div className={styles.networkHead}>
+        <h2 id={`${id}-title`} className={styles.panelTitle}>Other retailers</h2>
+        {wholesaleMarketValue !== undefined && (
+          <p className={styles.networkMarket}>
+            {WMV_TERM} <b>{unitPrice(wholesaleMarketValue)}</b>
+            <InfoTip term={WMV_TERM}>{`${WMV_TERM}: ${WMV_HELP}`}</InfoTip>
+          </p>
+        )}
+      </div>
       {match.kind === 'full' ? (
         <>
-          <ul className={styles.networkList} aria-label={`Can cover all ${match.needed}`}>
-            {match.cover.map((l) => <NetworkRow key={l.id} listing={l} />)}
-          </ul>
+          <ul className={styles.networkList} aria-label={`Can cover all ${match.needed}`}>{match.cover.map(row)}</ul>
           {match.some.length > 0 && (
             <>
               <p className={styles.networkGroup}>Other retailers with some</p>
-              <ul className={styles.networkList}>{match.some.map((l) => <NetworkRow key={l.id} listing={l} />)}</ul>
+              <ul className={styles.networkList}>{match.some.map(row)}</ul>
             </>
           )}
         </>
       ) : (
-        <ul className={styles.networkList} aria-label="Retailers with some">{match.some.map((l) => <NetworkRow key={l.id} listing={l} />)}</ul>
+        <ul className={styles.networkList} aria-label="Retailers with some">{match.some.map(row)}</ul>
       )}
     </section>
   )
@@ -244,7 +273,7 @@ function LineDetail({ line, quantity, setQuantity, order, weekStarts }: {
       {(why || network) && (
         <div className={[styles.zones, why && network && styles.zonesBoth].filter(Boolean).join(' ')}>
           {why && <div id={whyId} className={styles.whyZone}><WhyPanel line={line} supplier={order.supplier} leadTimeDays={order.leadTimeDays} orderBy={order.orderBy} weekStarts={weekStarts} /></div>}
-          {network && <NetworkPanel id={networkId} match={network} />}
+          {network && <NetworkPanel id={networkId} match={network} wholesaleMarketValue={line.wholesaleMarketValue} />}
           {why && <Notes line={line} />}
         </div>
       )}

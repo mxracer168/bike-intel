@@ -1,0 +1,12 @@
+.wrap { position: relative; display: inline-flex; vertical-align: middle; }
+.button {
+  display: inline-grid; place-items: center; width: 22px; height: 22px; margin: -3px 0; padding: 0;
+  border: 0; border-radius: 50%; background: none; color: var(--ink-3); cursor: pointer;
+}
+.button:hover, .button[aria-expanded='true'] { color: var(--ink); }
+.tip {
+  position: absolute; z-index: 20; top: calc(100% + 6px); right: -8px; width: max-content; max-width: 260px;
+  padding: 8px 10px; border-radius: var(--r-sm); background: var(--inverse); color: var(--on-inverse);
+  font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 400; text-align: left; white-space: normal;
+  box-shadow: var(--sh-2);
+}

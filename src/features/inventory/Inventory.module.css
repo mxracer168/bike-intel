@@ -1,4 +1,5 @@
 /* ---------- Page ---------- */
+.frameHead { display: flex; flex-direction: column; gap: var(--sp-4); }
 .head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3); }
 .title { font-size: var(--fs-title); line-height: var(--lh-title); font-weight: 600; letter-spacing: -0.015em; }
 .zones { display: flex; flex-direction: column; gap: var(--sp-7); }

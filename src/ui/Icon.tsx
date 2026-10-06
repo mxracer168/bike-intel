@@ -1,4 +1,4 @@
-type IconName = 'chevron-down' | 'chevron-right' | 'check' | 'alert' | 'info' | 'arrow-right' | 'menu' | 'close' | 'search' | 'external' | 'plus' | 'mic' | 'arrow-up' | 'file' | 'grip' | 'more' | 'question' | 'copy' | 'list-bullet' | 'list-number' | 'trend-up'
+type IconName = 'chevron-down' | 'chevron-right' | 'check' | 'alert' | 'info' | 'arrow-right' | 'menu' | 'close' | 'search' | 'external' | 'plus' | 'mic' | 'arrow-up' | 'file' | 'grip' | 'more' | 'question' | 'copy' | 'list-bullet' | 'list-number' | 'trend-up' | 'arrow-down'
 
 const paths: Record<IconName, React.ReactNode> = {
   'chevron-down': <path d="M3.5 6 8 10.5 12.5 6" />,
@@ -17,6 +17,7 @@ const paths: Record<IconName, React.ReactNode> = {
   'list-bullet': <><path d="M6.5 4.5h7M6.5 8h7M6.5 11.5h7" /><circle cx="3.2" cy="4.5" r=".8" /><circle cx="3.2" cy="8" r=".8" /><circle cx="3.2" cy="11.5" r=".8" /></>,
   'list-number': <><path d="M6.5 4.5h7M6.5 8h7M6.5 11.5h7" /><path d="M2.6 3.4 3.4 3v3M2.4 9.3c.2-.5 1.6-.6 1.6.2 0 .6-1.6 1.2-1.6 1.9h1.7" /></>,
   'trend-up': <><path d="M2 11.5 6 7.5l2.5 2.5L14 4.5" /><path d="M10 4.5h4v4" /></>,
+  'arrow-down': <path d="M8 3v10M4 9l4 4 4-4" />,
   plus: <path d="M8 3v10M3 8h10" />,
   mic: <><rect x="6" y="2" width="4" height="7.5" rx="2" /><path d="M3.5 7.5a4.5 4.5 0 0 0 9 0M8 12v2" /></>,
   'arrow-up': <path d="M8 13V3M4 7l4-4 4 4" />,

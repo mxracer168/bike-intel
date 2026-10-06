@@ -30,19 +30,21 @@ function catalog(families: Family[]) {
 type Special = Partial<OrderLineView> & { state: LineState }
 
 /**
- * Other participating retailers (fictional) and what they've made available.
- * Example only: assumes they already opted in and chose how many to share.
+ * Other participating retailers (fictional), their reputations and what they've
+ * made available. Example only: assumes they already opted in. Ratings, reviews
+ * and completed transactions are invented; nothing is scored.
  */
 const shop = {
-  palmetto: { name: 'Palmetto Cycles', place: 'Charleston, SC' },
-  river: { name: 'River City Bikes', place: 'Columbia, SC' },
-  trailhead: { name: 'Trailhead Bicycle Co.', place: 'Greenville, SC' },
-  midtown: { name: 'Midtown Bikes', place: 'Columbia, SC' },
-  upstate: { name: 'Upstate Cycling', place: 'Spartanburg, SC' },
-  lowcountry: { name: 'Lowcountry Wheelworks', place: 'Beaufort, SC' },
+  palmetto: { name: 'Palmetto Cycles', place: 'Charleston, SC', reputation: { rating: 4.8, reviews: 23, completed: 79 } },
+  river: { name: 'River City Bikes', place: 'Columbia, SC', reputation: { rating: 4.6, reviews: 41, completed: 112 } },
+  trailhead: { name: 'Trailhead Bicycle Co.', place: 'Greenville, SC', reputation: { rating: 4.9, reviews: 8, completed: 15 } },
+  midtown: { name: 'Midtown Bikes', place: 'Columbia, SC', reputation: { reviews: 0, completed: 2 } },
+  upstate: { name: 'Upstate Cycling', place: 'Spartanburg, SC', reputation: { rating: 5, reviews: 1, completed: 3 } },
+  lowcountry: { name: 'Lowcountry Wheelworks', place: 'Beaufort, SC', reputation: { reviews: 0, completed: 0 } },
 }
-const listing = (key: keyof typeof shop, available: number, item: string): NetworkListing =>
-  ({ id: `net-${item}-${key}`, retailer: shop[key], available })
+/** A retailer's offer: units and their network price per unit. */
+const listing = (key: keyof typeof shop, available: number, item: string, price: number): NetworkListing =>
+  ({ id: `net-${item}-${key}`, retailer: shop[key], available, price })
 
 type Plan = {
   id: string
@@ -177,14 +179,16 @@ const northline = build({
             supplier: { status: 'out', note: 'Back ~Oct 20' }, onHand: 0, onOrder: 0,
       reason: 'You’ve run out, and chains sell for you every week.',
       alternatives: ['Wait for Northline’s restock around October 20 and order then.'],
-      network: [listing('trailhead', 12, 'x11'), listing('palmetto', 9, 'x11'), listing('river', 2, 'x11')] },
+      wholesaleMarketValue: 25.5,
+      network: [listing('trailhead', 12, 'x11', 23), listing('palmetto', 9, 'x11', 25.5), listing('river', 2, 'x11', 27)] },
     'Shimano B01S resin disc brake pads · Pair': { state: 'ok', quantity: 6,
       supplier: { status: 'available', note: 'Available' },
-      network: [listing('palmetto', 10, 'b01s'), listing('river', 6, 'b01s'), listing('trailhead', 8, 'b01s'), listing('midtown', 2, 'b01s'), listing('upstate', 1, 'b01s')], onHand: 2, onOrder: 0, confidence: 'high', weeklySales: [1, 2, 1, 3, 2, 2, 3, 2, 3, 2, 2, 3],
+      wholesaleMarketValue: 10.2,
+      network: [listing('palmetto', 10, 'b01s', 9.5), listing('river', 6, 'b01s', 10.2), listing('trailhead', 8, 'b01s', 9.8), listing('midtown', 2, 'b01s', 10.2), listing('upstate', 1, 'b01s', 11)], onHand: 2, onOrder: 0, confidence: 'high', weeklySales: [1, 2, 1, 3, 2, 2, 3, 2, 3, 2, 2, 3],
       reason: 'The 2 you have will run out in about a week.',
       alternatives: ['Shimano J05A pads fit the same brakes and cost a little more.'] },
     'Maxxis Minion DHF · 29 × 2.5 WT EXO+': { state: 'review', quantity: 4,
-            network: [listing('midtown', 2, 'dhf'), listing('upstate', 1, 'dhf'), listing('lowcountry', 3, 'dhf')], onHand: 1, onOrder: 0, weeklySales: [0, 1, 1, 0, 1, 2, 1, 1, 2, 1, 1, 2],
+            wholesaleMarketValue: 61, network: [listing('midtown', 2, 'dhf', 61), listing('upstate', 1, 'dhf', 55), listing('lowcountry', 3, 'dhf', 58)], onHand: 1, onOrder: 0, weeklySales: [0, 1, 1, 0, 1, 2, 1, 1, 2, 1, 1, 2],
       reason: 'You sold 5 last October, more than your usual pace, so we added a little for fall.' },
     'Park Tool CT-3.3 chain tool': { state: 'question', quantity: 2,
       supplier: { status: 'available', note: 'Available' }, onHand: 0, onOrder: 0, weeklySales: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
@@ -197,11 +201,13 @@ const northline = build({
       weeklySales: [1, 2, 1, 1, 0, 1, 1, 1, 0, 1, 2, 1], seasonalPace: 0.2,
       supplier: { status: 'out', note: 'Expected in 18 days', expectedInDays: 18 },
       availability: 'None at the Reno warehouse. Northline expects its next shipment in about 18 days.',
-      network: [listing('river', 4, 'gp28'), listing('palmetto', 2, 'gp28')], reason: 'Selling faster than usual for this time of year. We kept the order close to your normal amount.' },
+      wholesaleMarketValue: 54, network: [listing('river', 4, 'gp28', 49.7), listing('palmetto', 2, 'gp28', 54)], reason: 'Selling faster than usual for this time of year. We kept the order close to your normal amount.' },
     'Maxxis Assegai · 29 × 2.5 WT EXO+': { state: 'review',
-            supplier: { status: 'limited', note: '2 left' }, reason: 'Northline has only a few left, so we suggest ordering now rather than next week.' },
+            supplier: { status: 'limited', note: '2 left' }, reason: 'Northline has only a few left, so we suggest ordering now rather than next week.',
+      wholesaleMarketValue: 63, network: [listing('palmetto', 4, 'assegai', 63)] },
     'Continental Gatorskin · 700 × 25': { state: 'review',
-      reason: 'You returned 2 of these last month. Worth checking before reordering.' },
+      reason: 'You returned 2 of these last month. Worth checking before reordering.',
+      wholesaleMarketValue: 38, network: [listing('lowcountry', 6, 'gator25', 41)] },
     'Shimano RT-MT800 rotor · 203 mm': { state: 'question', quantity: 2,
       reason: 'You haven’t stocked this size before, so we started small.',
       question: { prompt: 'Do you want to start stocking 203 mm rotors?', choices: ['Yes, keep a few', 'No, order as needed'] } },

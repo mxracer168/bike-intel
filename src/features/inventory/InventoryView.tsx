@@ -153,9 +153,8 @@ export function InventoryView({ items, locations, trends }: {
 
   return (
     <>
-      <header className={styles.head}>
-        <h1 className={styles.title}>Inventory</h1>
-        {multi && (
+      {multi && (
+        <header className={styles.head}>
           <label className={styles.control}>
             <span className="visually-hidden">Location</span>
             <select value={locationId ?? ''} onChange={(e) => { setLocationId(e.target.value || null); setOpen(null) }}>
@@ -163,8 +162,8 @@ export function InventoryView({ items, locations, trends }: {
               {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
             </select>
           </label>
-        )}
-      </header>
+        </header>
+      )}
 
       <div className={styles.zones}>
         <section aria-labelledby="inventory-health">

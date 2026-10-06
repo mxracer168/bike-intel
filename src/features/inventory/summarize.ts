@@ -1,3 +1,4 @@
+import { EXAMPLE_EXCESS_WEEKS } from './excess'
 import type { Condition, CoverageUnit, InventoryItemView, Measure } from './types'
 
 /** On hand at one location, or everywhere when `locationId` is null. */
@@ -36,13 +37,14 @@ export function formatCoverage(weeks: number | null, unit: CoverageUnit): string
 
 /**
  * A rough condition for filtering, not a verdict shown on every row:
- * not selling, low (under three weeks), excess (over sixteen), else healthy.
+ * not selling, low (under three weeks), excess (beyond the excess rule, the
+ * same one the Excess inventory tab uses), else healthy.
  */
 export function condition(item: InventoryItemView, locationId: string | null): Condition {
   const weeks = coverWeeks(onHandAt(item, locationId), perWeekAt(item, locationId))
   if (weeks === null) return 'not_selling'
   if (weeks < 3) return 'low'
-  if (weeks > 16) return 'excess'
+  if (weeks > EXAMPLE_EXCESS_WEEKS) return 'excess'
   return 'healthy'
 }
 

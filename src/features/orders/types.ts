@@ -1,3 +1,5 @@
+import type { Reputation } from '@/features/network/reputation'
+
 /**
  * What the proposed-order screens need to render. Presentation shapes, not
  * database models: real orders will be mapped into these from
@@ -10,14 +12,17 @@ export type LineState = 'ok' | 'review' | 'question'
 
 /**
  * Units another participating retailer has chosen to make available. The
- * seller side (opting in, how many) happens elsewhere; this is what a buyer
- * sees. No price: that is agreed between the two retailers.
+ * seller side (opting in, the excess rule, price exceptions) happens in their
+ * Excess inventory; this is what a buyer sees: enough to understand the
+ * trade before contacting anyone.
  */
 export type NetworkListing = {
   id: string
-  /** How the other retailer is identified. How much is revealed, and when, is a policy decision not yet made. */
-  retailer: { name: string; place: string }
+  /** The seller, named alongside their reputation (docs/network.md). */
+  retailer: { name: string; place: string; reputation: Reputation }
   available: number
+  /** The seller's network price per unit: Wholesale Market Value unless they changed it. */
+  price: number
 }
 
 /** available: normal · limited: few left · delayed: late delivery · out: can't supply now. */
@@ -57,6 +62,8 @@ export type OrderLineView = {
   alternatives: string[]
   /** Other retailers' available units for this item (absent or empty: nothing to show). */
   network?: NetworkListing[]
+  /** The platform's Wholesale Market Value per unit, the benchmark for network prices. Example data only. */
+  wholesaleMarketValue?: number
 }
 
 export type ProposedOrderView = {

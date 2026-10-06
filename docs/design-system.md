@@ -100,7 +100,7 @@ table has to scan like a plain list.
 | Default table | Always | Product description, on hand, on order, order quantity, cost. Nothing else: no reason, proof, confidence, supplier status, delivery, retailer availability, attention labels, icons, badges or questions. |
 | Row clicked | The buyer opens a line | The row and its detail become one surface across the full table width: a very light blue wash (`--accent-wash`), a 3px accent edge on the left, the product name in bold. Inside: one line of controls: quantity, "Why 4? ⌄", "3 retailers have some ⌄". No heading and no one-line reason: the quantity is already in the table and the control, and the reasoning is behind "Why 4?". |
 | Why | "Why 3?" | Answer, reason, evidence (`docs/recommendations.md`). Left: the plain-language explanation, the calculation as one connected strip (the result on a pale blue), recent weekly sales, then seasonality and supplier availability as quiet rows with "View details". Right, narrower: "What we considered" as label and value rows, then "Recommended next step" on a pale blue. Stacks below on narrow screens. "Other options" follows as a small panel when there are any. |
-| Other retailers | Separate, collapsed | The signal is an outlined disclosure, bold only when the supplier is out of stock or delayed. Opened, "Other retailers" is its own white panel: name, place, units available, "Request connection". |
+| Other retailers | Separate, collapsed | The signal is an outlined disclosure, bold only when the supplier is out of stock or delayed. Opened, "Other retailers" is its own white panel: Wholesale Market Value once at the top, then each offer with retailer, place and reputation, units available, network price and how it compares, and "Contact retailer". |
 
 **Zones follow what's open.** Why and other retailers both open: Why takes
 about two thirds on the left, other retailers the right third, assumptions and
@@ -143,6 +143,16 @@ the user asks for more?** If not, it goes one level down.
 - **Icons sparingly**, and never as a replacement for removed words.
 - **Dense by default.** Compact rows, strong alignment, numbers in their own
   columns, no wrapping on desktop, no oversized controls.
+
+## Network prices and reputation
+
+A network price is compared to Wholesale Market Value with a small arrow and
+words ("↓ 8% below"), never color alone, and nothing when they're equal.
+Gain or loss against average cost is signed text. Reputation is one plain
+line ("4.8 ★ · 23 reviews · 79 completed transactions"; "No reviews yet ·
+New to the network"): no badges, tiers or ranks. A new term like Wholesale
+Market Value gets one quiet (i) explanation where it first appears. See
+`network.md`.
 
 ## Libraries of connections and similar lists
 

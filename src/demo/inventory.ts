@@ -172,6 +172,46 @@ const EXACT = new Set(['Maxxis Minion DHF|29 × 2.5 WT EXO+', 'Shimano B01S resi
 /** The rows above list a slow-season pace; the example runs at a typical one. */
 const PACE = 1.75
 
+/**
+ * Slow movers: stock that sells well below the shop's usual pace (older
+ * model years, niche sizes, big-ticket items bought deep). Their pace is
+ * used exactly, so the example has realistic excess inventory.
+ */
+const SLOW: Record<string, number> = {
+  'Shimano 105 R7100 Di2 groupset|2 × 12-speed': 0.25,
+  'Shimano Ultegra R8170 wheelset|C36 tubeless': 0.2,
+  'Shimano Tourney rear derailleur|7-speed': 0.6,
+  'Shimano RC3 road shoes|Assorted sizes': 0.3,
+  'Shimano Premium grease|1 lb': 0.4,
+  'Trek Checkpoint ALR 5|Assorted sizes': 0.06,
+  'Trek Domane AL 2|Assorted sizes': 0.1,
+  'Zipp 303 Firecrest wheelset|Tubeless, disc': 0.08,
+  'RockShox Lyrik Select fork|29, 160 mm': 0.1,
+  'RockShox Deluxe Select+ shock|210 × 55': 0.15,
+  'SRAM bleed kit|DOT': 0.12,
+  'Maxxis High Roller III|29 × 2.4 WT': 0.5,
+  'Maxxis Dissector|29 × 2.4 WT': 0.5,
+  'Maxxis Aggressor|29 × 2.5 WT DD': 0.3,
+  'Maxxis Receptor|700 × 40 EXO': 0.35,
+  'Maxxis Minion DHF DH|29 × 2.5 WT DH': 0.2,
+  'Maxxis Ardent Race|29 × 2.35 EXO': 0.25,
+  'Fox Float X shock|230 × 60': 0.05,
+  'Fox Speedframe helmet|MIPS, assorted sizes': 0.25,
+  'DT Swiss XM 1700 wheelset|29, Boost': 0.08,
+  'Schwalbe inner tube|20 × 1.5–2.4 Schrader': 0.6,
+  'Continental Gatorskin|700 × 25': 0.4,
+  'Stan’s NoTubes Flow MK4 rim|29, 32h': 0.2,
+  'Giro Syntax MIPS helmet|Assorted sizes': 0.2,
+  'Pearl Izumi Quest shorts|Assorted sizes': 0.5,
+  'Topeak Explorer rear rack|Disc mount': 0.12,
+  'Crankbrothers Candy 3 pedals|': 0.15,
+  'Surly Bridge Club|Assorted sizes': 0.06,
+  'Wahoo KICKR Core trainer|': 0.1,
+  'Thule EasyFold XT 2 hitch rack|': 0.15,
+  'Lizard Skins DSP 2.5 bar tape|Black': 0.45,
+  'Kryptonite KryptoLok lock|Standard': 0.2,
+}
+
 /** How demo stock is spread when the retailer has more than one stocking location. */
 const SPLIT = [0.5, 0.3, 0.2, 0.1, 0.05]
 
@@ -184,7 +224,8 @@ export function demoInventory(locations: InventoryLocation[]): InventoryItemView
   const weights = locations.map((_, i) => SPLIT[i] ?? 0.05)
   const total = weights.reduce((a, b) => a + b, 0)
   return rows.map(([product, variant, brand, category, supplier, cost, onHand, listed, onOrder = 0], i) => {
-    const perWeek = EXACT.has(`${product}|${variant}`) ? listed : Math.round(listed * PACE * 100) / 100
+    const key = `${product}|${variant}`
+    const perWeek = SLOW[key] ?? (EXACT.has(key) ? listed : Math.round(listed * PACE * 100) / 100)
     // Split on hand by location; the first location takes any rounding remainder.
     const parts = weights.map((w) => Math.floor((onHand * w) / total))
     parts[0] = (parts[0] ?? 0) + onHand - parts.reduce((a, b) => a + b, 0)

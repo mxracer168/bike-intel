@@ -2,10 +2,10 @@ import type { Metadata } from 'next'
 import { isDemoPreviewEnabled } from '@/demo/config'
 import { demoInventory, demoInventoryTrends } from '@/demo/inventory'
 import { listLocations } from '@/domain/location/list'
+import { InventoryFrame } from '@/features/inventory/InventoryFrame'
 import { InventoryView } from '@/features/inventory/InventoryView'
 import { Placeholder } from '@/features/placeholder/Placeholder'
 import { requireOrganization } from '@/server/session'
-import { Page } from '@/ui/Layout'
 
 export const metadata: Metadata = { title: 'Inventory' }
 
@@ -28,8 +28,8 @@ export default async function InventoryPage() {
     .filter((l) => l.status === 'active' && l.stocks)
     .map((l) => ({ id: l.id, name: l.name }))
   return (
-    <Page>
+    <InventoryFrame>
       <InventoryView items={demoInventory(locations)} locations={locations} trends={demoInventoryTrends} />
-    </Page>
+    </InventoryFrame>
   )
 }
