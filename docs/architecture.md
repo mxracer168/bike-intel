@@ -204,6 +204,13 @@ observation never breaks an explanation.
   context) when replenishment is built. No generic settings table.
 - **Order undo / recoverability**: decide when order submission and supplier
   capabilities are understood. No delayed-send status yet.
+- **Retailer network (excess inventory sharing)**: Wholesale Market Value,
+  default network pricing with retailer overrides, exclusions, the
+  retailer-controlled excess rule, participation expectations, reputation and
+  reviews, and a lightweight transaction lifecycle. Decisions and the future
+  model (participation, offers, network transactions, reviews) are recorded in
+  `network.md`; nothing is in the schema yet. The platform stays outside
+  payment and shipping.
 
 ## Not built yet (deliberately)
 

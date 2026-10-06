@@ -40,6 +40,16 @@ were the same thing. "Units on hand" is never one of the top health cards.
    - Conditions (low, healthy, excess, not selling) are filters, never
      badges on every row.
 
+4. **Excess inventory** (a tab beside the main view, not another sidebar
+   destination): what the system thinks is excess under the retailer's own
+   rule ("more than N weeks of projected supply"), why, and what another
+   retailer would pay for it. Opted-in excess is offered to the retailer
+   network at Wholesale Market Value by default; the retailer manages only
+   exceptions (a different network price, or excluding an item). Behavior and
+   decisions: `network.md`.
+
+   The inventory table's **Excess** condition uses the same rule.
+
 **Locations.** With more than one stocking location, a location control
 ("All locations" by default) changes the cards, charts and table; all
 locations are consolidated and an opened item shows its split. With one
@@ -56,4 +66,4 @@ forecast or computed from real sales.
 
 POS integration, real turn and weeks-of-supply calculations, forecasting,
 replenishment, accounting, transfers between locations, supplier sourcing,
-and sharing overstock with other retailers.
+and anything that makes network sharing real (see `network.md`).
