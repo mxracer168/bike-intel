@@ -28,6 +28,9 @@ that aren't selling at all are excess in full.
 
 - The rule is shown in plain words wherever excess is listed, with a way to
   change it. No rule builder.
+- Projected supply uses the item's demand pace. When demand channels exist
+  (`architecture.md`), the pace should exclude special orders and account for
+  channel, so one customer's order doesn't make stock look like it's moving.
 - The platform may suggest a starting rule, but no default is locked. A good
   rule may eventually vary by category, seasonality, stocking intent and
   other context (a shop deliberately stocking ahead for spring is not

@@ -140,7 +140,7 @@ Visibility key: **G** global/shared · **R** retailer-private ·
 | Relationships | `supplier_relationship` | Rel | Claimed / verified / inactive / suspended; preference |
 | | `supplier_terms` | Rel | Time-aware terms; optional location override |
 | | `supplier_offer_observation` | Rel | Cached price/availability; optional warehouse level |
-| POS mirror | `sale_line` | R | POS sales/returns with local business date |
+| POS mirror | `sale_line` | R | POS sales/returns with local business date; source and provenance, special-order flag (demand channel and fulfillment not yet modelled, see Demand channels) |
 | | `inventory_history` | R | Change-based on-hand periods + last confirmation |
 | Programs | `program` | O | Private (retailer upload) or public (supplier-published) |
 | | `program_version` | follows program | Versioned interpretation; frozen once confirmed |
@@ -194,6 +194,81 @@ Normalized rows keep their `import_batch_id` after raw data is purged.
 Recommendation lines copy the assumptions they used, so purging an
 observation never breaks an explanation.
 
+## Demand channels: what kind of demand a sale represents
+
+Historical sales are not one undifferentiated demand stream. A tube sold over
+the counter, a tube used in a repair, a tire ordered for one named customer
+and a helmet bought online and shipped from the warehouse imply very
+different things for forecasting, replenishment, assortment and inventory
+risk. The platform preserves those distinctions wherever source systems make
+it possible.
+
+**Four separate facts, never one "sales type" field:**
+
+| Fact | Answers | Examples |
+|---|---|---|
+| **Demand channel** | Where, or through what kind of customer interaction, did the demand originate? | In-store, E-commerce, Service, Rental; later B2B / commercial, events, others |
+| **Data source** | Which external system supplied the transaction? | Lightspeed Retail, Shopify, a work-order system, another POS |
+| **Fulfillment** | How, and from where, was it fulfilled? | From the selling location, another store, a central warehouse, drop-ship, supplier-direct; pickup or shipment |
+| **Special-order intent** | Did a specific customer commit to this item? | Known from the source, inferred by the platform, or unknown |
+
+- **Channel is not source.** Not everything from Shopify is one kind of
+  demand, and not everything from a POS is ordinary in-store stocking
+  demand. Channel is assigned per transaction (or line), not per
+  connection.
+- **Channel is not fulfillment.** A customer can buy online while a store, a
+  warehouse or a supplier fulfills it. Online demand fulfilled from a store,
+  from a warehouse, or drop-shipped are three different signals for local
+  stocking.
+- **Retailer-defined channels.** In-store, E-commerce, Service and Rental are
+  a starter list, not an industry taxonomy. Retailers will be able to rename,
+  disable and add channels; logic keys off a stable channel identity, never
+  its display name.
+- **Special orders don't teach stocking.** An item sold because one customer
+  committed to it must not teach the system "this store should normally
+  stock it". Where the source says so, keep it; where the platform infers a
+  likely special order, the inference stays distinguishable from known
+  source data (who or what decided, and when).
+- **Service consumption is real demand.** Parts used on a work order (tubes,
+  cables, brake pads) count as demand even when never scanned at a retail
+  checkout, and keep their service identity. This may later affect stocking
+  targets, stockout tolerance, replenishment priority, forecasting and
+  assortment; no weighting exists yet.
+- **Provenance travels with every line:** source system, the source's
+  transaction and line identifiers, the import batch.
+
+**Channel-aware intelligence (future).** The recommendation engine should be
+able to say things like "most of this item's demand comes from service",
+"online demand is growing while store demand is flat", "these were special
+orders, so we didn't treat them as normal replenishment demand", or "this
+location fulfills much of the organization's online demand". Nothing
+channel-aware is built: today's pace and weeks-of-supply figures (including
+the excess rule) treat demand as one stream and must become channel-aware,
+excluding special orders, when this lands.
+
+**What the schema has today (`sale_line`):**
+
+| Need | Today |
+|---|---|
+| Data source | `connection_id` (the provider) |
+| Provenance | `external_sale_id`, `external_line_id`, `import_batch_id` |
+| Location | `location_id`, which is the location the source reported; whether that is where it was sold or where it was fulfilled is not distinguished |
+| Special-order intent | `is_special_order` (true / false / null = not reported); no way yet to mark a value as inferred rather than reported |
+| Demand channel | Not represented (anything a source reports sits unmodelled in `attributes`) |
+| Fulfillment method / location | Not represented |
+| Service / work-order consumption | Not represented: no work-order source; consumption would not arrive as an ordinary sale line |
+
+**Requirement for the additive migration (when a second channel or source
+is connected, not before):** a retailer-scoped **demand channel** table
+(stable id, display name, enabled, starter set seeded per retailer);
+`sale_line.demand_channel_id`, `fulfillment_method` and
+`fulfillment_location_id` alongside the existing location, with the
+existing `location_id` documented as the selling location; special-order
+provenance (reported vs inferred, by what, when); and a home for service
+consumption (work-order lines, or sale lines in the Service channel with
+their work-order reference). The import layer maps each source's fields into
+these explicitly; unknown stays null rather than defaulting to "in-store".
+
 ## Recorded for later (no schema change yet)
 
 - **Recommendation confidence** becomes structured data in an additive
@@ -204,6 +279,9 @@ observation never breaks an explanation.
   context) when replenishment is built. No generic settings table.
 - **Order undo / recoverability**: decide when order submission and supplier
   capabilities are understood. No delayed-send status yet.
+- **Demand channels**: channel, data source, fulfillment and special-order
+  intent stay separate facts; retailer-defined channels; requirement for an
+  additive migration recorded under "Demand channels" above.
 - **Retailer network (excess inventory sharing)**: Wholesale Market Value,
   default network pricing with retailer overrides, exclusions, the
   retailer-controlled excess rule, participation expectations, reputation and
