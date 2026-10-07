@@ -196,7 +196,7 @@ the standard right-side panel (a full-screen sheet on phones). See
 8. Prefer undo over "are you sure?" dialogs. Button labels say exactly what happens. *(test)*
 9. Show uncertainty honestly and ask one question instead of guessing.
 10. The left sidebar is the primary application navigation (approved change to the
-    original guide, which said "no feature sidebars"): one flat list (Today, Orders,
+    original guide, which said "no feature sidebars"): one flat list (Dashboard, Orders,
     Inventory, Programs, Suppliers, Insights, Business), no section headers, no
     icons. Keep it visually quiet so Today stays the obvious home. Sub-pages use
     quiet in-page tabs, never a second sidebar. The current retailer and the

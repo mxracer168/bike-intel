@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest'
 import { businessTabs, inventoryTabs, isCurrent, navigation } from '@/content/navigation'
 
 describe('primary navigation', () => {
-  it('is the approved flat list, starting with Today', () => {
-    expect(navigation.map((i) => i.label)).toEqual(['Today', 'Orders', 'Inventory', 'Programs', 'Suppliers', 'Insights', 'Connections', 'Business'])
+  it('is the approved flat list, starting with Dashboard', () => {
+    expect(navigation.map((i) => i.label)).toEqual(['Dashboard', 'Orders', 'Inventory', 'Programs', 'Suppliers', 'Insights', 'Connections', 'Business'])
   })
 
   it('points every item and in-page tab at a real page', () => {

@@ -9,13 +9,14 @@ import today from '@/features/today/Today.module.css'
 import { WeeklyCheckIn } from '@/features/today/WeeklyCheckIn'
 import { PriorityList } from '@/features/work/PriorityList'
 import { requireOrganization } from '@/server/session'
+import { ButtonLink } from '@/ui/Button'
 import { ExampleMarker } from '@/ui/Example'
 import { Page } from '@/ui/Layout'
 
-export const metadata: Metadata = { title: 'Today' }
+export const metadata: Metadata = { title: 'Dashboard' }
 
 /**
- * Today, in three zones: business health (how are we doing?), priorities
+ * The dashboard (at /today), in three zones: business health (how are we doing?), priorities
  * (what should I work on?) and questions for you (what does the system need
  * from me?). Layout does the explaining; no headline sentence.
  */
@@ -30,7 +31,7 @@ export default async function TodayPage() {
   return (
     <Page>
       <header className={styles.head}>
-        <h1 className="visually-hidden">Today</h1>
+        <h1 className="visually-hidden">Dashboard</h1>
         <p className={styles.eyebrow}>{date}{demo && <ExampleMarker />}</p>
         {!demo && <p className={styles.lead}>Once your sales are connected, this is where you’ll see how the business is doing and what to work on.</p>}
       </header>
@@ -57,6 +58,13 @@ export default async function TodayPage() {
 
         <WeeklyCheckIn />
       </div>
+
+      {/* Temporary: a way into the onboarding conversation prototype for demos. Remove with the prototype. */}
+      {demo && (
+        <p>
+          <ButtonLink href="/demo/onboarding" variant="quiet" size="sm">Preview the onboarding conversation</ButtonLink>
+        </p>
+      )}
     </Page>
   )
 }

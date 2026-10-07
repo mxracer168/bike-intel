@@ -23,13 +23,13 @@ test('a new retailer signs up, confirms their email and completes onboarding', a
   await completeBusiness(page, 'Summit Cycles E2E')
   await completeLocation(page, 'Main Street')
   await completeAgreements(page, 'declined')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Today')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Dashboard')
   await expect(page.getByText('Once your sales are connected, this is where you’ll see how the business is doing')).toBeVisible()
   await expect(page.getByRole('region', { name: 'Current retailer' })).toContainText('Summit Cycles E2E')
 
-  // Primary navigation: the sidebar, Today first.
+  // Primary navigation: the sidebar, Dashboard first.
   const nav = page.getByRole('navigation', { name: 'Primary' }).first()
-  await expect(nav.getByRole('link').first()).toHaveText('Today')
+  await expect(nav.getByRole('link').first()).toHaveText('Dashboard')
   await nav.getByRole('link', { name: 'Orders' }).click()
   await expect(page).toHaveURL(/\/orders$/)
 

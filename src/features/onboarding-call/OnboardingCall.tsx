@@ -250,7 +250,7 @@ function CheckIn({ offer, example }: { offer: CheckInOffer; example?: boolean })
           <h2 id="checkin-title" className={styles.checkInTitle}>Weekly check-in · {day} at {time}</h2>
           <p>It happens right here, in the same conversation. In between, you can open it any time from the app to tell me something, answer a question, or ask about your business.</p>
           <div className={styles.actions}>
-            <ButtonLink href="/today" variant="primary">Continue to Today</ButtonLink>
+            <ButtonLink href="/today" variant="primary">Continue to Dashboard</ButtonLink>
           </div>
           {example && <p className={styles.exampleNote}>Example only. Nothing was scheduled.</p>}
         </div>
