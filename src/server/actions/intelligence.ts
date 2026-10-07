@@ -3,7 +3,7 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { z } from 'zod'
 import { attachmentPath, attachmentProblem } from '@/domain/intelligence/attachments'
-import { loadConversation, type Conversation, type ConversationEntry } from '@/domain/intelligence/conversation'
+import { loadConversation, type Conversation, type ConversationEntry, type ItemScope } from '@/domain/intelligence/conversation'
 import { requireOrganization } from '@/server/session'
 
 /**
@@ -23,13 +23,22 @@ export async function loadConversationAction(): Promise<Conversation> {
   return loadConversation(db, organization.id, user.id)
 }
 
-export async function sendMessageAction(text: string): Promise<Result<ConversationEntry>> {
+const itemScope = z.object({ label: z.string().trim().min(1).max(200), productId: z.uuid().optional() }).nullable().catch(null)
+
+/**
+ * A message, optionally about one item (opened from that item). The item
+ * scope is checked and returned with the message for display; storing it
+ * needs a column on intelligence_message that doesn't exist yet (see
+ * docs/intelligence.md, "Messages about one item").
+ */
+export async function sendMessageAction(text: string, about: ItemScope | null = null): Promise<Result<ConversationEntry>> {
   const body = z.string().trim().min(1).max(10000).safeParse(text)
   if (!body.success) return { ok: false, message: 'Write something first.' }
+  const scope = itemScope.parse(about)
   const { db, user, organization } = await requireOrganization()
   const { data, error } = await db
     .from('intelligence_message')
-    .insert({ organization_id: organization.id, author_type: 'retailer', author_user_id: user.id, kind: 'text', body: body.data, surface: 'panel' })
+    .insert({ organization_id: organization.id, author_type: 'retailer', author_user_id: user.id, kind: 'text', body: body.data, surface: scope ? 'recommendation' : 'panel' })
     .select('id, created_at')
     .single()
   if (error || !data) {
@@ -40,7 +49,7 @@ export async function sendMessageAction(text: string): Promise<Result<Conversati
     ok: true,
     value: {
       id: data.id, kind: 'text', author: 'you', authorId: user.id, body: body.data, createdAt: data.created_at,
-      questionId: null, answerChoice: null, attachment: null,
+      questionId: null, answerChoice: null, attachment: null, about: scope,
     },
   }
 }

@@ -279,6 +279,12 @@ these explicitly; unknown stays null rather than defaulting to "in-store".
   context) when replenishment is built. No generic settings table.
 - **Order undo / recoverability**: decide when order submission and supplier
   capabilities are understood. No delayed-send status yet.
+- **Messages about one item**: a conversation message written from a
+  recommendation carries the item it's about, so context from it can be
+  scoped to that product. Needs a nullable `product_id` on
+  `intelligence_message` (proposed, not applied); see `intelligence.md`.
+  Supplier warehouse detail on "Why N?" already has a home
+  (`supplier_warehouse`, warehouse-level `supplier_offer_observation`).
 - **Demand channels**: channel, data source, fulfillment and special-order
   intent stay separate facts; retailer-defined channels; requirement for an
   additive migration recorded under "Demand channels" above.

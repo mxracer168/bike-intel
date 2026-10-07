@@ -100,6 +100,41 @@ when, scope, lifespan, stated vs inferred, confidence and a review or expiry
 date. The original message or file is never changed. Inferred items are shown
 as inferred and can be confirmed or rejected by the retailer.
 
+## What a message is: context, a question, or feedback
+
+Only **business context** can become structured intelligence. Every message
+is first one of:
+
+| Kind | Example | Becomes |
+|---|---|---|
+| Business context | "We only stock this when someone asks for it." · "Keep two on hand during race season." | Eligible to become a `context_item` (stated, scoped, with its source message) |
+| Business question | "Why did you recommend two?" · "When did I last order from Northline?" | An answer (when answering exists); never context |
+| Product feedback | "This recommendation screen is confusing." | Feedback about the product; never context, and not part of the retailer's business intelligence |
+
+Classification is part of interpretation (not built). The conversation
+never confirms a message as "added context" by itself.
+
+## Messages about one item
+
+From a recommendation ("Why N?"), the retailer can open the same
+conversation already about that item: the composer shows the item as a
+removable chip, and messages written that way carry the item.
+
+- **Scoped, not global.** Context from such a message is eligible to become
+  intelligence scoped to that product (`context_item` with `scope_type =
+  'product'`), never organization-wide context by default.
+- **The boundaries above still apply.** A business question or product
+  feedback written about an item is still a question or feedback, not
+  context.
+- **The retailer stays in charge of scope.** Removing the chip writes an
+  ordinary, unscoped message.
+- **Today:** the item is shown on the chip and on the messages for the
+  visit, and the message is saved with surface `recommendation`, but which
+  item it was about isn't stored: `intelligence_message` has no item field
+  yet. Storing it is a one-column additive change (a nullable `product_id`
+  referencing `product`, checked like `context_item`'s), proposed and not
+  applied. Example items have no product id.
+
 ## System priority and the retailer's order
 
 Today's priorities have two orders, kept apart on purpose:

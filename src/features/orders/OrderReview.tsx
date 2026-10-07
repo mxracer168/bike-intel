@@ -4,6 +4,7 @@ import { Fragment, useId, useState, useSyncExternalStore, type ReactNode } from 
 import { average, formatMoney, plural } from '@/domain/language/plain'
 import { WeeklySalesChart } from '@/features/recommendations/WeeklySalesChart'
 import { AnchoredQuestion } from '@/features/intelligence/AnchoredQuestion'
+import { useIntelligence } from '@/features/intelligence/IntelligencePanel'
 import { PriceVsMarket, ReputationLine } from '@/features/network/NetworkBits'
 import { compareToMarket, unitPrice, WMV_HELP, WMV_TERM } from '@/features/network/pricing'
 import { ConfidenceMark } from '@/ui/Confidence'
@@ -14,7 +15,7 @@ import { networkMatch, networkSignal, retailerLabel, supplierShort, type Network
 import { orderNote } from './OrderList'
 import { freightGap, lineTotal, orderTotal, sortForReview } from './summarize'
 import type { NetworkListing, OrderLineView, ProposedOrderView } from './types'
-import { calculation, explanation, extraReason, nextStep, oneDecimal, paceWords, seasonView, supplierView, supplierWaiting } from './why'
+import { calculation, explanation, nextStep, oneDecimal, seasonView, supplierView, type SupplierView } from './why'
 import page from './Orders.module.css'
 import styles from './OrderReview.module.css'
 
@@ -38,51 +39,66 @@ function cost(amount: number, currency: string) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency, minimumFractionDigits: 2 }).format(amount)
 }
 
-const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
-
-/** An evidence row: a quiet icon, a title and one sentence, and an optional "View details" disclosure. */
-function EvidenceRow({ icon, title, sentence, details }: { icon: ReactNode; title: string; sentence: string; details?: string }) {
+/**
+ * Supplier availability in "What we considered": one value, and on request
+ * the supplier's own detail (warehouses only when the supplier reports them).
+ */
+function SupplierRow({ supplier, view }: { supplier: string; view: SupplierView }) {
   const [open, setOpen] = useState(false)
   const id = useId()
   return (
-    <li className={styles.evidenceRow}>
-      <span className={styles.evidenceIcon} aria-hidden="true">{icon}</span>
-      <div className={styles.evidenceText}>
-        <h4>{title}</h4>
-        <p>{sentence}</p>
-        {open && details && <p id={id} className={styles.evidenceMore}>{details}</p>}
-      </div>
-      {details && (
-        <button type="button" className={styles.viewDetails} aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)}>
-          {open ? 'Hide details' : 'View details'}<Icon name={open ? 'chevron-down' : 'arrow-right'} size={14} />
+    <div>
+      <dt>Supplier availability</dt>
+      <dd>
+        <button type="button" className={styles.expand} aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)}>
+          <b className={view.attention ? styles.attention : undefined}>{view.value}</b>
+          <Icon name="chevron-down" size={14} />
         </button>
-      )}
-    </li>
+        {open && (
+          <div id={id} className={styles.supplierDetail}>
+            <p className={styles.supplierName}>{supplier}</p>
+            {view.warehouses.length > 0 ? (
+              <ul>
+                {view.warehouses.map((w) => <li key={w.name}><span>{w.name}</span><span>{w.available}</span></li>)}
+              </ul>
+            ) : <p>{view.note}</p>}
+          </div>
+        )}
+      </dd>
+    </div>
   )
 }
 
 /**
- * "Why N?": the answer first (a plain explanation and the arithmetic), then
- * the evidence (weekly sales, seasonality, supplier). Beside it, what we
- * considered and the recommended next step, which can differ from "order N
- * now" when the supplier can't ship (docs/recommendations.md).
+ * "Why N?": one paragraph that answers, the calculation, and the weekly
+ * sales that confirm it. Beside it, what we considered (supplier detail on
+ * request), the recommended next step, and a way to add context about this
+ * item (docs/recommendations.md).
  */
 function WhyPanel({ line, supplier, leadTimeDays, orderBy, weekStarts }: {
   line: OrderLineView; supplier: string; leadTimeDays: number; orderBy?: string; weekStarts?: string[]
 }) {
+  const intelligence = useIntelligence()
   const calc = calculation(line)
-  const extra = extraReason(line)
   const avg = average(line.weeklySales)
-  const sup = supplierView(line, supplierShortName(supplier), leadTimeDays)
+  const sup = supplierView(line, leadTimeDays)
   const season = seasonView(line)
   const salesId = `${line.id}-sales`
+  const label = [line.product, line.variant].filter(Boolean).join(' ')
   return (
     <section className={[styles.panel, styles.whyPanel].join(' ')} aria-labelledby={`${line.id}-why`}>
       <div className={styles.whyLayout}>
         <div className={styles.whyMain}>
-          <h2 id={`${line.id}-why`} className={styles.whyTitle}>Why {line.quantity}?</h2>
+          <div className={styles.whyHead}>
+            <h2 id={`${line.id}-why`} className={styles.whyTitle}>Why {line.quantity}?</h2>
+            {intelligence && (
+              <button type="button" className={styles.addContext} aria-haspopup="dialog"
+                onClick={() => intelligence.open({ about: { label, productId: line.productId } })}>
+                <Icon name="plus" size={14} />Add context for this item
+              </button>
+            )}
+          </div>
           <p className={styles.explanation}>{explanation(line)}</p>
-          {extra && <p className={styles.extra}>{extra}</p>}
 
           <dl className={styles.calc} aria-label="How we got there">
             <div>
@@ -111,35 +127,16 @@ function WhyPanel({ line, supplier, leadTimeDays, orderBy, weekStarts }: {
             </div>
             <WeeklySalesChart weeklySales={line.weeklySales} weekStarts={weekStarts} titleId={salesId} />
           </section>
-
-          <ul className={styles.evidence}>
-            {season && (
-              <EvidenceRow icon={<Icon name="trend-up" size={16} />} title="Seasonality" sentence={season.sentence}
-                // Deeper seasonal evidence (the same weeks in past years) isn't built yet.
-                details={line.seasonalPace !== undefined ? 'A week-by-week comparison with the same weeks in past years will show here.' : undefined} />
-            )}
-            <EvidenceRow icon={<Icon name={sup.attention ? 'alert' : 'check'} size={16} />} title="Supplier availability"
-              sentence={sup.sentence} details={line.availability} />
-          </ul>
         </div>
 
         <aside className={styles.whyAside} aria-label="What we considered">
           <section className={styles.considered} aria-labelledby={`${line.id}-considered`}>
             <h3 id={`${line.id}-considered`}>What we considered</h3>
             <dl>
-              <div><dt>Recent sales</dt><dd><b>{capitalize(paceWords(avg))}</b><span>{line.weeklySales.length}-week average</span></dd></div>
-              <div><dt>Supplier availability</dt><dd>
-                <b className={sup.attention ? styles.attention : undefined}>{sup.value}</b><span>{sup.detail}</span>
-              </dd></div>
-              <div><dt>Typical delivery time</dt><dd>
-                <b>~{leadTimeDays} days</b><span>{supplierWaiting(line.supplier) ? 'After it becomes available' : 'After you order'}</span>
-              </dd></div>
-              {sup.toShelfDays !== undefined && (
-                <div><dt>Lead time to stock</dt><dd>
-                  <b>~{sup.toShelfDays} days</b><span>{line.supplier.expectedInDays} days + {leadTimeDays} days</span>
-                </dd></div>
-              )}
-              {season && <div><dt>Seasonal trend</dt><dd><b>{season.value}</b><span>{season.detail}</span></dd></div>}
+              <div><dt>Recent sales</dt><dd><b>{oneDecimal(avg)} / week</b></dd></div>
+              <SupplierRow supplier={supplier} view={sup} />
+              <div><dt>Delivery</dt><dd><b>~{leadTimeDays} days</b></dd></div>
+              {season && <div><dt>Seasonal trend</dt><dd><b>{season.value}</b></dd></div>}
               <div><dt>Confidence</dt><dd><ConfidenceMark level={line.confidence} /></dd></div>
             </dl>
           </section>

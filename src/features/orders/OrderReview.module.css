@@ -81,9 +81,15 @@
   .whyAside { border-left: 1px solid var(--line); padding-left: var(--sp-6); }
 }
 .whyMain { display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; }
+.whyHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--sp-2) var(--sp-4); }
+/* A quiet way into the conversation, already about this item. */
+.addContext {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0; border: 0; background: none;
+  font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer;
+}
+.addContext:hover { text-decoration: underline; text-underline-offset: 3px; }
 .whyTitle { font-size: var(--fs-title); line-height: var(--lh-title); font-weight: 600; letter-spacing: -0.015em; }
 .explanation { font-size: 17px; line-height: 26px; color: var(--ink); max-width: 68ch; margin-top: calc(-1 * var(--sp-3)); }
-.extra { font-size: 15px; line-height: 22px; color: var(--ink-2); max-width: 68ch; margin-top: calc(-1 * var(--sp-4)); }
 
 /* One connected calculation: demand − on hand − ordered = recommended. */
 .calc {
@@ -105,7 +111,7 @@
 /* Narrow: a short receipt, label left and value right. */
 @container (max-width: 560px) {
   .calc { grid-template-columns: minmax(0, 1fr); }
-  .calc > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: var(--sp-3); padding: var(--sp-2) var(--sp-3); }
+  .calc > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: baseline; gap: var(--sp-3); padding: var(--sp-2) var(--sp-3); }
   .calc > div + div { border-left: 0; border-top: 1px solid var(--line); }
   .calc dd { align-items: flex-end; text-align: right; }
   .calc dd b { font-size: 17px; line-height: 24px; padding-left: 0; }
@@ -119,23 +125,6 @@
 .salesAvg { margin-left: auto; font-size: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .salesAvg b { color: var(--ink); font-weight: 600; }
 
-/* Evidence: quiet rows, not cards. */
-.evidence { list-style: none; display: flex; flex-direction: column; border-top: 1px solid var(--line); }
-.evidenceRow { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: var(--sp-3); align-items: start; padding: var(--sp-3) 0; border-bottom: 1px solid var(--line); }
-.evidenceIcon { color: var(--ink-2); padding-top: 3px; }
-.evidenceText h4 { font-size: 15px; line-height: 22px; font-weight: 600; }
-.evidenceText p { font-size: 15px; line-height: 22px; color: var(--ink-2); }
-.evidenceMore { margin-top: 4px; }
-.viewDetails {
-  display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; padding: 2px 0; min-height: 32px;
-  font-size: 14px; font-weight: 500; color: var(--accent); cursor: pointer; white-space: nowrap;
-}
-.viewDetails:hover { text-decoration: underline; text-underline-offset: 3px; }
-@container (max-width: 560px) {
-  .evidenceRow { grid-template-columns: 20px minmax(0, 1fr); }
-  .viewDetails { grid-column: 2; justify-self: start; }
-}
-
 .whyAside { display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; }
 .considered h3, .nextStep h3 { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; }
 .considered dl { margin: var(--sp-2) 0 0; display: flex; flex-direction: column; }
@@ -144,6 +133,20 @@
 .considered dd { margin: 0; display: flex; flex-direction: column; gap: 1px; }
 .considered dd b { font-size: 15px; line-height: 22px; font-weight: 600; }
 .considered dd span { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+/* Supplier availability opens in place to the supplier's own detail. */
+.expand {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; padding: 0; border: 0; background: none;
+  font: inherit; color: var(--ink-2); cursor: pointer; text-align: left;
+}
+.expand b { color: var(--ink); }
+.expand svg { transition: transform var(--t-fast) var(--ease); }
+.expand[aria-expanded='true'] svg { transform: rotate(180deg); }
+.expand:hover b { text-decoration: underline; text-underline-offset: 3px; }
+.supplierDetail { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.supplierDetail ul { list-style: none; display: flex; flex-direction: column; }
+.supplierDetail li { display: flex; justify-content: space-between; gap: var(--sp-3); padding: 2px 0; font-variant-numeric: tabular-nums; }
+.supplierDetail li span:last-child { color: var(--ink); }
+.supplierName { color: var(--ink); font-weight: 500; }
 .attention { color: var(--con) !important; }
 .nextStep { background: var(--accent-wash); border-radius: var(--r-md); padding: var(--sp-4); display: flex; flex-direction: column; gap: 6px; }
 .nextStep h3 { font-size: 15px; line-height: 22px; color: var(--accent-pressed); }

@@ -18,6 +18,20 @@ export type ConversationEntry = {
   example?: boolean
   /** A plain caveat shown under the entry, e.g. that an answer is illustrative. */
   note?: string
+  /** The item the message was written about, when opened from that item (docs/intelligence.md). */
+  about?: ItemScope | null
+}
+
+/**
+ * An item a message is explicitly about: a product the retailer was looking at
+ * when they opened the conversation (e.g. from "Why N?"). Scope only says what
+ * the message is about; it doesn't make the message context.
+ */
+export type ItemScope = {
+  /** How the item is named on screen. */
+  label: string
+  /** The canonical product, when the item has one (example items don't). */
+  productId?: string
 }
 
 export type QuestionState = 'open' | 'answered' | 'deferred' | 'withdrawn'

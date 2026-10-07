@@ -9,14 +9,18 @@ import { Icon } from '@/ui/Icon'
 import { Composer, type ComposerHandle } from './Composer'
 import { QuestionBlock } from './QuestionBlock'
 import { Transcript } from './Transcript'
+import type { ItemScope } from '@/domain/intelligence/conversation'
 import { questionTopic, topQuestions, type ConversationEntry, type IntelligenceQuestionView } from './types'
 import styles from './Intelligence.module.css'
 
 type Surface = 'panel' | 'check_in' | 'order'
 
 type IntelligenceApi = {
-  /** Opens the conversation; optionally ready to answer one question in words. */
-  open: (options?: { tellUsMoreFor?: string }) => void
+  /**
+   * Opens the conversation; optionally ready to answer one question in words,
+   * or about one item (what the retailer writes next is about that item).
+   */
+  open: (options?: { tellUsMoreFor?: string; about?: ItemScope }) => void
   questions: IntelligenceQuestionView[]
   /** How many questions are waiting in "Questions for you" right now. */
   openCount: number
@@ -61,6 +65,7 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
   const [load, setLoad] = useState<Load>({ state: 'idle', entries: [] })
   const [questions, setQuestions] = useState<IntelligenceQuestionView[]>(() => [...initialQuestions, ...exampleQuestions])
   const [tellUsMoreFor, setTellUsMoreFor] = useState<string | null>(null)
+  const [about, setAbout] = useState<ItemScope | null>(null)
   const [pending, setPending] = useState<string | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
   // Questions set aside with "Not now" during this visit; they return at the next check-in.
@@ -88,9 +93,10 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
     }
   }, [scrollToEnd])
 
-  const open = useCallback((options?: { tellUsMoreFor?: string }) => {
+  const open = useCallback((options?: { tellUsMoreFor?: string; about?: ItemScope }) => {
     setProblem(null)
     setTellUsMoreFor(options?.tellUsMoreFor ?? null)
+    setAbout(options?.tellUsMoreFor ? null : options?.about ?? null)
     dialog.current?.showModal()
     if (load.state === 'idle' || load.state === 'failed') void refresh()
     else scrollToEnd()
@@ -145,7 +151,7 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
       }
       return true
     }
-    const r = await sendMessageAction(text)
+    const r = await sendMessageAction(text, about)
     if (!r.ok) { setProblem(r.message); return false }
     setLoad((l) => ({ ...l, entries: [...l.entries, r.value] }))
     scrollToEnd()
@@ -172,7 +178,7 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
 
   useEffect(() => {
     const d = dialog.current
-    const onClose = () => setTellUsMoreFor(null)
+    const onClose = () => { setTellUsMoreFor(null); setAbout(null) }
     d?.addEventListener('close', onClose)
     return () => d?.removeEventListener('close', onClose)
   }, [])
@@ -211,6 +217,8 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
           disabled={!canWrite}
           replyingTo={tellUsMoreQuestion ? questionTopic(tellUsMoreQuestion) : null}
           onCancelReply={() => setTellUsMoreFor(null)}
+          about={tellUsMoreQuestion ? null : about?.label ?? null}
+          onClearAbout={() => { setAbout(null); composer.current?.focus() }}
           onSend={send}
           onAttach={attach}
           problem={problem}
@@ -226,7 +234,7 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
             replyingTo={tellUsMoreFor}
             marker={asked.some((q) => q.example) ? <ExampleMarker /> : null}
             onAnswer={(id, choice) => answer(id, choice, null, 'panel')}
-            onTellUsMore={(id) => { setCollapsed(false); setTellUsMoreFor(id); composer.current?.focus() }}
+            onTellUsMore={(id) => { setCollapsed(false); setAbout(null); setTellUsMoreFor(id); composer.current?.focus() }}
             onDefer={defer}
             onBackToQuickAnswers={() => { setTellUsMoreFor(null); composer.current?.focus() }}
           />

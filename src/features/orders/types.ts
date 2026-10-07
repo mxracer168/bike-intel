@@ -32,10 +32,25 @@ export type SupplierCondition = {
   note: string
   /** When an out-of-stock or delayed item is expected back at the supplier, if known. */
   expectedInDays?: number
+  /** What the supplier reports about its stock. Only what the source actually provides. */
+  stock?: SupplierStock
+}
+
+/**
+ * Supplier stock as reported: an exact total, a floor ("25+", when the
+ * supplier only reports a threshold), and warehouse quantities only when the
+ * supplier gives them. Never more specific than the source.
+ */
+export type SupplierStock = {
+  total?: number
+  atLeast?: number
+  warehouses?: { name: string; available: number }[]
 }
 
 export type OrderLineView = {
   id: string
+  /** The canonical product, when known (example lines have none). */
+  productId?: string
   product: string
   variant?: string
   onHand: number
@@ -55,6 +70,8 @@ export type OrderLineView = {
   /** Placeholder until confidence scoring exists: example data only. */
   confidence: Confidence
   season?: string
+  /** The quantity was kept small because the store hasn't carried this item before. */
+  newToStore?: boolean
   /** How much faster (+) or slower (−) than normal for this time of year, e.g. 0.2. Example data only. */
   seasonalPace?: number
   availability: string

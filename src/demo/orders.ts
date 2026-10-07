@@ -50,6 +50,11 @@ type Plan = {
   id: string
   supplier: string
   warehouse: string
+  /**
+   * How this supplier reports stock: by warehouse (named, main one first) or
+   * one total. Example only; real detail depends on each supplier's data.
+   */
+  warehouses?: string[]
   leadTimeDays: number
   coverWeeks: number
   freeFreightAt?: number
@@ -68,6 +73,14 @@ function reasonFor(onHand: number, onOrder: number, perWeek: number): string {
   const coming = onOrder > 0 ? `, and ${onOrder} more ${onOrder === 1 ? 'is' : 'are'} on the way` : ''
   if (onHand <= 0) return `You have none left${coming}.`
   return `The ${onHand} you have will last ${describeCover(onHand, perWeek)}${coming}.`
+}
+
+/** Splits a total across a supplier's warehouses, main one first; empty warehouses are left out. */
+function byWarehouse(total: number, names: string[]): { name: string; available: number }[] {
+  const shares = [0.45, 0.3, 0.25]
+  const parts = names.map((name, i) => ({ name: `${name} warehouse`, available: Math.floor(total * (shares[i] ?? 0)) }))
+  parts[0]!.available += total - parts.reduce((a, p) => a + p.available, 0)
+  return parts.filter((p) => p.available > 0)
 }
 
 function build(plan: Plan): ProposedOrderView {
@@ -111,6 +124,19 @@ function build(plan: Plan): ProposedOrderView {
         : [],
       ...special,
     }
+  }).map((line, i) => {
+    // Attach what the supplier reports about stock, when it has some.
+    if (line.supplier.status === 'out' || line.supplier.status === 'delayed' || line.supplier.stock) return line
+    const stock = line.supplier.status === 'limited'
+      ? Number(/\d+/.exec(line.supplier.note)?.[0] ?? 2)
+      : Math.round(line.quantity * (4 + ((i * 37) % 9)))
+    return {
+      ...line,
+      supplier: {
+        ...line.supplier,
+        stock: plan.warehouses ? { total: stock, warehouses: byWarehouse(stock, plan.warehouses) } : { total: stock },
+      },
+    }
   })
   return {
     id: plan.id,
@@ -127,6 +153,7 @@ const northline = build({
   id: 'northline',
   supplier: 'Northline Distribution',
   warehouse: 'Reno',
+  warehouses: ['Reno', 'Denver', 'Atlanta'],
   leadTimeDays: 5,
   coverWeeks: 3,
   freeFreightAt: 1500,
@@ -190,7 +217,7 @@ const northline = build({
     'Maxxis Minion DHF · 29 × 2.5 WT EXO+': { state: 'review', quantity: 4,
             wholesaleMarketValue: 61, network: [listing('midtown', 2, 'dhf', 61), listing('upstate', 1, 'dhf', 55), listing('lowcountry', 3, 'dhf', 58)], onHand: 1, onOrder: 0, weeklySales: [0, 1, 1, 0, 1, 2, 1, 1, 2, 1, 1, 2],
       reason: 'You sold 5 last October, more than your usual pace, so we added a little for fall.' },
-    'Park Tool CT-3.3 chain tool': { state: 'question', quantity: 2,
+    'Park Tool CT-3.3 chain tool': { state: 'question', quantity: 2, newToStore: true,
       supplier: { status: 'available', note: 'Available' }, onHand: 0, onOrder: 0, weeklySales: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
       reason: 'This is new to your store, so we started small.',
       question: { prompt: 'Do you plan to keep chain tools on the shelf, or order them for customers as needed?', choices: ['Keep on the shelf', 'Order as needed'] } },
@@ -208,7 +235,7 @@ const northline = build({
     'Continental Gatorskin · 700 × 25': { state: 'review',
       reason: 'You returned 2 of these last month. Worth checking before reordering.',
       wholesaleMarketValue: 38, network: [listing('lowcountry', 6, 'gator25', 41)] },
-    'Shimano RT-MT800 rotor · 203 mm': { state: 'question', quantity: 2,
+    'Shimano RT-MT800 rotor · 203 mm': { state: 'question', quantity: 2, newToStore: true,
       reason: 'You haven’t stocked this size before, so we started small.',
       question: { prompt: 'Do you want to start stocking 203 mm rotors?', choices: ['Yes, keep a few', 'No, order as needed'] } },
     'Lizard Skins DSP 2.5 bar tape · White': { state: 'review',
@@ -274,7 +301,8 @@ const cascade: ProposedOrderView = {
     const perWeek = average([...sales])
     return {
       id: `cascade-${i + 1}`, product, variant: variant || undefined, onHand, onOrder, quantity, unitCost,
-      state: 'ok', supplier: { status: 'available', note: 'Available' },
+      // Cascade only reports "25+" rather than exact counts.
+      state: 'ok', supplier: { status: 'available', note: 'Available', stock: { atLeast: 25 } },
       reason: reasonFor(onHand, onOrder, perWeek), weeklySales: [...sales], confidence: 'high',
       season: winter,
       availability: 'Plenty · Tacoma warehouse',

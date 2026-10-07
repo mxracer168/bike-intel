@@ -51,7 +51,12 @@ export function calculation(line: OrderLineView): Calculation {
   }
 }
 
-/** The plain-language answer: two sentences, before any evidence. */
+/**
+ * The plain-language answer, as one paragraph: what's selling and on hand,
+ * then what we expect them to need. A reason that shaped the quantity (new
+ * to the store) is said inside the sentence; any other unusual reason
+ * follows in the same paragraph.
+ */
 export function explanation(line: OrderLineView): string {
   const perWeek = average(line.weeklySales)
   const sold = line.weeklySales.reduce((a, b) => a + b, 0)
@@ -61,18 +66,23 @@ export function explanation(line: OrderLineView): string {
   const onHand = line.onHand > 0 ? `have ${line.onHand} on hand` : 'have none on hand'
   const onOrder = line.onOrder > 0 ? `have ${line.onOrder} on order` : 'don’t have anything on order'
   const { expectedDemand } = calculation(line)
-  const need = line.onHand + line.onOrder > 0
-    ? `We expect you to need about ${expectedDemand} before your next chance to restock, so we suggest ${line.quantity} more.`
-    : `We expect you to need ${line.quantity} before your next chance to restock.`
-  return `${selling}, ${onHand}, and ${onOrder}. ${need}`
+  const stocked = line.onHand + line.onOrder > 0
+  const expect = stocked
+    ? `expect you to need about ${expectedDemand} before your next chance to restock, so we suggest ${line.quantity} more`
+    : `expect you to need ${line.quantity} before your next chance to restock`
+  const need = line.newToStore
+    ? `Because this item is new to your store, we started small and ${expect}.`
+    : `We ${expect}.`
+  const extra = extraReason(line)
+  return [`${selling}, ${onHand}, and ${onOrder}.`, need, extra].filter(Boolean).join(' ')
 }
 
 /**
- * A line with something unusual keeps its own reason as a follow-up sentence,
- * unless the evidence below already says it (seasonality, a supplier wait).
+ * Another unusual reason, said after the expectation, unless the screen
+ * already shows it (new to the store, seasonality, a supplier wait).
  */
 export function extraReason(line: OrderLineView): string | null {
-  if (line.state === 'ok') return null
+  if (line.state === 'ok' || line.newToStore) return null
   if (line.seasonalPace !== undefined || supplierWaiting(line.supplier)) return null
   return line.reason
 }
@@ -81,35 +91,44 @@ export function extraReason(line: OrderLineView): string | null {
 export const supplierWaiting = (s: SupplierCondition) => s.status === 'out' || s.status === 'delayed'
 
 export type SupplierView = {
-  /** The headline value: "Expected in 18 days", "Available", "2 left". */
+  /** The one-line value: "25+ available", "12 available", "2 left", "Back in ~18 days". */
   value: string
-  /** The line under it: "Currently out of stock". */
-  detail: string
   /** Worth the caution color. */
   attention: boolean
-  /** The evidence sentence on the left. */
-  sentence: string
-  /** Days until it can be on the shelf, when we know when the supplier has it again. */
-  toShelfDays?: number
+  /** Warehouse rows, only when the supplier reports them. */
+  warehouses: { name: string; available: number }[]
+  /** One sentence for the expanded view when there are no warehouse rows. */
+  note: string
 }
 
-export function supplierView(line: OrderLineView, supplier: string, leadTimeDays: number): SupplierView {
+const units = (n: number) => `${n} available`
+
+export function supplierView(line: OrderLineView, leadTimeDays: number): SupplierView {
   const s = line.supplier
-  const delivery = `Typical delivery ${supplierWaiting(s) ? 'after it’s available ' : ''}is about ${leadTimeDays} days.`
+  const stock = s.stock
+  const warehouses = stock?.warehouses?.filter((w) => w.available > 0) ?? []
   if (supplierWaiting(s)) {
-    const when = s.expectedInDays !== undefined ? `Expected in ${s.expectedInDays} days` : s.note
+    const known = s.expectedInDays !== undefined
     return {
-      value: when,
-      detail: s.status === 'out' ? 'Currently out of stock' : 'Delayed',
+      value: known ? `Back in ~${s.expectedInDays} days` : s.note,
       attention: true,
-      sentence: `${s.status === 'out' ? `Out of stock at ${supplier}` : `Delayed at ${supplier}`}. ${when}. ${delivery}`,
-      toShelfDays: s.expectedInDays !== undefined ? s.expectedInDays + leadTimeDays : undefined,
+      warehouses: [],
+      note: known
+        ? `None in stock. Expected back in about ${s.expectedInDays} days, so about ${s.expectedInDays! + leadTimeDays} days to your shelf.`
+        : `${s.status === 'out' ? 'None in stock' : 'Delayed'}. ${s.note}.`,
     }
   }
+  const quantity = stock?.total !== undefined ? units(stock.total) : stock?.atLeast !== undefined ? `${stock.atLeast}+ available` : null
   if (s.status === 'limited') {
-    return { value: s.note, detail: 'Limited stock', attention: true, sentence: `${supplier} has ${s.note}. ${delivery}` }
+    return { value: stock?.total !== undefined ? `${stock.total} left` : s.note, attention: true, warehouses, note: 'Only a few left.' }
   }
-  return { value: 'Available', detail: 'In stock now', attention: false, sentence: `${supplier} has it in stock. ${delivery}` }
+  return {
+    value: quantity ?? 'In stock',
+    attention: false,
+    warehouses,
+    note: stock?.atLeast !== undefined ? `Reports “${stock.atLeast}+” rather than an exact count.`
+      : stock?.total !== undefined ? 'Reports a total, not stock by warehouse.' : 'Reports in stock, without a quantity.',
+  }
 }
 
 /** Seasonality in words, if we have a view on it. */

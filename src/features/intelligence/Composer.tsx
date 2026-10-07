@@ -15,10 +15,13 @@ export const Composer = forwardRef<ComposerHandle, {
   disabled: boolean
   replyingTo: string | null
   onCancelReply: () => void
+  /** The item what's written next is about, if any; removable. */
+  about: string | null
+  onClearAbout: () => void
   onSend: (text: string) => Promise<boolean>
   onAttach: (file: File) => void
   problem: string | null
-}>(function Composer({ disabled, replyingTo, onCancelReply, onSend, onAttach, problem }, ref) {
+}>(function Composer({ disabled, replyingTo, onCancelReply, about, onClearAbout, onSend, onAttach, problem }, ref) {
   const input = useRef<HTMLTextAreaElement>(null)
   const file = useRef<HTMLInputElement>(null)
   const [text, setText] = useState('')
@@ -56,6 +59,16 @@ export const Composer = forwardRef<ComposerHandle, {
           <button type="button" className={styles.linkButton} onClick={onCancelReply}>Cancel</button>
         </p>
       )}
+      {about && (
+        <p className={styles.aboutRow}>
+          <span className={styles.aboutChip}>
+            <span className={styles.aboutText}><span className={styles.aboutLabel}>About</span> {about}</span>
+            <button type="button" className={styles.chipClose} aria-label={`Not about ${about}`} onClick={onClearAbout}>
+              <Icon name="close" size={12} />
+            </button>
+          </span>
+        </p>
+      )}
       <form className={styles.composer} onSubmit={(e) => { e.preventDefault(); void send() }}>
         <button type="button" className={styles.iconButton} aria-label="Add a file" disabled={disabled}
           onClick={() => file.current?.click()}>
@@ -63,10 +76,10 @@ export const Composer = forwardRef<ComposerHandle, {
         </button>
         <input ref={file} type="file" accept={ATTACHMENT_ACCEPT} hidden tabIndex={-1}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) onAttach(f); e.target.value = '' }} />
-        <label htmlFor={id} className="visually-hidden">{replyingTo ? 'Your answer' : 'Message'}</label>
+        <label htmlFor={id} className="visually-hidden">{replyingTo ? 'Your answer' : about ? `Message about ${about}` : 'Message'}</label>
         <textarea
           ref={input} id={id} rows={1} value={text} disabled={disabled}
-          placeholder={replyingTo ? 'Your answer' : 'Ask or tell me anything'}
+          placeholder={replyingTo ? 'Your answer' : about ? 'Ask or tell me anything about this item' : 'Ask or tell me anything'}
           className={styles.input} maxLength={10000} autoCapitalize="sentences" enterKeyHint="send"
           onChange={(e) => { setText(e.target.value); grow() }}
           onKeyDown={(e) => {

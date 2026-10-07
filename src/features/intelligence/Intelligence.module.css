@@ -122,6 +122,18 @@
 .iconButton:disabled { color: var(--ink-3); cursor: default; background: transparent; }
 .replying { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); padding: 0 var(--sp-2); }
 .replying span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aboutRow { display: flex; padding: 0 var(--sp-2); }
+/* The item this message is about: quiet, removable, never a form. */
+.aboutChip {
+  display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 2px 4px 2px 10px;
+  border: 1px solid var(--line-strong); border-radius: 999px; background: var(--surface);
+  font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink);
+}
+.aboutText { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aboutLabel { color: var(--ink-2); }
+.chipClose { display: inline-grid; place-items: center; width: 22px; height: 22px; border: 0; border-radius: 50%; background: none; color: var(--ink-2); cursor: pointer; flex: none; }
+.chipClose:hover { background: var(--subtle); color: var(--ink); }
+.aboutTag { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
 .hint { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); padding: 0 var(--sp-2); }
 .problem { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--risk); font-weight: 500; padding: 0 var(--sp-2); }
 

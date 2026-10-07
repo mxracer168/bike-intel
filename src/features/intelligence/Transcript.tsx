@@ -157,6 +157,7 @@ function Body({ entry: e }: { entry: ConversationEntry }) {
   const paragraphs = (e.body ?? '').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
   return (
     <div className={styles.said}>
+      {e.about && <p className={styles.aboutTag}>About {e.about.label}</p>}
       {paragraphs.map((p, i) => <p key={i}>{p}</p>)}
     </div>
   )

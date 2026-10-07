@@ -4,19 +4,31 @@ A retailer should understand a recommended quantity without having to read a
 chart. Every explanation follows the same order:
 
 1. **Answer**: the quantity ("Why 3?").
-2. **Reason**: in plain words, from the recommendation's own numbers: how
-   fast it sells, what's on hand, what's already on order, and what we expect
-   them to need before they can restock. Then the arithmetic in one line:
-   expected demand − on hand − already ordered = recommended. The arithmetic
-   always reconciles with the quantity shown.
-3. **Evidence**: recent weekly sales, seasonality and supplier availability.
-   Evidence confirms the reason; it never replaces it.
+2. **Reason**: one plain paragraph, from the recommendation's own numbers:
+   how fast it sells, what's on hand, what's already on order, and what we
+   expect them to need before they can restock. A reason that changed the
+   quantity is said inside that paragraph ("Because this item is new to your
+   store, we started small…"); a reason that didn't isn't shown. Then the
+   arithmetic in one line: expected demand − on hand − already ordered =
+   recommended. The arithmetic always reconciles with the quantity shown.
+3. **Evidence**: recent weekly sales, which confirm the reason and never
+   replace it.
 
-A short summary of what was weighed (sales pace, supplier availability,
-delivery time, time until it can be on the shelf, seasonal trend,
-confidence) sits alongside, so the inputs can be checked at a glance.
-Numbers already shown in the calculation (on hand, already ordered) are not
-repeated there.
+Beside it, a compact summary of what was weighed (sales pace, supplier
+availability, delivery, seasonal trend, confidence), each said once.
+Nothing is repeated between the summary and the rest of the screen.
+
+**Supplier availability** is one value ("24 available", "25+ available",
+"2 left", "Back in ~18 days"), opening in place to the supplier's own
+detail: stock by warehouse when the supplier reports it, otherwise the best
+the supplier gives (a total, a threshold, or in stock without a quantity),
+and for an out-of-stock item, when it's expected back and how long until it
+could be on the shelf. Never more specific than the source.
+
+**Adding context about this item.** The explanation offers a way into the
+intelligence conversation already about this item, so what the retailer
+says next is understood as being about it (see `intelligence.md`, "Messages
+about one item").
 
 ## Quantity and action are different things
 
