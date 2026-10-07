@@ -272,25 +272,27 @@ these explicitly; unknown stays null rather than defaulting to "in-store".
 ## Supplier orders: finishing an order
 
 The order page is where a retailer curates one supplier's order and then
-hands it off. The right side (a sticky column on wide screens; a compact
-summary and a bottom bar on smaller ones) explains the order, its supplier
-context and what will happen next. Behaviour decided so far:
+hands it off. The lines and their expanded recommendation detail use the full
+page width; the order-level summary lives in a compact header that stays in
+view while the lines scroll. Behaviour decided so far:
 
-- **The header names the supplier, nothing else.** Line count, total, status
-  and terms live in the order summary beside the lines, not in the header.
+- **The header carries only what's worth a glance**: the supplier's name,
+  the exact order total with line count and status, the free-freight gap,
+  the typical order with cadence and a comparison, and the one action
+  (Review & submit). Terms, promotions and other supplier context may come
+  back later through progressive disclosure if they prove important; there
+  is no order-context sidebar.
 - **The total is exact** ($4,824.10, never "about"), recomputed in cents as
-  quantities change. When it can't be trusted to the cent, it says so next
-  to the total: lines without a price are left out and named, and prices
-  older than a few days carry the date they were last updated.
-- **Context is interpreted, and only what's known is shown.** Each row says
-  what a fact means for *this* order: cadence ("About every 12 days", "Last
-  Northline order 9 days ago"), typical size ("22% larger than usual"),
-  freight ("Free over $5,000", "$176 away", emphasized when close), the order
-  deadline, terms in the supplier's words, and a current promotion with the
-  lines that qualify and its estimated benefit at the current quantities.
-  No placeholders for unknown rows. Promotions describe price only; they
-  never change which lines are recommended, and supplier payments never
-  affect program fit.
+  quantities change. When it can't be trusted to the cent, it says so under
+  the total: lines without a price are left out and counted, and prices
+  older than a few days are called out ("Prices 9 days old").
+- **Freight shows the gap, not the terms**: "$176 away · Free over $5,000".
+  No threshold, or already free: no freight block.
+- **Typical order** is product language: today an example value, and the
+  calculation behind it may change (it need not stay a simple average). The
+  block shows the typical amount, how often the store orders ("Every ~12
+  days") and how this order compares as a symbol and a number: ▲ 22%,
+  ▼ 18%, or ≈ Typical within 5%. Color follows the symbol, never replaces it.
 - **Approval and submission are separate states**, even when one action does
   both: `draft → approved → submitted`, or `draft → discarded`. An order the
   retailer still has to send themselves is *approved*, not submitted;

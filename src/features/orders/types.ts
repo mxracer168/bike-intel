@@ -108,15 +108,10 @@ export type ProposedOrderView = {
 export type OrderContextView = {
   /** Typical days between orders to this supplier. */
   cadenceDays?: number
-  lastOrderDaysAgo?: number
-  /** Typical order value to this supplier. */
+  /** Typical order value to this supplier. Product language: the calculation behind it may change. */
   typicalOrder?: number
-  /** Payment terms in the supplier's own words, e.g. "2% 10 · Net 30". */
-  terms?: string
   /** Days since the supplier's prices on this order were last updated. */
   pricesUpdatedDaysAgo?: number
-  /** A current supplier program that applies to lines on this order. */
-  promotion?: { name: string; lineIds: string[]; discountRate: number; endsOn?: string }
 }
 
 /** How an order reaches the supplier. Same values as `purchase_order.submission_method` (less 'entered_in_pos'). */

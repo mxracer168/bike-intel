@@ -1,15 +1,7 @@
 .work { display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
 
-/* Lines on the left; the order cockpit beside them on wide screens, above them otherwise. */
-.layout { display: flex; flex-direction: column; gap: var(--sp-5); }
-@media (max-width: 1199px) {
-  .layout > aside { order: -1; }
-  /* Keeps the question strip above Review & submit's bottom bar. */
-  .withBar { --anchored-offset: 72px; }
-}
-@media (min-width: 1200px) {
-  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 288px; gap: var(--sp-6); align-items: start; }
-}
+/* Keeps the question strip above the bottom action bar on smaller screens. */
+@media (max-width: 900px) { .withBar { --anchored-offset: 72px; } }
 
 /* Filters read as quiet tabs: one baseline, the current one underlined. */
 .filter { display: flex; gap: var(--sp-5); border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
@@ -19,10 +11,10 @@
   font-size: 15px; line-height: 22px; color: var(--ink-2); cursor: pointer;
   border-bottom: 2px solid transparent; font-variant-numeric: tabular-nums;
 }
-.filter button:hover { color: var(--ink); }
-.filter button[aria-pressed='true'] { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
+.filter button:hover { color: var(--ink); border-bottom-color: var(--line-strong); }
+.filter button[aria-pressed='true'] { color: var(--accent); font-weight: 600; border-bottom-color: var(--accent); }
 .count { font-size: var(--fs-label); font-weight: 500; color: var(--ink-3); }
-.filter button[aria-pressed='true'] .count { color: var(--ink-2); }
+.filter button[aria-pressed='true'] .count { color: var(--accent); }
 
 .lockedQty { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
@@ -91,22 +83,22 @@
 .panelTitle { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; margin-bottom: var(--sp-3); }
 
 /* ---------- Why N?: answer, reason, evidence; beside it what we considered ---------- */
-.whyPanel { container-type: inline-size; padding: var(--sp-5) var(--sp-6); }
+.whyPanel { container-type: inline-size; padding: var(--sp-4) var(--sp-5); }
 .whyLayout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
-@container (min-width: 820px) {
-  .whyLayout { grid-template-columns: minmax(0, 1fr) minmax(260px, 30%); gap: var(--sp-7); }
-  .whyAside { border-left: 1px solid var(--line); padding-left: var(--sp-6); }
+@container (min-width: 680px) {
+  .whyLayout { grid-template-columns: minmax(0, 1fr) minmax(240px, 30%); gap: var(--sp-6); }
+  .whyAside { border-left: 1px solid var(--line); padding-left: var(--sp-5); }
 }
-.whyMain { display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; }
-.whyHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--sp-2) var(--sp-4); }
+/* Its own container, so the calculation strip fits the column it's in. */
+.whyMain { container-type: inline-size; display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
 /* A quiet way into the conversation, already about this item. */
 .addContext {
-  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0; border: 0; background: none;
+  display: inline-flex; align-self: flex-start; align-items: center; gap: 6px; min-height: 32px; padding: 0; border: 0; background: none;
   font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer;
 }
 .addContext:hover { text-decoration: underline; text-underline-offset: 3px; }
-.whyTitle { font-size: var(--fs-title); line-height: var(--lh-title); font-weight: 600; letter-spacing: -0.015em; }
-.explanation { font-size: 17px; line-height: 26px; color: var(--ink); max-width: 68ch; margin-top: calc(-1 * var(--sp-3)); }
+.whyTitle { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; }
+.explanation { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink); max-width: 72ch; margin-top: 4px; }
 
 /* One connected calculation: demand − on hand − ordered = recommended. */
 .calc {
@@ -118,7 +110,7 @@
 .calc dt { display: flex; align-items: baseline; gap: 8px; font-size: 14px; line-height: 20px; color: var(--ink-2); }
 .op { font-size: 17px; font-weight: 500; color: var(--ink-3); width: 10px; }
 .calc dd { margin: 0; display: flex; flex-direction: column; gap: 2px; }
-.calc dd b { font-size: var(--fs-answer); line-height: var(--lh-answer); font-weight: 600; font-variant-numeric: tabular-nums; padding-left: 18px; }
+.calc dd b { font-size: 20px; line-height: 26px; font-weight: 600; font-variant-numeric: tabular-nums; padding-left: 18px; }
 .calc > div:first-child dd b { padding-left: 0; }
 .calc dd span { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); padding-left: 18px; }
 .calc > div:first-child dd span { padding-left: 0; }
@@ -137,13 +129,13 @@
 
 .sales { container-type: inline-size; display: flex; flex-direction: column; gap: var(--sp-3); }
 .salesHead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--sp-3); }
-.salesHead h3 { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; }
+.salesHead h3 { font-size: 15px; line-height: 22px; font-weight: 600; }
 .salesNote { font-size: 14px; color: var(--ink-2); }
 .salesAvg { margin-left: auto; font-size: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .salesAvg b { color: var(--ink); font-weight: 600; }
 
-.whyAside { display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; }
-.considered h3, .nextStep h3 { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; }
+.whyAside { display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
+.considered h3, .nextStep h3 { font-size: 15px; line-height: 22px; font-weight: 600; }
 .considered dl { margin: var(--sp-2) 0 0; display: flex; flex-direction: column; }
 .considered dl > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: var(--sp-3); padding: 10px 0; border-top: 1px solid var(--line); }
 .considered dt { font-size: 14px; line-height: 20px; color: var(--ink-2); }

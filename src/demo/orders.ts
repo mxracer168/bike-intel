@@ -315,20 +315,12 @@ const cascade: ProposedOrderView = {
 northline.intelligenceQuestionId = 'demo-cedar-ridge'
 
 /**
- * Order context the supplier and the store's history would provide: cadence,
- * typical order, terms and a current promotion. Invented for the example.
- * Summit shows the plainest case (terms only); Cascade is short of free freight.
+ * Order history the header summarizes: how often this store orders from the
+ * supplier and its typical order. Invented for the example. Summit has
+ * neither (the header shows only the total); Cascade's prices are stale.
  */
-const SERVICE = /^(KMC chain|Shimano CN-|SRAM PC-|Jagwire|Shimano J05A|SRAM disc brake pads|Shimano B01S|Stan’s NoTubes tire sealant)/
-northline.context = {
-  cadenceDays: 12,
-  lastOrderDaysAgo: 9,
-  typicalOrder: 3950,
-  terms: '2% 10 · Net 30',
-  promotion: { name: 'Fall service promotion', discountRate: 0.12, lineIds: northline.lines.filter((l) => SERVICE.test(l.product)).map((l) => l.id) },
-}
-summit.context = { terms: 'Net 30' }
-cascade.context = { cadenceDays: 30, lastOrderDaysAgo: 34, terms: 'Net 30', pricesUpdatedDaysAgo: 9 }
+northline.context = { cadenceDays: 12, typicalOrder: 3950 }
+cascade.context = { cadenceDays: 30, typicalOrder: 260, pricesUpdatedDaysAgo: 9 }
 
 /**
  * How each example order would leave, assuming Lightspeed is connected and

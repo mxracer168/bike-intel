@@ -1,0 +1,124 @@
+/*
+ * The order header. Wide screens: supplier on the left, the glance metrics and
+ * the one action on the right, sticky while the lines scroll. Smaller screens:
+ * stacked and not sticky; the action moves to a bar along the bottom.
+ */
+.header {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-6);
+  background: var(--canvas);
+}
+.name { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); }
+.title { font-size: var(--fs-title); line-height: var(--lh-title); letter-spacing: -0.015em; }
+
+/* Glance metrics: label, one strong value, one quiet line. Thin dividers, no cards. */
+.metrics { display: flex; align-items: stretch; margin: 0; }
+.metric { display: flex; flex-direction: column; gap: 2px; padding: 0 var(--sp-6); min-width: 0; }
+.metric + .metric, .metrics + .action { border-left: 1px solid var(--line); }
+.metric dt { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); }
+.metric dd { margin: 0; display: flex; flex-direction: column; gap: 1px; font-size: 14px; line-height: 20px; color: var(--ink-2); white-space: nowrap; }
+.value { font-size: var(--fs-answer); line-height: var(--lh-answer); font-weight: 600; letter-spacing: -0.01em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.gap { color: var(--con); }
+.done { color: var(--pos); font-weight: 600; }
+.prices { display: inline-flex; align-items: center; gap: 4px; color: var(--con); }
+.up, .down, .flat { font-weight: 600; font-variant-numeric: tabular-nums; }
+.up { color: var(--pos); }
+.down { color: var(--risk); }
+.flat { color: var(--ink-3); }
+.action { padding-left: var(--sp-6); }
+
+@media (min-width: 901px) {
+  .header {
+    position: sticky; top: 0; z-index: 6;
+    margin: 0 calc(-1 * var(--gutter)); padding: var(--sp-3) var(--gutter);
+    border-bottom: 1px solid var(--line);
+  }
+}
+@media (min-width: 1280px) { .header { flex-wrap: nowrap; } }
+/* Not enough room for one row: the supplier on its own line, the metrics under it. */
+@media (min-width: 901px) and (max-width: 1279px) {
+  .name { flex-basis: 100%; }
+  .metric:first-child { padding-left: 0; }
+  .action { margin-left: auto; }
+}
+@media (max-width: 900px) {
+  .name { flex-basis: 100%; }
+  .metrics { flex-wrap: wrap; row-gap: var(--sp-4); }
+  .metric:first-child { padding-left: 0; }
+  .action { display: none; }
+}
+@media (max-width: 520px) {
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4) var(--sp-4); width: 100%; }
+  .metric { padding: 0; }
+  .metric + .metric { border-left: 0; }
+  .metric:first-child { grid-column: 1 / -1; }
+  .value { font-size: 20px; line-height: 26px; }
+}
+
+/* ---------- After approval: what happened, files, what's left ---------- */
+.after {
+  display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--sp-4) var(--sp-7);
+  padding: var(--sp-4) var(--sp-5); border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface);
+}
+.doneList { list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 20px; }
+.doneList li { display: flex; gap: var(--sp-2); align-items: baseline; }
+.doneList svg { flex: none; color: var(--pos); transform: translateY(2px); }
+.method { font-weight: 600; }
+.files { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.files svg { margin-right: 6px; }
+.todo { display: flex; flex-direction: column; gap: 4px; max-width: 48ch; }
+.todo ul { padding-left: 18px; font-size: 14px; line-height: 20px; display: flex; flex-direction: column; gap: 4px; }
+.label { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); }
+.example { flex-basis: 100%; font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+
+/* ---------- Bottom bar (smaller screens) ---------- */
+.bar { display: none; }
+@media (max-width: 900px) {
+  .bar {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
+    position: sticky; bottom: 0; z-index: 5; margin: calc(-1 * var(--sp-6)) calc(-1 * var(--gutter)) 0;
+    padding: var(--sp-3) var(--gutter) calc(var(--sp-3) + env(safe-area-inset-bottom));
+    background: var(--surface); border-top: 1px solid var(--line); box-shadow: var(--sh-2);
+  }
+  .barTotal { display: flex; flex-direction: column; min-width: 0; }
+  .barLabel { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+  .barMoney { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; font-variant-numeric: tabular-nums; }
+}
+
+/* ---------- Review dialog ---------- */
+.dialog {
+  margin: auto; padding: 0; border: 0; border-radius: var(--r-xl); width: min(560px, calc(100vw - 32px)); max-height: min(720px, calc(100dvh - 32px));
+  background: var(--surface); color: var(--ink); box-shadow: var(--sh-3);
+}
+.dialog[open] { display: flex; flex-direction: column; }
+.dialog::backdrop { background: var(--scrim); }
+.dialogHead { display: flex; align-items: flex-start; gap: var(--sp-3); padding: var(--sp-5) var(--sp-5) var(--sp-3); }
+.dialogName { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.dialogTitle { font-size: var(--fs-answer); line-height: var(--lh-answer); font-weight: 600; letter-spacing: -0.015em; outline: none; }
+.dialogMeta { font-size: 14px; line-height: 20px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.dialogMeta b { color: var(--ink); font-weight: 600; }
+.close {
+  width: 36px; height: 36px; display: grid; place-items: center; border-radius: var(--r-sm); flex: none;
+  border: 0; background: transparent; color: var(--ink-2); cursor: pointer; margin: -4px -8px 0 0;
+}
+.close:hover { background: var(--subtle); color: var(--ink); }
+.dialogBody { flex: 1; min-height: 0; overflow-y: auto; padding: var(--sp-2) var(--sp-5) var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-5); }
+.blockTitle { font-size: 15px; line-height: 22px; font-weight: 600; margin-bottom: var(--sp-2); }
+.notice {
+  display: flex; gap: var(--sp-2); align-items: baseline; padding: var(--sp-3); border-radius: var(--r-md);
+  background: var(--subtle); font-size: 14px; line-height: 20px;
+}
+.notice svg { flex: none; color: var(--ink-2); transform: translateY(3px); }
+.steps { list-style: none; display: flex; flex-direction: column; }
+.steps li { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: var(--sp-3); padding: var(--sp-3) 0; border-top: 1px solid var(--line); font-size: 15px; line-height: 22px; }
+.steps li:last-child { border-bottom: 1px solid var(--line); }
+.who { font-size: var(--fs-label); line-height: 22px; color: var(--ink-2); font-weight: 500; }
+.youDo { padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 15px; line-height: 22px; }
+.dialogFoot { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--sp-3); padding: var(--sp-4) var(--sp-5); border-top: 1px solid var(--line); }
+
+@media (max-width: 640px) {
+  .dialog { margin: auto 0 0; width: 100vw; max-width: 100vw; border-radius: var(--r-xl) var(--r-xl) 0 0; max-height: calc(100dvh - 24px); }
+  .steps li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .dialogFoot { flex-direction: column-reverse; padding-bottom: calc(var(--sp-4) + env(safe-area-inset-bottom)); }
+  .dialogFoot > * { width: 100%; }
+}

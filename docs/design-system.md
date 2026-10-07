@@ -99,7 +99,7 @@ table has to scan like a plain list.
 |---|---|---|
 | Default table | Always | Product description, on hand, on order, order quantity, cost. Nothing else: no reason, proof, confidence, supplier status, delivery, retailer availability, attention labels, icons, badges or questions. |
 | Row clicked | The buyer opens a line | The row and its detail become one surface across the full table width: a very light blue wash (`--accent-wash`), a 3px accent edge on the left, the product name in bold. Inside: one line of controls: quantity, "Why 4? ⌄", "3 retailers have some ⌄". No heading and no one-line reason: the quantity is already in the table and the control, and the reasoning is behind "Why 4?". |
-| Why | "Why 3?" | Answer, reason, evidence (`docs/recommendations.md`). Left: one explanation paragraph (any reason that shaped the quantity said inside it), the calculation as one connected strip, and recent weekly sales; nothing below the chart. A quiet "Add context for this item" beside the title opens the conversation about this item. Right, narrower: "What we considered" with one value per row (supplier availability opens in place to supplier and warehouse detail), then "Recommended next step". Stacks below on narrow screens. "Other options" follows as a small panel when there are any. |
+| Why | "Why 3?" | Answer, reason, evidence (`docs/recommendations.md`). Left: one explanation paragraph (any reason that shaped the quantity said inside it), the calculation as one connected strip, and recent weekly sales; nothing below the chart. Right, narrower: a quiet "Add context for this item" (opens the conversation about this item), then "What we considered" with one value per row (supplier availability opens in place to supplier and warehouse detail), then "Recommended next step". Stacks below on narrow screens. "Other options" follows as a small panel when there are any. |
 | Other retailers | Separate, collapsed | The signal is an outlined disclosure, bold only when the supplier is out of stock or delayed. Opened, "Other retailers" is its own white panel: Wholesale Market Value once at the top, then each offer with retailer, place and reputation, units available, network price and how it compares, and "Contact retailer". |
 
 **Zones follow what's open.** Why and other retailers both open: Why takes
@@ -120,17 +120,25 @@ controls. On a phone everything stacks in the same order.
   white panels with a 1px line on the wash, one faint tint for key facts.
   No shadows, no cards inside panels, no icons beyond the chevron and
   carets.
-- **The order cockpit.** The header is the supplier's name under an
-  "Orders" link. Beside the lines (288px, sticky, at 1200px and wider): the
-  exact total as the strongest thing, lines and status; then interpreted
-  order context; then one primary "Review & submit". Below 1200px it sits
-  above the table as a compact summary with "Order context ⌄", and
-  Review & submit moves to a bar along the bottom with the total. After
-  approval, what happened, the files and "Still to do" come before the
-  context.
+- **The order header.** The supplier's name under an "Orders" link stays
+  the dominant thing. Beside it: glance metrics (a label, one strong value,
+  one quiet line) separated by thin dividers, no cards: Order total
+  ($4,824.10 · 79 lines · Draft), Freight ($176 away · Free over $5,000),
+  Typical order ($3,950 · Every ~12 days · ▲ 22%), then the one primary
+  action. Sticky above 900px wide (on one row from 1280px; the name on its
+  own row below that). Smaller screens: stacked, not sticky, and the action
+  moves to a bar along the bottom with the total. After approval, what
+  happened, the files and "Still to do" sit in one strip under the header,
+  and the header's action becomes "Mark as sent" when the retailer still
+  has to send the order.
+- **The lines stay full width.** Nothing beside the table, so an opened
+  line keeps "What we considered" (with "Add context for this item" above
+  it) on the right of the Why panel, and the chart stays the bottom of the
+  left column. "Why 2?" is a subsection heading (17px) and its paragraph is
+  body copy (15px).
 - **Filters are quiet tabs**: one baseline under the row, the current filter
-  in ink with a 2px underline, counts muted beside each label. No pills,
-  boxes or segmented controls.
+  in the accent color with a 2px underline, counts muted beside each label,
+  and a faint underline on hover. No pills, boxes or segmented controls.
 - Part numbers are left out for now.
 - Before adding anything to this screen ask: **would a buyer need this while
   scanning 100 lines?** If not, it goes behind the row click or behind

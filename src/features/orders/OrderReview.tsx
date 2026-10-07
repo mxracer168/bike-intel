@@ -12,11 +12,10 @@ import { Icon } from '@/ui/Icon'
 import { InfoTip } from '@/ui/InfoTip'
 import { QuantityStepper } from '@/ui/QuantityStepper'
 import { networkMatch, networkSignal, retailerLabel, supplierShort, type NetworkMatch } from './network'
-import { OrderCockpit, type OrderProgress } from './OrderCockpit'
+import { ActionBar, HandoffStatus, OrderHeader, SubmitDialog, type OrderProgress } from './OrderHeader'
 import { lineTotal, orderTotal, sortForReview } from './summarize'
 import type { NetworkListing, OrderLineView, ProposedOrderView } from './types'
 import { calculation, explanation, nextStep, oneDecimal, seasonView, supplierView, type SupplierView } from './why'
-import page from './Orders.module.css'
 import styles from './OrderReview.module.css'
 
 const NARROW = '(max-width: 760px)'
@@ -89,16 +88,10 @@ function WhyPanel({ line, supplier, leadTimeDays, orderBy, weekStarts }: {
     <section className={[styles.panel, styles.whyPanel].join(' ')} aria-labelledby={`${line.id}-why`}>
       <div className={styles.whyLayout}>
         <div className={styles.whyMain}>
-          <div className={styles.whyHead}>
+          <div>
             <h2 id={`${line.id}-why`} className={styles.whyTitle}>Why {line.quantity}?</h2>
-            {intelligence && (
-              <button type="button" className={styles.addContext} aria-haspopup="dialog"
-                onClick={() => intelligence.open({ about: { label, productId: line.productId } })}>
-                <Icon name="plus" size={14} />Add context for this item
-              </button>
-            )}
+            <p className={styles.explanation}>{explanation(line)}</p>
           </div>
-          <p className={styles.explanation}>{explanation(line)}</p>
 
           <dl className={styles.calc} aria-label="How we got there">
             <div>
@@ -130,12 +123,18 @@ function WhyPanel({ line, supplier, leadTimeDays, orderBy, weekStarts }: {
         </div>
 
         <aside className={styles.whyAside} aria-label="What we considered">
+          {intelligence && (
+            <button type="button" className={styles.addContext} aria-haspopup="dialog"
+              onClick={() => intelligence.open({ about: { label, productId: line.productId } })}>
+              <Icon name="plus" size={14} />Add context for this item
+            </button>
+          )}
           <section className={styles.considered} aria-labelledby={`${line.id}-considered`}>
             <h3 id={`${line.id}-considered`}>What we considered</h3>
             <dl>
               <div><dt>Recent sales</dt><dd><b>{oneDecimal(avg)} / week</b></dd></div>
               <SupplierRow supplier={supplier} view={sup} />
-              <div><dt>Delivery</dt><dd><b>~{leadTimeDays} days</b></dd></div>
+              <div><dt>Delivery time</dt><dd><b>~{leadTimeDays} days</b></dd></div>
               {season && <div><dt>Seasonal trend</dt><dd><b>{season.value}</b></dd></div>}
               <div><dt>Confidence</dt><dd><ConfidenceMark level={line.confidence} /></dd></div>
             </dl>
@@ -305,6 +304,7 @@ export function OrderReview({ order, eyebrow, weekStarts, example }: {
   const [open, setOpen] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'attention' | 'network'>('all')
   const [progress, setProgress] = useState<OrderProgress>({ status: 'draft' })
+  const [reviewing, setReviewing] = useState(false)
   const locked = progress.status !== 'draft'
   const narrow = useNarrow()
 
@@ -320,13 +320,11 @@ export function OrderReview({ order, eyebrow, weekStarts, example }: {
 
   return (
     <>
-      <header className={page.head}>
-        {eyebrow && <p className={page.eyebrow}>{eyebrow}</p>}
-        <h1 className={page.title}>{order.supplier}</h1>
-      </header>
+      <OrderHeader order={order} eyebrow={eyebrow} total={total} lineCount={ordering}
+        progress={progress} onProgress={setProgress} onReview={() => setReviewing(true)} />
+      <HandoffStatus order={order} quantities={quantities} progress={progress} example={example} />
 
-      <div className={[styles.layout, progress.status === 'draft' && order.handoff && styles.withBar].filter(Boolean).join(' ')}>
-      <div className={styles.work}>
+      <div className={[styles.work, progress.status !== 'submitted' && order.handoff && styles.withBar].filter(Boolean).join(' ')}>
         <div className={styles.filter} role="group" aria-label="Show">
           <FilterTab current={filter === 'all'} onClick={() => setFilter('all')} label="All" count={order.lines.length} />
           {attention.length > 0 && (
@@ -397,9 +395,10 @@ export function OrderReview({ order, eyebrow, weekStarts, example }: {
         )}
       </div>
 
-      <OrderCockpit order={order} total={total} lineCount={ordering} quantities={quantities}
-        progress={progress} onProgress={setProgress} example={example} />
-      </div>
+      <ActionBar order={order} total={total} lineCount={ordering}
+        progress={progress} onProgress={setProgress} onReview={() => setReviewing(true)} />
+      <SubmitDialog order={order} total={total} lineCount={ordering} open={reviewing} onClose={() => setReviewing(false)}
+        onProgress={setProgress} example={example} />
     </>
   )
 }

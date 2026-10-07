@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { demoHandoff, demoOrders } from '@/demo/orders'
-import { contextRows, exactMoney, priceNote, promotionView } from '@/features/orders/context'
+import { compareToTypical, exactMoney, orderGlance, priceNote } from '@/features/orders/context'
 import { handoffPlan, orderFile } from '@/features/orders/handoff'
 import type { OrderLineView, ProposedOrderView } from '@/features/orders/types'
 
@@ -70,32 +70,26 @@ describe('what happens on submit', () => {
   })
 })
 
-describe('order context', () => {
-  it('says what the facts mean for this order', () => {
-    const o = { ...order, context: { cadenceDays: 12, lastOrderDaysAgo: 9, typicalOrder: 400, terms: 'Net 30' } }
-    const rows = contextRows(o, 470, {})
-    expect(rows.map((r) => r.label)).toEqual(['Order cadence', 'Typical order', 'Freight', 'Terms'])
-    expect(rows[0]).toMatchObject({ value: 'About every 12 days', detail: 'Last Northline order 9 days ago' })
-    expect(rows[1]!.detail).toBe('This order is 18% larger than usual')
-    expect(rows[2]).toMatchObject({ value: 'Free over $500', detail: '$30 away', emphasis: true })
+describe('order header', () => {
+  it('shows the free-freight gap only while there is one', () => {
+    expect(orderGlance(order, 470).freight).toEqual({ threshold: 500, gap: 30 })
+    expect(orderGlance(order, 500).freight).toBeUndefined()
+    expect(orderGlance({ ...order, freeFreightAt: undefined }, 10).freight).toBeUndefined()
   })
 
-  it('shows only what is known', () => {
-    expect(contextRows({ ...order, freeFreightAt: undefined }, 470, {})).toEqual([])
-    expect(contextRows(order, 600, {})[0]!.detail).toBe('This order ships free')
-  })
-
-  it('values a promotion at the current quantities, and hides it when nothing qualifies', () => {
-    const o = { ...order, context: { promotion: { name: 'Fall service', lineIds: ['a', 'c'], discountRate: 0.1 } } }
-    expect(promotionView(o, {})).toEqual({ name: 'Fall service', lines: 2, benefit: 42 })
-    expect(promotionView(o, { a: 0 })).toMatchObject({ lines: 1, benefit: 2 })
-    expect(promotionView(o, { a: 0, c: 0 })).toBeNull()
+  it('compares this order with the typical one as a direction and a percentage', () => {
+    expect(compareToTypical(4824.1, 3950)).toEqual({ direction: 'above', percent: 22 })
+    expect(compareToTypical(220, 260)).toEqual({ direction: 'below', percent: 15 })
+    expect(compareToTypical(4000, 3950)).toEqual({ direction: 'typical', percent: 1 })
+    const glance = orderGlance({ ...order, context: { cadenceDays: 12, typicalOrder: 400 } }, 470)
+    expect(glance.typical).toEqual({ amount: 400, cadenceDays: 12, comparison: { direction: 'above', percent: 18 } })
+    expect(orderGlance(order, 470).typical).toBeUndefined()
   })
 
   it('calls out missing or stale prices', () => {
     expect(priceNote(order)).toBeNull()
-    expect(priceNote({ ...order, context: { pricesUpdatedDaysAgo: 9 } })).toBe('Northline’s prices were last updated 9 days ago.')
-    expect(priceNote({ ...order, lines: [...order.lines, line('x', { unitCost: 0 })] })).toMatch(/^1 line has no price yet/)
+    expect(priceNote({ ...order, context: { pricesUpdatedDaysAgo: 9 } })).toBe('Prices 9 days old')
+    expect(priceNote({ ...order, lines: [...order.lines, line('x', { unitCost: 0 })] })).toBe('1 line has no price (not in total)')
   })
 
   it('shows the total exactly', () => {
@@ -103,11 +97,11 @@ describe('order context', () => {
     expect(exactMoney(4824)).toBe('$4,824.00')
   })
 
-  it('example orders: Northline is near free freight with a promotion; each has a handoff', () => {
+  it('example Northline order: $176 from free freight, 22% above typical, every ~12 days', () => {
     const northline = demoOrders.find((o) => o.id === 'northline')!
-    const rows = contextRows(northline, 4824.1, {})
-    expect(rows.find((r) => r.label === 'Freight')).toMatchObject({ detail: '$176 away', emphasis: true })
-    expect(rows.find((r) => r.label === 'Fall service promotion')?.value).toBe('18 lines eligible')
+    const glance = orderGlance(northline, 4824.1)
+    expect(Math.ceil(glance.freight!.gap)).toBe(176)
+    expect(glance.typical).toMatchObject({ amount: 3950, cadenceDays: 12, comparison: { direction: 'above', percent: 22 } })
     expect(demoOrders.every((o) => o.handoff)).toBe(true)
   })
 })
