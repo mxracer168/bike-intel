@@ -1,7 +1,8 @@
 /* Stays at the bottom of the viewport while the page scrolls, and settles at
-   the end of the page, so it never permanently covers the last rows. */
+   the end of the page, so it never permanently covers the last rows.
+   --anchored-offset: room for a page's own bottom bar, when it has one. */
 .strip {
-  position: sticky; bottom: var(--sp-4); z-index: 5; margin-top: var(--sp-6);
+  position: sticky; bottom: calc(var(--sp-4) + var(--anchored-offset, 0px)); z-index: 5; margin-top: var(--sp-6);
   display: flex; align-items: center; gap: var(--sp-3) var(--sp-4);
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
   box-shadow: var(--sh-2); padding: var(--sp-3) var(--sp-4);
@@ -25,7 +26,7 @@
 
 /* On a phone: one compact line until "Answer" opens the question. */
 @media (max-width: 640px) {
-  .strip { flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); bottom: var(--sp-2); padding: var(--sp-2) var(--sp-3); }
+  .strip { flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); bottom: calc(var(--sp-2) + var(--anchored-offset, 0px)); padding: var(--sp-2) var(--sp-3); }
   .mark { display: none; }
   .body { flex-basis: 100%; }
   .headline { font-size: 15px; }

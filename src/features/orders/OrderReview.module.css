@@ -1,13 +1,30 @@
-.work { display: flex; flex-direction: column; gap: var(--sp-3); }
-.note { color: var(--con); }
+.work { display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
 
-.filter { display: flex; gap: var(--sp-4); }
+/* Lines on the left; the order cockpit beside them on wide screens, above them otherwise. */
+.layout { display: flex; flex-direction: column; gap: var(--sp-5); }
+@media (max-width: 1199px) {
+  .layout > aside { order: -1; }
+  /* Keeps the question strip above Review & submit's bottom bar. */
+  .withBar { --anchored-offset: 72px; }
+}
+@media (min-width: 1200px) {
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 288px; gap: var(--sp-6); align-items: start; }
+}
+
+/* Filters read as quiet tabs: one baseline, the current one underlined. */
+.filter { display: flex; gap: var(--sp-5); border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
 .filter button {
-  border: 0; background: none; padding: 4px 0; font-size: 14px; color: var(--ink-2); cursor: pointer;
+  display: inline-flex; align-items: baseline; gap: 6px; flex: none;
+  border: 0; background: none; padding: 8px 0 10px; margin-bottom: -1px; min-height: 40px;
+  font-size: 15px; line-height: 22px; color: var(--ink-2); cursor: pointer;
   border-bottom: 2px solid transparent; font-variant-numeric: tabular-nums;
 }
 .filter button:hover { color: var(--ink); }
-.filter button[aria-pressed='true'] { color: var(--ink); font-weight: 600; border-bottom-color: var(--accent); }
+.filter button[aria-pressed='true'] { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
+.count { font-size: var(--fs-label); font-weight: 500; color: var(--ink-3); }
+.filter button[aria-pressed='true'] .count { color: var(--ink-2); }
+
+.lockedQty { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* ---------- The table: facts only, one line per row ---------- */
 .table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; table-layout: fixed; font-size: 14px; line-height: 20px; }

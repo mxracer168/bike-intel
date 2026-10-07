@@ -95,6 +95,41 @@ export type ProposedOrderView = {
   lines: OrderLineView[]
   /** A conversation question whose answer could change this order (shown anchored at the bottom). */
   intelligenceQuestionId?: string
+  /** What the retailer knows about ordering from this supplier; only what's known. */
+  context?: OrderContextView
+  /** How this order can leave Buying Intelligence. */
+  handoff?: HandoffView
+}
+
+/**
+ * Decision-relevant context for curating an order with this supplier. Every
+ * field is optional: unknown things are left out, never shown as blanks.
+ */
+export type OrderContextView = {
+  /** Typical days between orders to this supplier. */
+  cadenceDays?: number
+  lastOrderDaysAgo?: number
+  /** Typical order value to this supplier. */
+  typicalOrder?: number
+  /** Payment terms in the supplier's own words, e.g. "2% 10 · Net 30". */
+  terms?: string
+  /** Days since the supplier's prices on this order were last updated. */
+  pricesUpdatedDaysAgo?: number
+  /** A current supplier program that applies to lines on this order. */
+  promotion?: { name: string; lineIds: string[]; discountRate: number; endsOn?: string }
+}
+
+/** How an order reaches the supplier. Same values as `purchase_order.submission_method` (less 'entered_in_pos'). */
+export type SupplierOrderMethod = 'supplier_api' | 'email' | 'export' | 'other'
+
+/**
+ * The connections that decide what "submit" means. Supplier submission and
+ * creating the purchase order in the POS are separate actions.
+ */
+export type HandoffView = {
+  supplier: SupplierOrderMethod
+  /** The retailer's point of sale, if connected, and whether it accepts purchase orders from us. */
+  pos: { name: string; writeback: boolean } | null
 }
 
 /** One row on Today / Orders: the whole order at a glance, no line detail. */

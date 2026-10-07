@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { isDemoPreviewEnabled } from '@/demo/config'
-import { findDemoOrder } from '@/demo/orders'
+import { demoHandoff, findDemoOrder } from '@/demo/orders'
 import { OrderReview } from '@/features/orders/OrderReview'
 import { completeWeekStarts } from '@/features/orders/why'
 import { requireOrganization } from '@/server/session'
@@ -12,11 +12,17 @@ import { Page } from '@/ui/Layout'
 export const metadata: Metadata = { title: 'Proposed order' }
 
 /** One supplier's proposed order. Example data only until orders are built. */
-export default async function OrderPage({ params }: { params: Promise<{ orderId: string }> }) {
+export default async function OrderPage({ params, searchParams }: {
+  params: Promise<{ orderId: string }>
+  searchParams: Promise<{ handoff?: string | string[] }>
+}) {
   await requireOrganization()
   const { orderId } = await params
-  const order = isDemoPreviewEnabled() ? findDemoOrder(orderId) : undefined
-  if (!order) notFound()
+  const found = isDemoPreviewEnabled() ? findDemoOrder(orderId) : undefined
+  if (!found) notFound()
+  // Example review only: ?handoff=a|b|c|d shows each combination of supplier and POS connections.
+  const handoff = demoHandoff((await searchParams).handoff)
+  const order = handoff ? { ...found, handoff } : found
 
   return (
     <Page>

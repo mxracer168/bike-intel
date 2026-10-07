@@ -5,7 +5,7 @@
  * the same numbers.
  */
 import { average, describeCover } from '@/domain/language/plain'
-import type { Confidence, LineState, NetworkListing, OrderLineView, ProposedOrderView } from '@/features/orders/types'
+import type { Confidence, HandoffView, LineState, NetworkListing, OrderLineView, ProposedOrderView } from '@/features/orders/types'
 
 /** Small seeded PRNG (mulberry32): same seed, same example data. */
 function random(seed: number) {
@@ -156,7 +156,7 @@ const northline = build({
   warehouses: ['Reno', 'Denver', 'Atlanta'],
   leadTimeDays: 5,
   coverWeeks: 3,
-  freeFreightAt: 1500,
+  freeFreightAt: 5000,
   seed: 11,
   families: [
     { name: 'Shimano B01S resin disc brake pads', variants: ['Pair'], cost: 9.4, rate: 2 },
@@ -251,7 +251,6 @@ const summit = build({
   warehouse: 'Denver',
   leadTimeDays: 7,
   coverWeeks: 6,
-  freeFreightAt: 750,
   orderBy: 'Thursday',
   seed: 29,
   families: [
@@ -314,6 +313,43 @@ const cascade: ProposedOrderView = {
 
 // The one question that could change this order: asked here and in the conversation, answered once.
 northline.intelligenceQuestionId = 'demo-cedar-ridge'
+
+/**
+ * Order context the supplier and the store's history would provide: cadence,
+ * typical order, terms and a current promotion. Invented for the example.
+ * Summit shows the plainest case (terms only); Cascade is short of free freight.
+ */
+const SERVICE = /^(KMC chain|Shimano CN-|SRAM PC-|Jagwire|Shimano J05A|SRAM disc brake pads|Shimano B01S|Stan’s NoTubes tire sealant)/
+northline.context = {
+  cadenceDays: 12,
+  lastOrderDaysAgo: 9,
+  typicalOrder: 3950,
+  terms: '2% 10 · Net 30',
+  promotion: { name: 'Fall service promotion', discountRate: 0.12, lineIds: northline.lines.filter((l) => SERVICE.test(l.product)).map((l) => l.id) },
+}
+summit.context = { terms: 'Net 30' }
+cascade.context = { cadenceDays: 30, lastOrderDaysAgo: 34, terms: 'Net 30', pricesUpdatedDaysAgo: 9 }
+
+/**
+ * How each example order would leave, assuming Lightspeed is connected and
+ * can receive purchase orders. Northline takes orders electronically; Summit
+ * and Cascade don't. Review other combinations with ?handoff=a|b|c|d.
+ */
+const lightspeed = { name: 'Lightspeed', writeback: true }
+northline.handoff = { supplier: 'supplier_api', pos: lightspeed }
+summit.handoff = { supplier: 'export', pos: lightspeed }
+cascade.handoff = { supplier: 'export', pos: lightspeed }
+
+/** Review scenarios: A both connected, B no supplier ordering, C no POS writeback, D neither. */
+export function demoHandoff(value: string | string[] | undefined): HandoffView | undefined {
+  switch (value) {
+    case 'a': return { supplier: 'supplier_api', pos: lightspeed }
+    case 'b': return { supplier: 'export', pos: lightspeed }
+    case 'c': return { supplier: 'supplier_api', pos: { name: 'Lightspeed', writeback: false } }
+    case 'd': return { supplier: 'export', pos: { name: 'Lightspeed', writeback: false } }
+    default: return undefined
+  }
+}
 
 export const demoOrders: ProposedOrderView[] = [northline, summit, cascade]
 

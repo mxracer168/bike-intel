@@ -269,6 +269,63 @@ consumption (work-order lines, or sale lines in the Service channel with
 their work-order reference). The import layer maps each source's fields into
 these explicitly; unknown stays null rather than defaulting to "in-store".
 
+## Supplier orders: finishing an order
+
+The order page is where a retailer curates one supplier's order and then
+hands it off. The right side (a sticky column on wide screens; a compact
+summary and a bottom bar on smaller ones) explains the order, its supplier
+context and what will happen next. Behaviour decided so far:
+
+- **The header names the supplier, nothing else.** Line count, total, status
+  and terms live in the order summary beside the lines, not in the header.
+- **The total is exact** ($4,824.10, never "about"), recomputed in cents as
+  quantities change. When it can't be trusted to the cent, it says so next
+  to the total: lines without a price are left out and named, and prices
+  older than a few days carry the date they were last updated.
+- **Context is interpreted, and only what's known is shown.** Each row says
+  what a fact means for *this* order: cadence ("About every 12 days", "Last
+  Northline order 9 days ago"), typical size ("22% larger than usual"),
+  freight ("Free over $5,000", "$176 away", emphasized when close), the order
+  deadline, terms in the supplier's words, and a current promotion with the
+  lines that qualify and its estimated benefit at the current quantities.
+  No placeholders for unknown rows. Promotions describe price only; they
+  never change which lines are recommended, and supplier payments never
+  affect program fit.
+- **Approval and submission are separate states**, even when one action does
+  both: `draft → approved → submitted`, or `draft → discarded`. An order the
+  retailer still has to send themselves is *approved*, not submitted;
+  "Mark as sent" submits it with `submission_method = 'export'`. Quantities
+  are locked once approved. The method stays visible after submission.
+- **"Review & submit" explains exactly what will happen** before anything
+  does, worded from the actual connections (`features/orders/handoff.ts`):
+
+  | | Supplier takes orders electronically | Supplier doesn't |
+  |---|---|---|
+  | **POS accepts purchase orders** | A. Submit to the supplier, create the PO in the POS. "Approve & submit". | B. Create the PO in the POS, prepare the supplier's order file (opens in Excel). "Approve & prepare order". |
+  | **POS doesn't** | C. Submit to the supplier; prepare a file to create the PO by hand. "Approve & submit". | D. Prepare both files; the retailer sends one and enters the other. "Approve order". |
+
+  The primary button carries the exact total. Supplier submission and the
+  POS purchase order are two independent handoffs; neither implies the other.
+- **Live revalidation is promised, never implied.** Where a supplier takes
+  orders electronically, pricing and availability are rechecked just before
+  sending (see "Core principles"). Screens describe that recheck as
+  something that will happen; nothing says it happened unless it did. The
+  example on the order page says plainly that nothing was sent or rechecked.
+- **Files are the fallback, not a feature.** Order files are plain CSV with
+  product, variant, quantity and unit cost (the POS file adds the supplier),
+  so they open in Excel. Supplier-specific formats come with each supplier.
+
+**Schema gap (not migrated).** `purchase_order` has one `connection_id` /
+`external_*` set and one `submission_method`, so it can record *either* the
+supplier submission *or* the POS purchase order, not both. Scenario A needs
+both. When submission is built, add a small `purchase_order_handoff` table
+(one row per target: supplier or POS; connection, method, status, external
+reference, error, timestamps) rather than widening `purchase_order`; keep
+`purchase_order.submission_method` as the supplier-side summary. Order
+context (cadence, typical order) is derived from order history; terms,
+freight thresholds and programs already have homes in `supplier_terms` and
+`program_version`.
+
 ## Recorded for later (no schema change yet)
 
 - **Recommendation confidence** becomes structured data in an additive
@@ -301,5 +358,7 @@ these explicitly; unknown stays null rather than defaulting to "in-store".
 Supplier logins and supplier-side access, retailer→supplier data-sharing
 grants, program audience lists, industry-intelligence aggregate tables,
 outcome/metrics tables, supplier account numbers per location, lost-sales
-capture, order transmission to suppliers/POS. Each can be added without
+capture, order transmission to suppliers/POS (the order page shows what it
+will do; see "Supplier orders"), freight calculation, payments, invoicing
+and receiving. Each can be added without
 reshaping the tables above.

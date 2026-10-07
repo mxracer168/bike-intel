@@ -39,8 +39,8 @@ export const demoSuppliers: DemoSupplier[] = [
         type: 'facts',
         title: 'Ordering with Northline',
         items: [
-          { label: 'Free freight', value: 'Orders over $300' },
-          { label: 'Payment terms', value: 'Net 30' },
+          { label: 'Free freight', value: 'Orders over $5,000' },
+          { label: 'Payment terms', value: '2% 10 · Net 30' },
           { label: 'Warehouses', value: 'Reno, Chicago, Harrisburg' },
           { label: 'Typical delivery', value: '1–2 business days' },
         ],

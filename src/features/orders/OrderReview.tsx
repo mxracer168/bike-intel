@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, useId, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { average, formatMoney, plural } from '@/domain/language/plain'
+import { average } from '@/domain/language/plain'
 import { WeeklySalesChart } from '@/features/recommendations/WeeklySalesChart'
 import { AnchoredQuestion } from '@/features/intelligence/AnchoredQuestion'
 import { useIntelligence } from '@/features/intelligence/IntelligencePanel'
@@ -12,8 +12,8 @@ import { Icon } from '@/ui/Icon'
 import { InfoTip } from '@/ui/InfoTip'
 import { QuantityStepper } from '@/ui/QuantityStepper'
 import { networkMatch, networkSignal, retailerLabel, supplierShort, type NetworkMatch } from './network'
-import { orderNote } from './OrderList'
-import { freightGap, lineTotal, orderTotal, sortForReview } from './summarize'
+import { OrderCockpit, type OrderProgress } from './OrderCockpit'
+import { lineTotal, orderTotal, sortForReview } from './summarize'
 import type { NetworkListing, OrderLineView, ProposedOrderView } from './types'
 import { calculation, explanation, nextStep, oneDecimal, seasonView, supplierView, type SupplierView } from './why'
 import page from './Orders.module.css'
@@ -241,8 +241,10 @@ const Caret = () => <span className={styles.caret} aria-hidden="true"><Icon name
  * (about two thirds), other retailers on the right; whichever is open alone
  * takes the full width. Assumptions and options sit underneath.
  */
-function LineDetail({ line, quantity, setQuantity, order, weekStarts }: {
+function LineDetail({ line, quantity, setQuantity, order, weekStarts, locked }: {
   line: OrderLineView; quantity: number; setQuantity: (n: number) => void; order: ProposedOrderView; weekStarts?: string[]
+  /** Approved or submitted: quantities can no longer change. */
+  locked?: boolean
 }) {
   const [why, setWhy] = useState(false)
   const [showNetwork, setShowNetwork] = useState(false)
@@ -253,7 +255,9 @@ function LineDetail({ line, quantity, setQuantity, order, weekStarts }: {
   return (
     <div className={styles.detail}>
       <div className={styles.controls}>
-        <QuantityStepper compact value={quantity} onChange={setQuantity} label={`Quantity for ${line.product}`} />
+        {locked
+          ? <span className={styles.lockedQty}>Ordering {quantity}</span>
+          : <QuantityStepper compact value={quantity} onChange={setQuantity} label={`Quantity for ${line.product}`} />}
         <button type="button" className={styles.disclosure} aria-expanded={why} aria-controls={whyId} onClick={() => setWhy((v) => !v)}>
           Why {line.quantity}?<Caret />
         </button>
@@ -263,7 +267,7 @@ function LineDetail({ line, quantity, setQuantity, order, weekStarts }: {
             {networkSignal(match)}<Caret />
           </button>
         )}
-        {quantity !== line.quantity && (
+        {!locked && quantity !== line.quantity && (
           <button type="button" className={styles.textButton} onClick={() => setQuantity(line.quantity)}>Back to {line.quantity}</button>
         )}
       </div>
@@ -278,12 +282,21 @@ function LineDetail({ line, quantity, setQuantity, order, weekStarts }: {
   )
 }
 
+/** A quiet filter tab: the label, then a muted count; the current one is underlined. */
+function FilterTab({ current, onClick, label, count }: { current: boolean; onClick: () => void; label: string; count: number }) {
+  return (
+    <button type="button" aria-pressed={current} onClick={onClick}>
+      {label}<span className={styles.count}>{count}</span>
+    </button>
+  )
+}
+
 /**
  * One supplier's order as a plain table of facts: product, on hand, on order,
  * quantity, cost. Built to scan hundreds of lines; every reason lives behind a
  * click on the row. Quantities change locally only.
  */
-export function OrderReview({ order, eyebrow, weekStarts }: {
+export function OrderReview({ order, eyebrow, weekStarts, example }: {
   order: ProposedOrderView; eyebrow?: ReactNode; example?: boolean
   /** Start dates of the complete weeks in each line's weekly sales, oldest first. */
   weekStarts?: string[]
@@ -291,6 +304,8 @@ export function OrderReview({ order, eyebrow, weekStarts }: {
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [open, setOpen] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'attention' | 'network'>('all')
+  const [progress, setProgress] = useState<OrderProgress>({ status: 'draft' })
+  const locked = progress.status !== 'draft'
   const narrow = useNarrow()
 
   const sorted = sortForReview(order.lines)
@@ -300,7 +315,7 @@ export function OrderReview({ order, eyebrow, weekStarts }: {
   const fromNetwork = sorted.filter((l) => networkMatch(l.network, qty(l)).kind !== 'none')
   const shown = filter === 'all' ? sorted : filter === 'attention' ? attention : fromNetwork
   const total = orderTotal(order.lines, quantities)
-  const note = orderNote({ orderBy: order.orderBy, freightGap: freightGap(order, total), currency: order.currency })
+  const ordering = order.lines.filter((l) => qty(l) > 0).length
   const toggle = (id: string) => setOpen((current) => (current === id ? null : id))
 
   return (
@@ -308,24 +323,17 @@ export function OrderReview({ order, eyebrow, weekStarts }: {
       <header className={page.head}>
         {eyebrow && <p className={page.eyebrow}>{eyebrow}</p>}
         <h1 className={page.title}>{order.supplier}</h1>
-        <p className={page.lead}>
-          {plural(order.lines.length, 'line')}, about {formatMoney(Math.round(total), order.currency)}.
-          {note && <span className={styles.note}> {note}.</span>}
-        </p>
       </header>
 
+      <div className={[styles.layout, progress.status === 'draft' && order.handoff && styles.withBar].filter(Boolean).join(' ')}>
       <div className={styles.work}>
         <div className={styles.filter} role="group" aria-label="Show">
-          <button type="button" aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>All {order.lines.length}</button>
+          <FilterTab current={filter === 'all'} onClick={() => setFilter('all')} label="All" count={order.lines.length} />
           {attention.length > 0 && (
-            <button type="button" aria-pressed={filter === 'attention'} onClick={() => setFilter('attention')}>
-              Needs a look {attention.length}
-            </button>
+            <FilterTab current={filter === 'attention'} onClick={() => setFilter('attention')} label="Needs a look" count={attention.length} />
           )}
           {fromNetwork.length > 0 && (
-            <button type="button" aria-pressed={filter === 'network'} onClick={() => setFilter('network')}>
-              Other retailers {fromNetwork.length}
-            </button>
+            <FilterTab current={filter === 'network'} onClick={() => setFilter('network')} label="Other retailers" count={fromNetwork.length} />
           )}
         </div>
 
@@ -367,7 +375,7 @@ export function OrderReview({ order, eyebrow, weekStarts }: {
                   {isOpen && (
                     <tr className={styles.detailRow} id={`${line.id}-detail`}>
                       <td colSpan={narrow ? 4 : 6}>
-                        <LineDetail line={line} quantity={q} order={order} weekStarts={weekStarts}
+                        <LineDetail line={line} quantity={q} order={order} weekStarts={weekStarts} locked={locked}
                           setQuantity={(n) => setQuantities((prev) => ({ ...prev, [line.id]: n }))} />
                       </td>
                     </tr>
@@ -378,16 +386,20 @@ export function OrderReview({ order, eyebrow, weekStarts }: {
           </tbody>
           <tfoot>
             <tr>
-              <th scope="row" colSpan={narrow ? 3 : 5}>Estimated total</th>
+              <th scope="row" colSpan={narrow ? 3 : 5}>Total</th>
               <td className={styles.num}>{cost(total, order.currency)}</td>
             </tr>
           </tfoot>
         </table>
+
+        {order.intelligenceQuestionId && (
+          <AnchoredQuestion questionId={order.intelligenceQuestionId} headline="1 question could change this order" />
+        )}
       </div>
 
-      {order.intelligenceQuestionId && (
-        <AnchoredQuestion questionId={order.intelligenceQuestionId} headline="1 question could change this order" />
-      )}
+      <OrderCockpit order={order} total={total} lineCount={ordering} quantities={quantities}
+        progress={progress} onProgress={setProgress} example={example} />
+      </div>
     </>
   )
 }

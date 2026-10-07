@@ -120,6 +120,17 @@ controls. On a phone everything stacks in the same order.
   white panels with a 1px line on the wash, one faint tint for key facts.
   No shadows, no cards inside panels, no icons beyond the chevron and
   carets.
+- **The order cockpit.** The header is the supplier's name under an
+  "Orders" link. Beside the lines (288px, sticky, at 1200px and wider): the
+  exact total as the strongest thing, lines and status; then interpreted
+  order context; then one primary "Review & submit". Below 1200px it sits
+  above the table as a compact summary with "Order context ⌄", and
+  Review & submit moves to a bar along the bottom with the total. After
+  approval, what happened, the files and "Still to do" come before the
+  context.
+- **Filters are quiet tabs**: one baseline under the row, the current filter
+  in ink with a 2px underline, counts muted beside each label. No pills,
+  boxes or segmented controls.
 - Part numbers are left out for now.
 - Before adding anything to this screen ask: **would a buyer need this while
   scanning 100 lines?** If not, it goes behind the row click or behind
