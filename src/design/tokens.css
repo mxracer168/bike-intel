@@ -30,6 +30,9 @@
   --risk-line: #E7C3BB;
   /* Inverse surface (toasts) */
   --inverse: #22211F;      --on-inverse: #F6F4F0;   --inverse-link: #B9D0EC;
+  /* The conversation stage (onboarding call): a warm, dim room, never black */
+  --stage: #2E2C29;        --stage-2: #4A4640;      --on-stage: #F6F4F0;
+  --stage-veil: rgba(34,33,31,.62);  --stage-control: rgba(246,244,240,.16);
   /* Backdrop behind the phone navigation panel */
   --scrim: rgba(34,33,31,.32);
 

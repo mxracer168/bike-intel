@@ -10,6 +10,8 @@ retailer can:
 All three happen in the same conversation. It's one relationship, not
 separate tools. The weekly check-in is a scheduled way back into that same
 conversation, not a new one.
+The retailer's first conversation, during onboarding, is the start of it
+(`architecture.md`, "Onboarding conversation").
 
 ## What is stored where
 

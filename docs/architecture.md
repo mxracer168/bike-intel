@@ -328,6 +328,58 @@ context (cadence, typical order) is derived from order history; terms,
 freight thresholds and programs already have homes in `supplier_terms` and
 `program_version`.
 
+## Onboarding conversation: getting to know the retailer
+
+A new retailer's first real experience is a conversation with their buying
+advisor, not a setup wizard. It has two jobs: learn enough to understand how
+the business actually works, and introduce the relationship the retailer
+will keep with Buying Intelligence. The message it establishes early: we
+don't just analyze sales data; we learn how the business works. Decided so
+far:
+
+- **Conversational, not form-driven.** Subjects are covered in conversation
+  (the business, customers and riders, what's carried and deliberately not,
+  buying approach, suppliers, seasonality, what makes the store different,
+  and its philosophy on cash flow, stockouts and turns). Topics orient the
+  retailer; they are not required steps, and the retailer is never held in
+  a fixed sequence.
+- **Questions adapt to answers.** A follow-up depends on what was said. The
+  important case: when a retailer says "we don't carry road bikes", the
+  advisor asks whether that is a firm decision or current behaviour, because
+  the answer decides what it becomes.
+- **Three kinds of learning, kept apart.** A conversation can surface
+  durable rules ("We do not stock road bikes"), seasonal context ("Tourism
+  rises May through August") and temporary context ("A major race at the
+  end of October"). They stay distinct (`context_item` lifespan: evergreen,
+  seasonal, temporary; see `intelligence.md`) and are never flattened into
+  one memory.
+- **Business instructions stay human-controlled.** A durable rule heard in
+  conversation is only ever a *suggestion* for the retailer's business
+  instructions; the instructions change only when an owner or admin edits
+  them (`business-instructions.md`). Anything shown as learned is a
+  candidate the retailer can review, not a stored fact.
+- **Not everything said is intelligence.** Onboarding is the same
+  conversation with the same intent boundaries: business context, business
+  questions, product help, product feedback and casual conversation. Only
+  business context is eligible to become intelligence.
+- **One interaction model.** Onboarding is the first session of the
+  retailer's ongoing intelligence conversation, not a separate tool. Later
+  the retailer continues it through scheduled check-ins, by opening it any
+  time, by adding context from a screen, by answering questions we've
+  identified, and by asking about their business or the product.
+- **Explain why context matters.** Before it ends, the advisor explains that
+  some things never show up in sales history in time (a race coming to
+  town, construction out front, a new competitor, a planned promotion,
+  staffing changes, unusual weather, a category to push, a temporary stock
+  concern), and that this is why it will keep asking.
+- **It ends by offering a recurring check-in.** A short weekly conversation,
+  recommended at a sensible time, which the retailer may accept, move or
+  decline. Choosing that time may later take into account business hours,
+  stated preferences, the buying schedule and calendar availability.
+
+Today this exists only as a scripted example (`/demo/onboarding`, demo
+preview only): no video, voice, speech, extraction, scheduling or writes.
+
 ## Recorded for later (no schema change yet)
 
 - **Recommendation confidence** becomes structured data in an additive

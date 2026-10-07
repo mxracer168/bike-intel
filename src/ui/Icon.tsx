@@ -1,4 +1,4 @@
-type IconName = 'chevron-down' | 'chevron-right' | 'check' | 'alert' | 'info' | 'arrow-right' | 'menu' | 'close' | 'search' | 'external' | 'plus' | 'mic' | 'arrow-up' | 'file' | 'grip' | 'more' | 'question' | 'copy' | 'list-bullet' | 'list-number' | 'trend-up' | 'arrow-down'
+type IconName = 'chevron-down' | 'chevron-right' | 'check' | 'alert' | 'info' | 'arrow-right' | 'menu' | 'close' | 'search' | 'external' | 'plus' | 'mic' | 'arrow-up' | 'file' | 'grip' | 'more' | 'question' | 'copy' | 'list-bullet' | 'list-number' | 'trend-up' | 'arrow-down' | 'mic-off' | 'captions' | 'phone-down' | 'calendar'
 
 const paths: Record<IconName, React.ReactNode> = {
   'chevron-down': <path d="M3.5 6 8 10.5 12.5 6" />,
@@ -19,6 +19,10 @@ const paths: Record<IconName, React.ReactNode> = {
   'trend-up': <><path d="M2 11.5 6 7.5l2.5 2.5L14 4.5" /><path d="M10 4.5h4v4" /></>,
   'arrow-down': <path d="M8 3v10M4 9l4 4 4-4" />,
   plus: <path d="M8 3v10M3 8h10" />,
+  'mic-off': <><rect x="6" y="2" width="4" height="7.5" rx="2" /><path d="M3.5 7.5a4.5 4.5 0 0 0 9 0M8 12v2M2.5 2.5l11 11" /></>,
+  captions: <><rect x="1.8" y="3.5" width="12.4" height="9" rx="1.6" /><path d="M4.5 7h3M9 7h2.5M4.5 9.5h2M8 9.5h3.5" /></>,
+  'phone-down': <path d="M1.8 9.4c3.5-3.1 8.9-3.1 12.4 0l-1.3 1.8-2.6-.7-.3-1.7a7.3 7.3 0 0 0-4 0l-.3 1.7-2.6.7z" />,
+  calendar: <><rect x="2.5" y="3.5" width="11" height="10" rx="1.5" /><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3" /></>,
   mic: <><rect x="6" y="2" width="4" height="7.5" rx="2" /><path d="M3.5 7.5a4.5 4.5 0 0 0 9 0M8 12v2" /></>,
   'arrow-up': <path d="M8 13V3M4 7l4-4 4 4" />,
   file: <><path d="M4 1.8h5l3 3v9.4H4z" /><path d="M9 1.8v3h3" /></>,
