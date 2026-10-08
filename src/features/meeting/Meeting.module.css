@@ -1,0 +1,236 @@
+/*
+ * The intelligence meeting. Wide screens: on the left why it matters (the
+ * equation), the call (the hero) and what we're learning; on the right the
+ * meeting panel, from the top of the page: up next and the agenda, then the
+ * transcript. Narrower screens stack in the same order of importance.
+ */
+.layout {
+  display: grid; gap: var(--sp-5);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'intro' 'why' 'call' 'panel' 'reference';
+}
+.intro { grid-area: intro; display: flex; flex-direction: column; gap: 2px; }
+.why { grid-area: why; }
+.call { grid-area: call; }
+.reference { grid-area: reference; }
+.panel { grid-area: panel; min-width: 0; }
+.panelInner { display: flex; flex-direction: column; gap: var(--sp-4); }
+
+.title { font-size: 24px; line-height: 30px; font-weight: 600; letter-spacing: -0.015em; }
+.lead { font-size: 15px; line-height: 22px; color: var(--ink-2); }
+
+
+/* ---------- Why this matters: one equation ---------- */
+.equation {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-xl);
+  padding: var(--sp-4) var(--sp-6);
+}
+.terms { list-style: none; display: flex; align-items: flex-start; justify-content: space-between; }
+.term { flex: 0 0 auto; min-width: 120px; white-space: nowrap; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.termIcon {
+  width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 4px;
+  background: var(--subtle); color: var(--ink-2);
+}
+.termLabel { font-size: 15px; line-height: 20px; font-weight: 500; color: var(--ink-2); }
+.here .termIcon {
+  background: var(--surface); color: var(--accent);
+  box-shadow: 0 0 0 1.5px var(--accent), 0 0 0 7px var(--accent-soft);
+}
+.here .termLabel { color: var(--ink); font-weight: 600; }
+.outcome .termIcon { background: var(--pos-soft); color: var(--pos); }
+.outcome .termLabel { color: var(--ink); }
+.hereBadge {
+  display: inline-block; margin-top: 2px; padding: 3px 10px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent-pressed);
+  font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .02em;
+}
+.operator {
+  flex: 1 1 0; min-width: 24px; height: 64px; position: relative; display: flex; align-items: center; justify-content: center;
+  font-size: 28px; font-weight: 400; color: var(--ink-3); line-height: 1;
+}
+.operator::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; border-top: 1px solid var(--line); z-index: 0; }
+.operator span { position: relative; z-index: 1; padding: 0 10px; background: var(--surface); }
+
+/* ---------- The call ---------- */
+.stage {
+  position: relative; overflow: hidden; aspect-ratio: 16 / 9; border-radius: var(--r-xl);
+  background: radial-gradient(120% 90% at 50% 30%, var(--stage-2), var(--stage) 70%);
+  color: var(--on-stage); isolation: isolate;
+}
+.portrait { position: absolute; inset: 0; }
+.photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+.photo[data-loaded] { opacity: 1; }
+.placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.silhouette { width: 34%; max-width: 260px; fill: var(--on-stage); opacity: .14; margin-top: 6%; }
+.placeholderNote { position: absolute; left: 50%; top: var(--sp-5); transform: translateX(-50%); white-space: nowrap; font-size: var(--fs-label); color: var(--on-stage); opacity: .5; }
+.portraitSmall .placeholderNote { display: none; }
+
+.nameTag {
+  position: absolute; left: var(--sp-4); top: var(--sp-4); z-index: 2;
+  display: grid; grid-template-columns: auto auto; column-gap: var(--sp-3); align-items: center;
+  padding: 8px 12px; border-radius: var(--r-md); background: var(--stage-veil); backdrop-filter: blur(6px);
+}
+.name { font-size: 15px; line-height: 20px; font-weight: 600; }
+.nameSub { grid-row: 2; font-size: var(--fs-label); line-height: var(--lh-label); opacity: .75; }
+.speaking { grid-row: 1 / 3; grid-column: 2; display: inline-flex; align-items: center; gap: 3px; height: 16px; }
+.speaking i { width: 3px; height: 6px; border-radius: 2px; background: var(--on-stage); animation: talk 900ms var(--ease) infinite alternate; }
+.speaking i:nth-child(2) { animation-delay: 150ms; }
+.speaking i:nth-child(3) { animation-delay: 300ms; }
+@keyframes talk { to { height: 15px; } }
+@media (prefers-reduced-motion: reduce) { .speaking i { animation: none; height: 10px; } }
+
+.self {
+  position: absolute; right: var(--sp-4); top: var(--sp-4); z-index: 2; width: 22%; min-width: 120px; aspect-ratio: 4 / 3;
+  border-radius: var(--r-lg); overflow: hidden; background: var(--stage-2);
+  box-shadow: 0 0 0 1px var(--stage-control); transition: box-shadow var(--t-base) var(--ease);
+}
+.selfSpeaking { box-shadow: 0 0 0 2px var(--on-stage); }
+.portraitSmall .silhouette { width: 46%; opacity: .2; margin-top: 18%; }
+.selfLabel {
+  position: absolute; left: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 4px;
+  font-size: var(--fs-label); line-height: 1; padding: 4px 6px; border-radius: var(--r-sm); background: var(--stage-veil);
+}
+
+.captions {
+  position: absolute; left: 50%; bottom: 84px; z-index: 2; transform: translateX(-50%); width: min(80%, 760px);
+  padding: 10px 16px; border-radius: var(--r-md); background: var(--stage-veil); backdrop-filter: blur(6px);
+  font-size: 16px; line-height: 24px; text-align: center;
+}
+.captionWho { display: block; font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 600; opacity: .7; }
+
+.controls { position: absolute; left: 50%; bottom: var(--sp-4); z-index: 2; transform: translateX(-50%); display: flex; align-items: center; gap: var(--sp-3); }
+.control, .leave {
+  height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; cursor: pointer;
+  border-radius: 999px; color: var(--on-stage); transition: background var(--t-fast) var(--ease);
+}
+.control { width: 48px; background: var(--stage-control); }
+.control:hover { background: var(--stage-veil); }
+.control[aria-pressed='true'][aria-label='Unmute'] { background: var(--on-stage); color: var(--stage); }
+.control[aria-label='Captions'][aria-pressed='false'] { opacity: .6; }
+.leave { padding: 0 18px 0 14px; background: var(--risk); font-size: 15px; font-weight: 600; text-decoration: none; }
+.leave:hover { background: var(--stage-veil); }
+.control:focus-visible, .leave:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--on-stage); }
+
+/* ---------- Meeting panel: up next and the agenda ---------- */
+.agendaCard {
+  display: flex; flex-direction: column; gap: var(--sp-4);
+  background: var(--accent-wash); border: 1px solid var(--accent-soft); border-radius: var(--r-xl); padding: var(--sp-5);
+}
+.upNext { display: flex; gap: var(--sp-4); padding-bottom: var(--sp-4); border-bottom: 1px solid var(--accent-soft); }
+.upNextIcon {
+  flex: none; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--surface); color: var(--accent); box-shadow: var(--sh-1);
+}
+.upNextBody { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: 15px; line-height: 22px; color: var(--ink-2); }
+.eyebrow { font-size: 14px; line-height: 20px; font-weight: 600; letter-spacing: .02em; color: var(--accent); }
+.upNextTitle { font-size: var(--fs-answer); line-height: var(--lh-answer); font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+
+.agenda { list-style: none; display: flex; flex-direction: column; gap: 10px; padding-left: 2px; }
+.agenda li { position: relative; display: flex; align-items: center; gap: var(--sp-4); font-size: 16px; line-height: 24px; color: var(--ink-2); }
+/* A thin line joins the markers. */
+.agenda li + li::before {
+  content: ''; position: absolute; left: 9.5px; top: -11px; height: 12px; border-left: 1px solid var(--line-strong);
+}
+.marker { flex: none; overflow: visible; }
+.markDone { fill: var(--pos); }
+.markCheck { fill: none; stroke: var(--on-accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.markCurrent { fill: var(--accent); }
+.markNext { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; }
+.markLater { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.5; }
+.agenda .done { color: var(--ink-2); }
+.agenda .current { color: var(--ink); font-weight: 500; }
+.agenda .next { color: var(--ink); font-weight: 600; }
+
+/* ---------- Meeting panel: the transcript, quieter ---------- */
+.transcriptCard {
+  display: flex; flex-direction: column; min-height: 0;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-xl); padding: var(--sp-4) var(--sp-5) var(--sp-3);
+}
+.transcriptHead { display: flex; align-items: center; gap: var(--sp-3); padding-bottom: var(--sp-3); border-bottom: 1px solid var(--line); color: var(--ink-2); }
+.transcriptTitle { flex: 1; font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; color: var(--ink); }
+.live { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--ink-2); }
+.live i { width: 8px; height: 8px; border-radius: 50%; background: var(--pos); }
+.transcript {
+  list-style: none; display: flex; flex-direction: column; gap: var(--sp-4); overflow-y: auto; min-height: 0; max-height: 380px;
+  padding: var(--sp-4) 6px var(--sp-2) 0; outline: none;
+  mask-image: linear-gradient(to bottom, transparent, black 24px);
+}
+.transcript:focus-visible { box-shadow: var(--focus-ring); border-radius: var(--r-sm); }
+.line { display: flex; flex-direction: column; gap: 2px; padding-left: 14px; }
+.advisorLine { border-left: 2px solid var(--accent); padding-left: 12px; }
+.who { display: flex; align-items: baseline; gap: var(--sp-3); font-size: 15px; line-height: 22px; font-weight: 600; color: var(--ink); }
+.advisorLine .who { color: var(--accent-pressed); }
+.time { font-size: var(--fs-label); font-weight: 400; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.words { font-size: 15px; line-height: 22px; color: var(--ink-2); }
+.now .words { color: var(--ink); }
+@media (prefers-reduced-motion: no-preference) { .now { animation: arrive var(--t-slow) var(--ease); } }
+@keyframes arrive { from { opacity: 0; transform: translateY(4px); } }
+
+/* ---------- What we're learning: reference under the call ---------- */
+.learned {
+  display: flex; flex-direction: column; gap: var(--sp-3);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-xl); padding: var(--sp-4) var(--sp-5);
+}
+.learnedEnd { background: var(--accent-wash); border-color: var(--accent-soft); }
+.learnedHead { display: flex; align-items: center; gap: var(--sp-4); }
+.learnedIcon { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-wash); color: var(--accent); }
+.learnedEnd .learnedIcon { background: var(--surface); }
+.learnedTitles { flex: 1; min-width: 0; }
+.learnedTitle { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; }
+.learnedSub { font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.learnedToggle {
+  flex: none; display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; padding: 6px 0; cursor: pointer;
+  font-size: 15px; font-weight: 600; color: var(--accent);
+}
+.learnedToggle svg { transition: transform var(--t-fast) var(--ease); }
+.learnedToggle[aria-expanded='true'] svg { transform: rotate(180deg); }
+.learnedBody { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--sp-3) var(--sp-5); padding-left: 60px; }
+.learnedItems { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; flex: 1 1 320px; }
+.learnedEnd .learnedItems { padding-left: 60px; }
+.learnedList { list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 15px; line-height: 22px; color: var(--ink); }
+.learnedList li { position: relative; padding-left: 20px; }
+.learnedList li::before { content: ''; position: absolute; left: 2px; top: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.kind { color: var(--ink-3); }
+@media (prefers-reduced-motion: no-preference) { .fresh { animation: learned 1.6s var(--ease); } }
+@keyframes learned { from { background: var(--accent-soft); } to { background: transparent; } }
+.learnedEmpty { font-size: 14px; color: var(--ink-3); padding-left: 60px; }
+.reviewNote { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+
+/* ---------- Wide: overrides that must follow the base rules ---------- */
+@media (min-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1.78fr) minmax(340px, 1fr); column-gap: var(--sp-6); row-gap: var(--sp-4);
+    grid-template-areas: 'intro panel' 'why panel' 'call panel' 'reference panel';
+  }
+  /* The panel takes the left column's height; the transcript scrolls inside it. */
+  .panel { position: relative; }
+  .panelInner { position: absolute; inset: 0; }
+  .transcriptCard { flex: 1 1 0; }
+  .transcript { max-height: none; }
+}
+
+/* ---------- Phone ---------- */
+@media (max-width: 640px) {
+  .title { font-size: 22px; line-height: 28px; }
+  .equation { padding: var(--sp-3) var(--sp-2); }
+  .term { flex: 1 1 0; min-width: min-content; gap: 4px; white-space: normal; }
+  .termIcon { width: 44px; height: 44px; }
+  .termIcon svg { width: 22px; height: 22px; }
+  .here .termIcon { box-shadow: 0 0 0 1.5px var(--accent), 0 0 0 4px var(--accent-soft); }
+  .termLabel { font-size: 11px; line-height: 14px; }
+  .hereBadge { white-space: nowrap; font-size: 10px; padding: 1px 6px; letter-spacing: 0; }
+  .operator { flex: 0 0 12px; height: 44px; font-size: 18px; min-width: 12px; }
+  .operator::before { display: none; }
+  .operator span { padding: 0; }
+  .stage { aspect-ratio: 3 / 4; margin: 0 calc(-1 * var(--gutter)); border-radius: 0; }
+  .silhouette { width: 60%; }
+  .self { width: 30%; min-width: 0; }
+  .captions { width: calc(100% - 2 * var(--sp-4)); bottom: 80px; font-size: 15px; line-height: 22px; }
+  .nameTag { padding: 6px 10px; }
+  .placeholderNote { top: 76px; left: var(--sp-4); transform: none; }
+  .agendaCard, .transcriptCard, .learned { padding: var(--sp-4); }
+  .learnedBody, .learnedEmpty, .learnedEnd .learnedItems { padding-left: 0; }
+  .learnedHead { flex-wrap: wrap; row-gap: var(--sp-2); }
+  .learnedTitles { flex-basis: calc(100% - 60px); }
+  .learnedToggle { margin-left: 60px; }
+}

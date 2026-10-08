@@ -377,6 +377,35 @@ far:
   decline. Choosing that time may later take into account business hours,
   stated preferences, the buying schedule and calendar availability.
 
+### Intelligence meetings
+
+Onboarding is the first instance of a reusable **intelligence meeting**: a
+conversation with the retailer's buying advisor that later weekly check-ins
+reuse (`features/meeting`).
+
+- **Why it matters, up front.** A meeting opens by placing itself in how
+  recommendations are made: historical truth plus market intelligence plus
+  the retailer's context make clear recommendations. The conversation is the
+  context.
+- **Meetings have an agenda.** It shows what's been covered, what's being
+  discussed now and what's up next. It orients; it is not a wizard: no step
+  counts, next buttons or progress bars, and the conversation may move
+  between items in any order.
+- **Agendas can be prepared.** Onboarding's agenda is predictable. A weekly
+  meeting's agenda may later be prepared from the retailer's context:
+  unanswered intelligence questions, supplier conditions, inventory
+  opportunities, upcoming events, things the retailer mentioned before, and
+  recommendations that would benefit from more context. Not built.
+- **The transcript is available, not primary.** The conversation itself
+  (and what's being said now) leads; the transcript is there to look back.
+- **What was learned is reviewed at the right moment.** During the meeting,
+  what we're learning is secondary reference. At the end it invites review,
+  and durable rules remain suggestions for the retailer's business
+  instructions, never written by the meeting.
+- **The next step is part of the meeting.** At the end of onboarding,
+  scheduling the recurring check-in is presented as the next item on the
+  agenda, not as a separate prompt.
+
 Today this exists only as a scripted example (`/demo/onboarding`, demo
 preview only): no video, voice, speech, extraction, scheduling or writes.
 

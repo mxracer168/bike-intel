@@ -3,10 +3,12 @@ import { papaWheelies as script } from '@/demo/onboarding'
 import { callState, openingLine } from '@/features/onboarding-call/script'
 
 describe('onboarding call script', () => {
-  it('opens mid-conversation, on buying, with what was learned so far', () => {
+  it('opens mid-conversation, on buying with suppliers up next, with what was learned so far', () => {
     const s = callState(script, openingLine(script, undefined))
     expect(s.current?.speaker).toBe('advisor')
-    expect(s.topics.map((t) => t.status)).toEqual(['done', 'done', 'current', 'upcoming', 'upcoming', 'upcoming'])
+    expect(s.agenda.map((t) => t.status)).toEqual(['done', 'done', 'current', 'upcoming', 'upcoming', 'upcoming'])
+    expect(s.upNext?.label).toBe('Suppliers')
+    expect(s.said.at(-1)?.time).toMatch(/^\d{1,2}:\d{2} (AM|PM)$/)
     expect(s.learned.map((k) => k.text)).toContain('Road bikes are not normally stocked')
     expect(s.wrapping).toBe(false)
     expect(s.finished).toBe(false)
@@ -35,7 +37,8 @@ describe('onboarding call script', () => {
   it('wraps up, then offers the check-in at the end', () => {
     const wrap = callState(script, openingLine(script, 'wrap'))
     expect(wrap.wrapping).toBe(true)
-    expect(wrap.topics.every((t) => t.status === 'done')).toBe(true)
+    expect(wrap.agenda.every((t) => t.status === 'done')).toBe(true)
+    expect(wrap.upNext).toBeNull()
     expect(wrap.finished).toBe(false)
     expect(callState(script, openingLine(script, 'end')).finished).toBe(true)
   })
