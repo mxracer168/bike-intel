@@ -182,10 +182,9 @@
 .tableCard .empty { padding: var(--sp-7) var(--sp-4); text-align: center; color: var(--ink-3); font-size: 14px; }
 .emptyTitle { font-weight: 500; color: var(--ink-2); margin-bottom: 4px; }
 
-/* ---------- An opened item: the Orders page's washed surface and accent edge ---------- */
+/* ---------- An opened item: the Orders page's washed surface ---------- */
 .openRow, .openRow:hover { background: var(--accent-wash) !important; }
 .openRow > * { border-top: 1px solid var(--accent-muted); border-bottom-color: transparent !important; }
-.openRow > :first-child, .detailRow > td { box-shadow: inset 3px 0 0 var(--accent); }
 .openRow .go { color: var(--accent); }
 .openRow .go svg { transform: translateY(3px) rotate(90deg); }
 .openRow .lineButton { font-weight: 600; }
@@ -231,7 +230,6 @@
   .lineButton { white-space: normal; overflow: visible; }
   .variant { display: inline-block; max-width: 100%; }
   .coverage { white-space: normal !important; }
-  .openRow > .product { box-shadow: inset 3px 0 0 var(--accent); padding-left: var(--sp-4); }
   .table .detailRow > td { padding: var(--sp-2) var(--sp-3) var(--sp-4) var(--sp-4); }
   .detailGrid { margin-left: 0; }
   .whitePanel { padding: var(--sp-3) var(--sp-4); }
