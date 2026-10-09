@@ -33,6 +33,10 @@ work against.
 - **Rights travel with source data.** Every catalog fact remembers whether
   its source allows platform-wide use; restricted data stays with the
   retailer whose connection supplied it (`catalog.md`).
+- **Normalized meaning and source representation are separate.** A
+  normalized value (622 mm, 120 ml) never erases what a source said or the
+  designation an item is sold under ("700c", "29″", "4 oz"), and one
+  normalized value may have several legitimate names (`catalog.md`).
 - **Identity is not presentation.** Product → Variant is how things are
   identified; how the Catalog groups results is decided by discovery, not
   by the hierarchy.
@@ -457,11 +461,21 @@ state reads as new again. Nothing is invented to fill the panel.
   stored yet, so outside example data only new questions can appear. Each
   source turns on as its data becomes real.
 
-## Catalog, sourcing and order creation (approved, not built)
+## Catalog, sourcing and order creation (approved, migration prepared)
 
-Approved 2026-10-09 (decisions D1–D8); the full model, the schema changes
-and what's still open are in [`catalog.md`](catalog.md). Nothing is built or
-migrated yet. In short:
+Approved 2026-10-09 (decisions D1–D8, adjustments G1–G5, the restricted
+first-source approach and the V1 taxonomy seed). The full model, the
+prepared migration and the proposed first implementation slice are in
+[`catalog.md`](catalog.md).
+- The catalog migration (`20261009000100_catalog_foundation.sql`) and the
+  V1 seed (`20261009000200_catalog_seed_bicycle_v1.sql`) are in the
+  repository and tested locally and in CI, but **not applied to the live
+  project**.
+- No application code reads the catalog tables yet, so the app works
+  before and after they are applied.
+- `database.types.ts` is regenerated after the apply.
+
+In short:
 
 - **Product → Variant.** `product_group` becomes `product` (the model) and
   `product` becomes `product_variant`; every Variant belongs to a Product.
@@ -476,6 +490,9 @@ migrated yet. In short:
   catalog; anything that arrived through a retailer's private connection
   stays restricted to that retailer. Resolution built on restricted data
   inherits the restriction. The default is restricted.
+  (`connection.catalog_rights`, `restricted_to_organization_id`.) V1 starts
+  from one retailer's own supplier source; platform-wide rights are not a
+  prerequisite.
 - **Duplicates vs lineage.** Duplicates are matched or merged. Replacements
   stay distinct, linked as direct successor, functional replacement or
   substitute, between Products or Variants.

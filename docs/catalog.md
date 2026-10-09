@@ -1,8 +1,12 @@
 # Catalog, sourcing and order creation
 
-**Status: architecture approved (decisions D1–D8 and pressure-test
-adjustments G1–G5, 2026-10-09). The first catalog source and the V1
-taxonomy seed are proposed below. Not built, not migrated.**
+**Status: architecture approved (decisions D1–D8, pressure-test
+adjustments G1–G5, the restricted first-source approach and the V1 seed,
+2026-10-09). The catalog migration is prepared
+(`supabase/migrations/20261009000100_catalog_foundation.sql`,
+`20261009000200_catalog_seed_bicycle_v1.sql`) and tested locally and in CI,
+but **not applied to the live project**. Nothing in the app reads it yet.
+The first implementation slice is proposed at the end of this file.**
 
 This file is the reference for the shared Catalog, product identity and
 provenance, catalog matching, product lineage, order creation and
@@ -154,6 +158,31 @@ show one row per Product or one row per Variant.
   shows one result with size and color choices.
 - How results collapse or expand is ranking and presentation logic, not
   schema, so it can keep improving.
+
+### Normalized meaning and source representation
+
+Canonical values and how things are named are kept apart. This is a
+general catalog principle, not a tire rule.
+
+- **Normalized value**: the physical or semantic meaning where it's known,
+  e.g. a 622 mm bead-seat diameter, a width in mm, a volume in ml. This is
+  what filters, comparisons and matching use.
+- **Source value**: exactly what the supplier or manufacturer said ("29 x
+  2.4", "700x40c", "4 oz"), kept in `catalog_assertion.source_value` with
+  its source.
+- **Designation**: the market name this item is sold under. One normalized
+  value can have several legitimate designations depending on context (a
+  700c gravel tire and a 29″ mountain tire share 622), so no normalized
+  value has exactly one label.
+  - An item's canonical attribute holds both, e.g.
+    `{"value": 622, "designation": "29″"}`.
+  - An attribute definition's allowed values list the known designations
+    without ranking them.
+
+Search can later learn equivalences (622 = 700c = 29″, 584 = 650B = 27.5″,
+shoe sizing systems, metric and imperial) from these lists without losing
+source truth. Normalization can improve at any time, because the source
+value is never overwritten.
 
 ## Pressure test: the first Catalog exploration
 
@@ -457,11 +486,34 @@ Handoffs                           purchase_order_handoff: supplier submission, 
   never asked to clean supplier data. A retailer's corrections to their
   own POS items stay theirs.
 
-## Schema changes (approved, not written)
+## Schema changes (prepared, not applied)
 
-These go in one additive migration when catalog work starts, and a second
-when sourcing is built. Applied migrations are never edited. The catalog
-tables hold no data and no application code reads them yet.
+The catalog migration (items 1–9 and 2a below) is written and tested on
+throwaway local databases, in the local test run and in CI. It is not
+applied to the live project; you apply it by hand. The sourcing migration
+(items 10–13) comes when sourcing is built. Applied migrations are never
+edited.
+
+As written, the catalog migration also:
+- **stops unless the catalog tables are empty**, so nothing is ever
+  reinterpreted;
+- **gives Products** the same provisional / confirmed / merged status and
+  the same private-to-a-retailer rule (`origin_organization_id`) that
+  Variants already have;
+- **adds `connection.catalog_rights`** (restricted by default), which only
+  the platform can widen;
+- **adds `restricted_to_organization_id` on supplier records**, plus a
+  rule that a match built on restricted data is restricted to the same
+  retailer;
+- **only lets a restricted source set a canonical value** on an item
+  private to that same retailer;
+- **recreates the order-line guard on the Variant**: an order line taken
+  from a Product-level need doesn't copy that total as its own
+  recommendation (G1);
+- **seeds the V1 taxonomy** in its own migration, idempotently.
+
+About 30 new local database tests cover the rights boundaries,
+identifiers, lineage levels, recommendation scope and the seed.
 
 **Catalog migration**
 1. **Renames** (D1).
@@ -562,9 +614,22 @@ tables hold no data and no application code reads them yet.
 
 ## Before building the retailer-facing Catalog
 
-Two things remain before the first implementation slice is authorized.
+Both were approved on 2026-10-09.
 
-### 1. The first catalog source and our rights to it (proposed)
+- **First source.** V1 may begin with supplier catalog data from a
+  retailer's own authorized connection. Conditions:
+  - we have permission to store and process it for that retailer;
+  - retention follows the source's rights;
+  - the source stays restricted;
+  - nothing from it reaches another retailer.
+
+  Platform-wide rights are not a prerequisite. A second supplier for the
+  same retailer should follow as soon as practical.
+- **Seed.** Approved as a development and reference seed: it exercises
+  the model and is not a final bicycle taxonomy. It grows and is refined
+  as real catalog data arrives.
+
+### 1. The first catalog source and our rights to it (approved)
 
 Because the default rights setting is **restricted**, building the Catalog
 does not have to wait for the commercial and legal policy. A first source
@@ -600,7 +665,7 @@ is then accurate and theirs alone.
 - the steward review tool;
 - images, where source rights for media are often different from text.
 
-### 2. The V1 taxonomy and attribute seed (proposed)
+### 2. The V1 taxonomy and attribute seed (approved as a development/reference seed)
 
 Categories and attribute definitions are **platform reference data**, not
 example data. They are seeded by a migration or seed script and grow over
@@ -634,31 +699,32 @@ Maintenance
   Lubricants
 ```
 
-That is 15 categories, three levels deep at most. Bikes > Mountain and
+That is 16 categories, three levels deep at most. The approved proposal
+said 15; the tree itself (4 + 9 + 3) is what was approved and seeded. Bikes > Mountain and
 Bikes > Gravel are siblings that share most facets.
 
 **Attribute definitions (18)**
 
 | Key | Type | Notes |
 |---|---|---|
-| `wheel_size` | enum | Stored as the ISO bead-seat diameter (622, 584, 559, 406), shown as "29″ / 700c", "27.5″", "26″", "20″". The one normalization worth locking in early. |
-| `tire_width_mm` | number | Stored in mm, shown as the source wrote it (2.4″ or 40 mm) |
+| `wheel_size` | enum | Normalized to ISO bead-seat diameter (622, 584, 559, 406). The definition lists the market designations for each value ("700c" and "29″" for 622; "650B" and "27.5″" for 584) without making any of them canonical; each item keeps the designation it's sold under. |
+| `tire_width` | number | Normalized in mm; the item keeps its designation (2.4″, 40 mm, 40c) |
 | `tire_type` | enum | Clincher, tubeless-ready, tubular |
 | `tubeless_compatible` | boolean | |
 | `valve_type` | enum | Presta, Schrader, Dunlop |
-| `valve_length_mm` | number | |
+| `valve_length` | number | |
 | `drivetrain_speed` | integer | 9–13 |
 | `cassette_range` | text | e.g. "10–51t" |
 | `pad_compound` | enum | Resin, metallic, semi-metallic |
 | `color` | enum + source name | Normalized color family, with the supplier's color name kept |
 | `helmet_size` | enum | S, M, L, XL (each with a cm range) |
-| `shoe_size_eu` | number | 36–48, half sizes allowed |
+| `shoe_size` | number | Normalized to EU where a conversion is known; the item keeps its sizing system (US, UK, Mondopoint) |
 | `frame_size` | enum | XS–XL, plus source size labels |
 | `discipline` | enum | Road, mountain, gravel, urban. Reused by helmets, shoes and bikes |
 | `closure_type` | enum | Dial, laces, straps |
 | `rotational_protection` | boolean | Helmets |
 | `frame_material` | enum | Aluminum, carbon, steel, titanium |
-| `volume_ml` | number | Lubricants |
+| `volume` | number | Normalized in ml; the item keeps its designation (4 oz, 120 ml) |
 
 **Applied to categories** (✱ = variant-defining; others filterable).
 Brand, supplier, availability and the retailer overlay states are system
@@ -666,17 +732,17 @@ facets everywhere, not attributes.
 
 | Category | Attributes |
 |---|---|
-| Tires | `wheel_size` ✱, `tire_width_mm` ✱, `color` ✱ (sidewall), `tire_type`, `tubeless_compatible`, `discipline` |
-| Tubes | `wheel_size` ✱, `tire_width_mm` ✱ (range), `valve_type` ✱, `valve_length_mm` ✱ |
+| Tires | `wheel_size` ✱, `tire_width` ✱, `color` ✱ (sidewall), `tire_type`, `tubeless_compatible`, `discipline` |
+| Tubes | `wheel_size` ✱, `tire_width` ✱ (range), `valve_type` ✱, `valve_length` ✱ |
 | Drivetrain (inherited by Chains, Cassettes) | `drivetrain_speed` |
 | Cassettes | `cassette_range` ✱ |
 | Brake pads | `pad_compound` (single-Variant products) |
 | Apparel & Protection (inherited) | `discipline`, `color` ✱ |
 | Helmets | `helmet_size` ✱, `rotational_protection` |
-| Shoes | `shoe_size_eu` ✱, `closure_type` |
+| Shoes | `shoe_size` ✱, `closure_type` |
 | Bikes (inherited by Mountain, Gravel) | `frame_size` ✱, `color` ✱, `wheel_size`, `frame_material`, `discipline` |
 | Gravel | overrides: `discipline` hidden (always gravel) |
-| Lubricants | `volume_ml` ✱ |
+| Lubricants | `volume` ✱ |
 
 **What each part exercises**
 
@@ -712,7 +778,129 @@ facets everywhere, not attributes.
 - multi-category listing and merchandising collections;
 - localized labels.
 
-### Then
+## First implementation slice (proposed)
 
-Once both are settled, the catalog migration (items 1–9, 2a) can be
-written for your manual apply, and the first implementation slice planned.
+**Goal:** the smallest end-to-end Catalog that proves the model on real
+data. One retailer uploads one real supplier's catalog file, and gets a
+searchable, faceted, rights-restricted Catalog of canonical Products,
+Variants and that supplier's offers. They can browse it globally or
+scoped to the supplier. No other retailer can see any of it.
+
+### Genuinely functional on real data
+
+1. **Apply the catalog migration**, by hand, after review.
+2. **Supplier catalog import.**
+   - An owner or admin adds a supplier catalog file (CSV or Excel) for a
+     supplier in the directory.
+   - This creates a `file` supplier connection, with `catalog_rights`
+     restricted and retention taken from that source's terms.
+   - The raw file is kept in the retailer's storage folder under that
+     retention.
+   - Every run is an `import_batch`. Re-importing updates records rather
+     than duplicating them.
+   - Column mapping for the first supplier is a small, per-supplier
+     configuration in code.
+3. **Normalization and grouping.** Each row becomes a restricted
+   `supplier_item`, with pack and UOM parsed (`needs_review` when it
+   can't be), and a Variant under a Product. Both are private to the
+   retailer.
+   - **Grouping:** by the supplier's model or style field when it has one;
+     otherwise one Product per row. Never across brands.
+   - **Identifiers:** UPC, EAN and MPN become identifiers.
+   - **Assertions:** every field becomes an assertion holding the source
+     value, our normalized reading, and the designation.
+   - **Attributes:** mapped to seed definitions where the reading is
+     confident. Anything else stays as a source assertion only.
+   - **Categories:** the supplier's category text maps to the seed through
+     a small mapping. Unmapped items stay uncategorized and remain
+     searchable.
+4. **Matching, deterministic only.**
+   - Rows that share a UPC, EAN or GTIN, or the same brand + MPN, resolve
+     to one Variant.
+   - Conflicts, such as one UPC on two different items, become candidate
+     matches with evidence, not merges.
+   - The same code will match a second supplier's records to the same
+     Variants.
+5. **Provenance.** With a single source, its normalized values become
+   canonical. That's allowed because the Products are private to the same
+   retailer. Every value can be traced to its row and import.
+6. **Prices and availability, when the file has them.**
+   - They are stored as `supplier_offer_observation`s through the
+     retailer's relationship with that supplier, observed at the file's
+     date.
+   - Shown as unit cost, pack and cost per canonical unit, with
+     freshness.
+   - No landed cost.
+7. **Catalog** (`/catalog`, between Orders and Inventory). Queries run as
+   the signed-in retailer, so row-level security enforces rights.
+   - **Search:** Postgres full-text over name, brand and identifiers. An
+     exact identifier lands on its Variant.
+   - **Navigation:** the category tree, one level at a time.
+   - **Facets:** category, brand, supplier and availability. Category
+     facets come from inherited `category_attribute` rows for the
+     categories in the current results, with live counts per Product.
+   - **Results:** collapsed by Product; Grid and List.
+   - **Sorts:** relevance, name, brand, and your cost per unit.
+8. **Product page.** The Product, a Variant picker built from its variant
+   axes, and the offers with pack, cost per canonical unit, availability
+   and when it was observed.
+9. **Supplier scope.** `/catalog?supplier=…` is the same query with the
+   supplier fixed. It is reachable from the supplier's page now, and from
+   an order once orders are real.
+10. **Overlay: "Normal supplier".** This comes from the retailer's own
+    supplier preference, which is real today.
+11. **Tests.**
+    - Database tests for every rights boundary: another retailer sees
+      nothing.
+    - Unit tests for parsing, normalization (including designations) and
+      grouping.
+    - An end-to-end test: upload a fixture file, then search, filter and
+      open a product.
+
+### Example data until there's a second supplier or more integrations
+
+These stay in `src/demo`, shown only when `DEMO_PREVIEW` is on, and never
+written to the database:
+- **Second and third suppliers' offers, supplier comparison, and the
+  sourcing preview** ("best landed option", the free-freight case).
+  - Matching and the comparison code are real and tested with fixtures.
+  - They show real results once a second real supplier is connected.
+- **Overlay signals that need POS data:** on hand, incoming, replenishment
+  recommended, demand rising, new to your assortment. No POS sync exists
+  yet.
+  - The overlay's shape is defined in this slice and filled from example
+    data.
+  - The derived per-retailer table is built when POS data arrives, so it
+    has something real to derive from.
+- **"Add to order".** Orders are still example-only. Writing real
+  working-order lines from the Catalog is the next slice.
+
+### Not in the first slice
+
+- "Also sold by · Not connected", which needs a platform-usable source.
+- Fuzzy or AI matching, and the steward review tool.
+- Lineage authoring.
+- Images, unless the file carries image URLs we may show.
+- A dedicated search engine.
+- Sourcing plans.
+- Supplier APIs.
+
+### Decisions needed before the slice starts
+
+1. **The supplier and a real sample file** (blocking), with confirmation
+   that our terms cover storing and processing it for that retailer.
+2. **The server write path for catalog data.** Catalog tables are written
+   server-side only, and today the admin client is used only for
+   organization bootstrap. Recommended: a server-only ingestion module
+   that uses the admin client.
+   - It runs only after verifying the user is an owner or admin of the
+     organization.
+   - Every row it writes is scoped to that organization and its
+     connection.
+   - Tests cover the scoping, and the existing secret-leak check keeps
+     the module out of browser bundles.
+   - This is the second approved use of the admin client, so it needs
+     your approval.
+3. **Who may import:** owners and admins (recommended).
+4. **Uncategorized items:** allowed, searchable, and shown under "Other"
+   in navigation until mapped (recommended).

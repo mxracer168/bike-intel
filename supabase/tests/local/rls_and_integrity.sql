@@ -116,12 +116,17 @@ insert into public.import_batch (id, organization_id, connection_id, source_type
 
 insert into public.brand (id, name) values ('55000000-0000-0000-0000-000000000001', 'Shimano');
 
+-- Products (models) and their Variants.
 insert into public.product (id, brand_id, name, status) values
-  ('70000000-0000-0000-0000-000000000001', '55000000-0000-0000-0000-000000000001', 'CN-M8100 12s chain', 'confirmed');
--- Provisional product built from Retailer A's private POS data.
+  ('71000000-0000-0000-0000-000000000001', '55000000-0000-0000-0000-000000000001', 'CN-M8100 chain', 'confirmed');
+insert into public.product_variant (id, product_id, name, status) values
+  ('70000000-0000-0000-0000-000000000001', '71000000-0000-0000-0000-000000000001', 'CN-M8100 12s chain', 'confirmed');
+-- Provisional Product and Variant built from Retailer A's private POS data.
 insert into public.product (id, name, status, origin_organization_id) values
-  ('70000000-0000-0000-0000-0000000000a1', 'Custom build for a customer', 'provisional', '10000000-0000-0000-0000-0000000000a1');
-insert into public.product_identifier (product_id, identifier_type, value) values
+  ('71000000-0000-0000-0000-0000000000a1', 'Custom build', 'provisional', '10000000-0000-0000-0000-0000000000a1');
+insert into public.product_variant (id, product_id, name, status, origin_organization_id) values
+  ('70000000-0000-0000-0000-0000000000a1', '71000000-0000-0000-0000-0000000000a1', 'Custom build for a customer', 'provisional', '10000000-0000-0000-0000-0000000000a1');
+insert into public.product_identifier (variant_id, identifier_type, value) values
   ('70000000-0000-0000-0000-000000000001', 'upc', '689228000001'),
   ('70000000-0000-0000-0000-0000000000a1', 'upc', '000000000999');
 
@@ -133,9 +138,9 @@ insert into public.retailer_item (id, organization_id, connection_id, external_i
   ('50000000-0000-0000-0000-0000000000a1', '10000000-0000-0000-0000-0000000000a1', '40000000-0000-0000-0000-0000000000a1', 'LS-1', 'Shimano 12s chain', '689228000001', 'product'),
   ('50000000-0000-0000-0000-0000000000b1', '10000000-0000-0000-0000-0000000000b1', '40000000-0000-0000-0000-0000000000b1', 'X-1', 'Chain', '689228000001', 'product');
 
-insert into public.product_match (supplier_item_id, product_id, confidence, method) values
+insert into public.product_match (supplier_item_id, variant_id, confidence, method) values
   ('60000000-0000-0000-0000-000000000001', '70000000-0000-0000-0000-000000000001', 0.99, 'identifier');
-insert into public.product_match (organization_id, retailer_item_id, product_id, confidence, method) values
+insert into public.product_match (organization_id, retailer_item_id, variant_id, confidence, method) values
   ('10000000-0000-0000-0000-0000000000a1', '50000000-0000-0000-0000-0000000000a1', '70000000-0000-0000-0000-000000000001', 0.98, 'identifier'),
   ('10000000-0000-0000-0000-0000000000b1', '50000000-0000-0000-0000-0000000000b1', '70000000-0000-0000-0000-000000000001', 0.98, 'identifier');
 
@@ -216,6 +221,7 @@ select t.expect_count('select * from public.organization_agreement', 0, 'B canno
 -- ===========================================================================
 :as_a
 select t.expect_count('select * from public.product', 2, 'A sees global product + its own provisional product');
+select t.expect_count('select * from public.product_variant', 2, 'A sees global variant + its own provisional variant');
 select t.expect_count('select * from public.product_identifier', 2, 'A sees identifiers of visible products');
 select t.expect_count('select * from public.supplier_item', 1, 'supplier catalog is global');
 select t.expect_count('select * from public.retailer_item', 1, 'A sees only its POS items');
@@ -228,7 +234,7 @@ update public.retailer_item set stocking_intent = 'special_order_only', stocking
  where id = '50000000-0000-0000-0000-0000000000a1';
 select t.expect_equal((select stocking_intent from public.retailer_item where id = '50000000-0000-0000-0000-0000000000a1'),
                       'special_order_only', 'retailer can set stocking intent');
-select t.expect_error($$update public.product_match set product_id = '70000000-0000-0000-0000-0000000000a1'
+select t.expect_error($$update public.product_match set variant_id = '70000000-0000-0000-0000-0000000000a1'
                         where retailer_item_id = '50000000-0000-0000-0000-0000000000a1'$$,
                       'a match can never be re-pointed to a different product');
 update public.product_match set status = 'rejected', decided_by_type = 'user',
@@ -237,12 +243,13 @@ update public.product_match set status = 'rejected', decided_by_type = 'user',
 select t.expect_count($$select * from public.change_log where table_name = 'product_match'$$, 1, 'match correction is audited');
 :as_b
 select t.expect_count('select * from public.product', 1, 'B cannot see A''s provisional product');
+select t.expect_count('select * from public.product_variant', 1, 'B cannot see A''s provisional variant');
 select t.expect_count('select * from public.product_identifier', 1, 'B cannot see identifiers of A''s provisional product');
-select t.expect_error($$insert into public.product_match (organization_id, retailer_item_id, product_id, confidence, method, decided_by_type, decided_by)
+select t.expect_error($$insert into public.product_match (organization_id, retailer_item_id, variant_id, confidence, method, decided_by_type, decided_by)
                         values ('10000000-0000-0000-0000-0000000000b1', '50000000-0000-0000-0000-0000000000b1',
                                 '70000000-0000-0000-0000-0000000000a1', 1, 'manual', 'user', '00000000-0000-0000-0000-0000000000b1')$$,
                       'B cannot match to a product it cannot see');
-select t.expect_error($$insert into public.product_match (organization_id, retailer_item_id, product_id, confidence, method, decided_by_type, decided_by)
+select t.expect_error($$insert into public.product_match (organization_id, retailer_item_id, variant_id, confidence, method, decided_by_type, decided_by)
                         values ('10000000-0000-0000-0000-0000000000b1', '50000000-0000-0000-0000-0000000000a1',
                                 '70000000-0000-0000-0000-000000000001', 1, 'manual', 'user', '00000000-0000-0000-0000-0000000000b1')$$,
                       'B cannot match A''s retailer item');
@@ -491,12 +498,12 @@ values ('90000000-0000-0000-0000-0000000000a1', '10000000-0000-0000-0000-0000000
         now() + interval '3 days', 'replen-0.1', '{"retailer_weight": 0.8}', 'USD'),
        ('90000000-0000-0000-0000-0000000000a2', '10000000-0000-0000-0000-0000000000a1', 'replenishment',
         '20000000-0000-0000-0000-000000000001', null, now() + interval '3 days', 'replen-0.1', '{}', 'USD');
-insert into public.recommendation_line (id, organization_id, recommendation_id, line_number, product_id, retailer_item_id,
+insert into public.recommendation_line (id, organization_id, recommendation_id, line_number, product_id, variant_id, retailer_item_id,
                                         supplier_item_id, for_location_id, ship_to_location_id, recommended_quantity,
                                         units_per_order_unit, forecast_demand, coverage_start, coverage_end,
                                         on_hand_at_generation, assumed_unit_cost, currency, explanation)
 values ('91000000-0000-0000-0000-0000000000a1', '10000000-0000-0000-0000-0000000000a1', '90000000-0000-0000-0000-0000000000a1', 1,
-        '70000000-0000-0000-0000-000000000001', '50000000-0000-0000-0000-0000000000a1', '60000000-0000-0000-0000-000000000001',
+        '71000000-0000-0000-0000-000000000001', '70000000-0000-0000-0000-000000000001', '50000000-0000-0000-0000-0000000000a1', '60000000-0000-0000-0000-000000000001',
         '30000000-0000-0000-0000-0000000000a1', '30000000-0000-0000-0000-0000000000a2', 1, 12, 8, '2026-09-24', '2026-10-22',
         2, 311.88, 'USD', 'Order 1 box of 12. You sell about 2 a week and have 2 left.');
 :as_a
@@ -507,6 +514,42 @@ select t.expect_affected($$update public.recommendation_line set recommended_qua
 :as_server
 select t.expect_error($$update public.recommendation_line set recommended_quantity = 5$$,
                       'recommendation lines are immutable even server-side');
+-- Recommendation scope (G1): a Product-level need, a system allocation that
+-- need not sum to it, and the guards on each.
+insert into public.product_variant (id, product_id, name, status) values
+  ('70000000-0000-0000-0000-000000000002', '71000000-0000-0000-0000-000000000001', 'CN-M8100 12s chain, 126 links', 'confirmed');
+insert into public.recommendation_line (id, organization_id, recommendation_id, line_number, product_id,
+                                        for_location_id, recommended_quantity)
+values ('91000000-0000-0000-0000-0000000000a2', '10000000-0000-0000-0000-0000000000a1', '90000000-0000-0000-0000-0000000000a2', 1,
+        '71000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-0000000000a1', 18);
+insert into public.recommendation_line (id, organization_id, recommendation_id, line_number, product_id, variant_id,
+                                        parent_line_id, for_location_id, recommended_quantity)
+values ('91000000-0000-0000-0000-0000000000a3', '10000000-0000-0000-0000-0000000000a1', '90000000-0000-0000-0000-0000000000a2', 2,
+        '71000000-0000-0000-0000-000000000001', '70000000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-0000000000a2',
+        '30000000-0000-0000-0000-0000000000a1', 12),
+       ('91000000-0000-0000-0000-0000000000a4', '10000000-0000-0000-0000-0000000000a1', '90000000-0000-0000-0000-0000000000a2', 3,
+        '71000000-0000-0000-0000-000000000001', '70000000-0000-0000-0000-000000000002', '91000000-0000-0000-0000-0000000000a2',
+        '30000000-0000-0000-0000-0000000000a1', 4);
+select t.expect_equal((select sum(recommended_quantity)::text from public.recommendation_line
+                        where parent_line_id = '91000000-0000-0000-0000-0000000000a2'),
+                      '16.0000', 'an allocation need not sum to its Product-level need');
+select t.expect_error($$insert into public.recommendation_line (organization_id, recommendation_id, line_number, product_id,
+                          parent_line_id, for_location_id, recommended_quantity)
+                        values ('10000000-0000-0000-0000-0000000000a1', '90000000-0000-0000-0000-0000000000a2', 4,
+                                '71000000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-0000000000a2',
+                                '30000000-0000-0000-0000-0000000000a1', 2)$$,
+                      'an allocation line must name its Variant');
+select t.expect_error($$set constraints all immediate; insert into public.recommendation_line (organization_id, recommendation_id, line_number, product_id, variant_id,
+                          for_location_id, recommended_quantity)
+                        values ('10000000-0000-0000-0000-0000000000a1', '90000000-0000-0000-0000-0000000000a2', 5,
+                                '71000000-0000-0000-0000-0000000000a1', '70000000-0000-0000-0000-000000000001',
+                                '30000000-0000-0000-0000-0000000000a1', 2)$$,
+                      'a Variant must belong to the line''s Product');
+select t.expect_error($$insert into public.recommendation_line (organization_id, recommendation_id, line_number, product_id,
+                          for_location_id, recommended_quantity, units_per_order_unit)
+                        values ('10000000-0000-0000-0000-0000000000a1', '90000000-0000-0000-0000-0000000000a2', 6,
+                                '71000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-0000000000a1', 2, 12)$$,
+                      'a need with no supplier is in canonical units');
 :as_a
 update public.recommendation set status = 'dismissed', status_reason = 'Buying elsewhere this month'
  where id = '90000000-0000-0000-0000-0000000000a2';
@@ -533,7 +576,7 @@ select t.expect_error($$insert into public.purchase_order_line (organization_id,
                         values ('10000000-0000-0000-0000-0000000000a1', '92000000-0000-0000-0000-0000000000a1', 9, 99, 1)$$,
                       'users cannot write recommended_quantity directly');
 -- Created from the recommendation line; recommended_quantity is copied by the database.
-insert into public.purchase_order_line (id, organization_id, purchase_order_id, line_number, recommendation_line_id, product_id,
+insert into public.purchase_order_line (id, organization_id, purchase_order_id, line_number, recommendation_line_id, variant_id,
                                         supplier_item_id, for_location_id, ship_to_location_id, quantity, unit_cost, currency)
 values ('93000000-0000-0000-0000-0000000000a1', '10000000-0000-0000-0000-0000000000a1', '92000000-0000-0000-0000-0000000000a1', 1,
         '91000000-0000-0000-0000-0000000000a1', '70000000-0000-0000-0000-000000000001', '60000000-0000-0000-0000-000000000001',
@@ -614,7 +657,7 @@ select t.expect_count('select * from public.purchase_order', 0, 'B cannot see A'
 select t.expect_error($$insert into public.purchase_order (id, organization_id, currency, created_by)
                         values ('92000000-0000-0000-0000-0000000000b1', '10000000-0000-0000-0000-0000000000b1', 'USD',
                                 '00000000-0000-0000-0000-0000000000b1');
-                        insert into public.purchase_order_line (organization_id, purchase_order_id, line_number, product_id, quantity)
+                        insert into public.purchase_order_line (organization_id, purchase_order_id, line_number, variant_id, quantity)
                         values ('10000000-0000-0000-0000-0000000000b1', '92000000-0000-0000-0000-0000000000b1', 1,
                                 '70000000-0000-0000-0000-0000000000a1', 1)$$,
                       'order lines cannot reference a product the buyer cannot see');
@@ -1058,6 +1101,106 @@ select t.expect_error($$delete from public.business_instructions_version where v
 select t.expect_equal((select string_agg(version || '=' || created_by, ',' order by version) from public.business_instructions_version),
                       '1=00000000-0000-0000-0000-0000000000a1,2=00000000-0000-0000-0000-0000000000a3,3=00000000-0000-0000-0000-0000000000a1',
                       'every version was saved by an owner or admin, and nothing else was added');
+
+-- ===========================================================================
+-- 9b. Catalog foundation: source rights, identifiers, provenance, lineage, seed
+-- ===========================================================================
+:as_server
+-- A supplier record that arrived through A's own connection is A's alone.
+insert into public.supplier_item (id, supplier_market_id, supplier_sku, restricted_to_organization_id, source_connection_id, upc)
+values ('60000000-0000-0000-0000-0000000000a9', '20000000-0000-0000-0000-000000000001', 'SH-CN8100',
+        '10000000-0000-0000-0000-0000000000a1', '40000000-0000-0000-0000-0000000000a2', '689228000001');
+insert into public.product_match (organization_id, supplier_item_id, variant_id, confidence, method)
+values ('10000000-0000-0000-0000-0000000000a1', '60000000-0000-0000-0000-0000000000a9',
+        '70000000-0000-0000-0000-000000000001', 0.99, 'identifier');
+insert into public.product_identifier (product_id, identifier_type, value, restricted_to_organization_id, source)
+values ('71000000-0000-0000-0000-000000000001', 'mpn', 'CN-M8100', '10000000-0000-0000-0000-0000000000a1', 'supplier_item');
+insert into public.catalog_assertion (variant_id, field, source_value, normalized_value, source_kind,
+                                      source_supplier_item_id, restricted_to_organization_id)
+values ('70000000-0000-0000-0000-000000000001', 'attribute:drivetrain_speed', '"12-speed"', '12', 'supplier_item',
+        '60000000-0000-0000-0000-0000000000a9', '10000000-0000-0000-0000-0000000000a1');
+insert into public.product_media (product_id, url, source_kind, restricted_to_organization_id)
+values ('71000000-0000-0000-0000-000000000001', 'https://example.com/chain.jpg', 'supplier_item', '10000000-0000-0000-0000-0000000000a1');
+insert into public.product (id, name, status) values
+  ('71000000-0000-0000-0000-000000000002', 'CN-M8200 chain', 'confirmed');
+
+select t.expect_error($$insert into public.supplier_item (supplier_market_id, supplier_sku, restricted_to_organization_id)
+                        values ('20000000-0000-0000-0000-000000000001', 'SH-CN8100', '10000000-0000-0000-0000-0000000000a1')$$,
+                      'one SKU per supplier market per rights scope');
+select t.expect_error($$update public.catalog_assertion set is_canonical = true, chosen_by_type = 'system', chosen_at = now()
+                        where source_supplier_item_id = '60000000-0000-0000-0000-0000000000a9'$$,
+                      'a restricted source cannot set a canonical value on a shared Variant');
+select t.expect_error($$insert into public.product_identifier (identifier_type, value) values ('upc', '1')$$,
+                      'an identifier belongs to a Product or a Variant');
+select t.expect_error($$insert into public.product_identifier (variant_id, identifier_type, value)
+                        values ('70000000-0000-0000-0000-000000000001', 'isbn_typo', '1')$$,
+                      'identifier types come from the reference table');
+insert into public.identifier_type (code, label) values ('jan', 'JAN');
+insert into public.product_identifier (variant_id, identifier_type, value)
+values ('70000000-0000-0000-0000-000000000001', 'jan', '4524667000000');
+select t.expect_count($$select * from public.product_identifier where identifier_type = 'jan'$$, 1,
+                      'a new identifier type is data, not a schema change');
+
+-- Lineage (D8)
+insert into public.product_relationship (from_product_id, to_product_id, relationship_type, source_type)
+values ('71000000-0000-0000-0000-000000000001', '71000000-0000-0000-0000-000000000002', 'direct_successor', 'supplier_declared');
+select t.expect_error($$insert into public.product_relationship (from_variant_id, to_product_id, relationship_type, source_type)
+                        values ('70000000-0000-0000-0000-000000000001', '71000000-0000-0000-0000-000000000002', 'substitute', 'platform_curated')$$,
+                      'lineage joins two Products or two Variants, never one of each');
+select t.expect_error($$insert into public.product_relationship (from_product_id, to_product_id, relationship_type, source_type)
+                        values ('71000000-0000-0000-0000-000000000002', '71000000-0000-0000-0000-000000000001', 'replaced_by', 'platform_curated')$$,
+                      'replaced_by is retired');
+insert into public.product_relationship (from_variant_id, to_variant_id, relationship_type, source_type, confidence)
+values ('70000000-0000-0000-0000-000000000001', '70000000-0000-0000-0000-000000000002', 'substitute', 'platform_curated', 0.6);
+
+-- A Variant cannot lose its Product; category and brand belong to the Product.
+select t.expect_error($$insert into public.product_variant (name) values ('orphan')$$, 'every Variant belongs to a Product');
+select t.expect_count($$select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'product_variant' and column_name in ('category_id', 'brand_id')$$,
+                      0, 'category and brand live on the Product only');
+
+-- Seed: hierarchy, inheritance and overrides are data.
+select t.expect_count($$select * from public.category where id::text like 'ca700000-%'$$, 16, 'V1 seed: 16 categories (the approved tree)');
+select t.expect_count($$select * from public.attribute_definition where id::text like 'a7700000-%'$$, 18, 'V1 seed: 18 attribute definitions');
+select t.expect_equal((select count(*)::text from public.category c join public.category p on p.id = c.parent_id
+                        join public.category g on g.id = p.parent_id where c.slug = 'chains'),
+                      '1', 'Chains sits under Drivetrain under Components');
+select t.expect_equal((select applies::text from public.category_attribute ca
+                        join public.category c on c.id = ca.category_id
+                        join public.attribute_definition d on d.id = ca.attribute_definition_id
+                        where c.slug = 'gravel' and d.key = 'discipline'),
+                      'false', 'Gravel overrides the inherited discipline facet');
+
+-- Program eligibility targets a Product or a Variant.
+select t.expect_error($$insert into public.program_eligibility (program_version_id, target_type, product_id)
+                        select id, 'product_group', '71000000-0000-0000-0000-000000000001' from public.program_version limit 1$$,
+                      'product_group target is retired');
+
+:as_a
+select t.expect_count($$select * from public.supplier_item where id = '60000000-0000-0000-0000-0000000000a9'$$, 1,
+                      'A sees the supplier record from its own connection');
+select t.expect_count($$select * from public.product_match where supplier_item_id = '60000000-0000-0000-0000-0000000000a9'$$, 1,
+                      'A sees the match built from its restricted record');
+select t.expect_count($$select * from public.catalog_assertion$$, 1, 'A sees what its own source said');
+select t.expect_count($$select * from public.product_media$$, 1, 'A sees media from its own source');
+select t.expect_count($$select * from public.product_relationship$$, 2, 'A sees Product and Variant lineage');
+select t.expect_error($$insert into public.connection (organization_id, connection_type, provider, method, supplier_market_id, catalog_rights)
+                        values ('10000000-0000-0000-0000-0000000000a1', 'supplier', 'qbp', 'file',
+                                '20000000-0000-0000-0000-000000000001', 'platform')$$,
+                      'a retailer cannot widen a source''s catalog rights');
+select t.expect_affected($$update public.product_match set status = 'rejected'
+                           where supplier_item_id = '60000000-0000-0000-0000-0000000000a9'$$,
+                         0, 'retailers do not edit supplier-record matches');
+:as_b
+select t.expect_count($$select * from public.supplier_item where id = '60000000-0000-0000-0000-0000000000a9'$$, 0,
+                      'B cannot see a supplier record from A''s connection');
+select t.expect_count($$select * from public.product_match where supplier_item_id = '60000000-0000-0000-0000-0000000000a9'$$, 0,
+                      'B cannot see a match built from A''s restricted data');
+select t.expect_count($$select * from public.product_identifier where identifier_type = 'mpn'$$, 0,
+                      'B cannot see an identifier from A''s restricted source');
+select t.expect_count($$select * from public.catalog_assertion$$, 0, 'B cannot see what A''s source said');
+select t.expect_count($$select * from public.product_media$$, 0, 'B cannot see media from A''s source');
+select t.expect_count($$select * from public.category_attribute$$, 26, 'reference taxonomy is readable by everyone');
 
 -- ===========================================================================
 -- 10. Server-side integrity
