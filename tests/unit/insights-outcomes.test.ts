@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { closer } from '@/features/insights/DecisionOutcomes'
+import { closer } from '@/features/insights/outcomes'
 
 describe('which plan landed closer to demand', () => {
   it('says whose plan was closer, from the three numbers alone', () => {

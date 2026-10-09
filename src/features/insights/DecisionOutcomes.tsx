@@ -3,6 +3,7 @@
 import { useId, useState } from 'react'
 import { useIntelligence } from '@/features/intelligence/IntelligencePanel'
 import { Icon } from '@/ui/Icon'
+import { closer } from './outcomes'
 import type { DecisionOutcome } from './types'
 import styles from './Insights.module.css'
 
@@ -17,15 +18,6 @@ const lessons: { group: Group; label: string; title: string; description: string
 
 /** Show this many outcomes in a lesson before "View all". */
 const PREVIEW = 3
-
-/** Which plan landed closer to demand, from the three numbers alone. */
-export function closer(d: Pick<DecisionOutcome, 'recommended' | 'approved' | 'demand'>) {
-  const rec = Math.abs(d.recommended - d.demand)
-  const you = Math.abs(d.approved - d.demand)
-  const verdict = rec === you ? 'Both were equally close' : you < rec ? 'Your decision was closer' : 'The recommendation was closer'
-  const units = you === 0 ? 'exactly on demand' : `${you} ${you === 1 ? 'unit' : 'units'} from demand`
-  return { verdict, approved: `What you approved was ${units}` }
-}
 
 /**
  * How recent decisions played out. Choose a lesson; each decision then reads
