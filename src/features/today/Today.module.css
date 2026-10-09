@@ -59,6 +59,9 @@
 }
 .railAction:hover { color: var(--accent-hover); }
 
+/* Temporary: the link to the onboarding prototype, below everything else. */
+.demoLink { margin-top: var(--sp-6); padding-top: var(--sp-5); border-top: 1px solid var(--bar-line); }
+
 @media (min-width: 1280px) {
   .columns { grid-template-columns: minmax(0, 1.65fr) minmax(260px, .75fr); }
   .rail { border-top: 0; padding-top: 0; border-left: 1px solid var(--line); padding-left: var(--sp-6); }

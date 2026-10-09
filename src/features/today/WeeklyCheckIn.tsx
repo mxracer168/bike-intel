@@ -1,6 +1,5 @@
 'use client'
 
-import type { ReactNode } from 'react'
 import { useIntelligence } from '@/features/intelligence/IntelligencePanel'
 import { Icon } from '@/ui/Icon'
 import styles from './Today.module.css'
@@ -9,7 +8,7 @@ import styles from './Today.module.css'
  * Questions for you: Today's right-hand rail and the way back into the same
  * ongoing conversation. The count is live; answering happens in the panel.
  */
-export function WeeklyCheckIn({ children }: { children?: ReactNode }) {
+export function WeeklyCheckIn() {
   const api = useIntelligence()
   if (!api) return null
   const count = api.openCount
@@ -27,7 +26,6 @@ export function WeeklyCheckIn({ children }: { children?: ReactNode }) {
           {count === 0 ? 'Add context' : 'Answer now'}<Icon name="arrow-right" size={14} />
         </button>
       </div>
-      {children}
     </aside>
   )
 }

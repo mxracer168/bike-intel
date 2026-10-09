@@ -60,17 +60,15 @@ export default async function TodayPage() {
           </section>
         ) : <div />}
 
-        <WeeklyCheckIn>
-          {/* Temporary: a way into the onboarding conversation prototype for demos. Remove with the prototype. */}
-          {demo && (
-            <div className={today.railItem}>
-              <p className={today.railTitle}>Onboarding conversation</p>
-              <p className={today.railText}>A preview of the first meeting with a new retailer.</p>
-              <Link href="/demo/onboarding" className={today.railAction}>Preview</Link>
-            </div>
-          )}
-        </WeeklyCheckIn>
+        <WeeklyCheckIn />
       </div>
+
+      {/* Temporary: a way into the onboarding conversation prototype for demos. Remove with the prototype. */}
+      {demo && (
+        <p className={today.demoLink}>
+          <Link href="/demo/onboarding" className={today.railAction}>Preview the onboarding conversation</Link>
+        </p>
+      )}
     </Page>
   )
 }
