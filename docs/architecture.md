@@ -91,9 +91,12 @@ email + password and email confirmation.
   where their content now lives.
 - **Presentation shapes, not data models.** `ProposedOrderView` /
   `OrderLineView` / `OrderSummary`, `WorkItemView` and `SupplierPresentation`
-  describe what screens render. Today is business health cards plus one ranked
-  list of `WorkItemView`s; an order becomes one item
-  (`features/work/fromOrder.ts`) and line evidence stays on the order.
+  describe what screens render. Today answers "what deserves my attention?":
+  a sentence derived from real state, three health figures, and one ranked
+  list of `WorkItemView`s whose first item, whichever it is after the
+  retailer's own reordering, gets the hero treatment. An order becomes one
+  item (`features/work/fromOrder.ts`, with the figures the hero shows) and
+  line evidence stays on the order.
 - **The intelligence conversation is the interface; `context_item` is the
   memory.** Each retailer has one ongoing, private conversation
   (`intelligence_message`, append-only), opened from "Add context" anywhere in

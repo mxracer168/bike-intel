@@ -5,24 +5,24 @@
 .policy { font-size: 15px; line-height: 22px; color: var(--ink-2); }
 .ruleForm { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); font-size: var(--fs-lead); line-height: var(--lh-lead); }
 .select {
-  min-height: 36px; padding: 0 8px; border: 1px solid var(--line-strong); border-radius: var(--r-sm);
-  background: var(--surface); font-size: 15px; color: var(--ink);
+  min-height: 40px; padding: 0 10px; border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--surface); box-shadow: var(--sh-1); font-size: 15px; font-weight: 500; color: var(--ink);
 }
 .textButton { border: 0; background: none; padding: 2px 0; font: inherit; font-size: 15px; font-weight: 500; color: var(--accent); cursor: pointer; }
 .textButton:hover { text-decoration: underline; text-underline-offset: 3px; }
 .secondary {
-  min-height: 36px; padding: 6px 14px; border: 1px solid var(--line-strong); border-radius: var(--r-md);
-  background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 600; cursor: pointer; align-self: flex-start;
+  min-height: 40px; padding: 6px 16px; border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--surface); box-shadow: var(--sh-1); color: var(--ink); font-size: 14px; font-weight: 600; cursor: pointer; align-self: flex-start;
 }
 .secondary:hover { background: var(--subtle); }
 
 /* ---------- Summary: one quiet row of figures, not cards ---------- */
-.summary { margin: 0; display: flex; flex-wrap: wrap; gap: var(--sp-3) var(--sp-7); padding: var(--sp-3) 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.summary { margin: 0; display: flex; flex-wrap: wrap; gap: var(--sp-4) var(--sp-7); padding: 20px 0; border-block: 1px solid var(--bar-line); }
 .summary > div { display: flex; flex-direction: column; gap: 2px; }
-.summary dt { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
-.summary dd { margin: 0; font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; font-variant-numeric: tabular-nums; }
-.summary .sub { display: block; font-weight: 400; }
-.sub { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+.summary dt { font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 500; color: var(--ink-3); }
+.summary dd { margin: 4px 0 0; font-size: var(--fs-answer); line-height: var(--lh-answer); font-weight: 600; letter-spacing: -0.025em; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
+.summary .sub { display: block; margin-top: 4px; font-weight: 400; letter-spacing: 0; }
+.sub { font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); }
 .empty { color: var(--ink-2); padding: var(--sp-4) 0; border-top: 1px solid var(--line); }
 .controlLabel { color: var(--ink-2); }
 
@@ -38,7 +38,7 @@
 .table thead th { vertical-align: bottom; }
 .headWrap { display: inline-block; white-space: normal; }
 .productButton { font-weight: 500; }
-.productSub { display: block; font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.productSub { display: block; font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .price { display: inline-flex; flex-direction: column; align-items: flex-end; }
 .gain { display: inline-flex; flex-direction: column; align-items: flex-end; }
 .loss { color: var(--risk); }
@@ -53,22 +53,22 @@
 .detail { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--sp-4); }
 .detailBlock {
   display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0;
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--sp-4) var(--sp-5);
+  background: var(--surface); border: 1px solid var(--bar-line); border-radius: var(--r-lg); box-shadow: var(--sh-1); padding: var(--sp-4) var(--sp-5);
 }
-.detailTitle { font-size: 15px; line-height: 22px; font-weight: 600; }
-.detailText { font-size: 14px; line-height: 21px; color: var(--ink-2); white-space: normal; }
+.detailTitle { font-size: 15px; line-height: 22px; font-weight: 600; color: var(--ink-strong); }
+.detailText { font-size: 14px; line-height: 22px; color: var(--ink-3); white-space: normal; }
 .detailText b { color: var(--ink); font-weight: 600; }
 .priceForm { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); }
 .money {
-  display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 0 10px;
-  border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface); color: var(--ink-2);
+  display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-1); color: var(--ink-3);
 }
 .money:focus-within { border-color: var(--accent); box-shadow: var(--focus-ring); }
 .money input { width: 96px; border: 0; background: transparent; font-size: 15px; color: var(--ink); font-variant-numeric: tabular-nums; outline: none; }
 .money input:focus-visible { box-shadow: none; }
 .problem { font-size: 14px; color: var(--risk); }
 .facts { margin: var(--sp-2) 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px var(--sp-4); font-size: 14px; }
-.facts dt { color: var(--ink-2); font-size: var(--fs-label); }
+.facts dt { color: var(--ink-3); font-size: var(--fs-meta); }
 .facts dd { margin: 0; }
 
 @media (max-width: 1100px) {

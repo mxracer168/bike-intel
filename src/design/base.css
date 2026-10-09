@@ -4,7 +4,7 @@
 html { -webkit-text-size-adjust: 100%; }
 /* Content scrolled into view clears the sticky top bar (72px on wide screens, 56px on phones). */
 html { scroll-padding-top: 88px; }
-@media (max-width: 900px) { html { scroll-padding-top: 72px; } }
+@media (max-width: 1023px) { html { scroll-padding-top: 80px; } }
 
 body {
   margin: 0;
@@ -18,7 +18,7 @@ body {
   overflow-x: hidden;
 }
 
-h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--ink); text-wrap: balance; }
+h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--ink); text-wrap: balance; letter-spacing: -0.01em; }
 p { margin: 0; }
 ul, ol { margin: 0; padding: 0; }
 

@@ -1,70 +1,76 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { isDemoPreviewEnabled } from '@/demo/config'
 import { demoHealth, demoPriorities } from '@/demo/today'
 import { listLocations } from '@/domain/location/list'
-import styles from '@/features/orders/Orders.module.css'
 import { formatToday } from '@/features/today/formatToday'
 import { HealthSnapshot } from '@/features/today/HealthSnapshot'
+import { todaySummary } from '@/features/today/summary'
 import today from '@/features/today/Today.module.css'
 import { WeeklyCheckIn } from '@/features/today/WeeklyCheckIn'
 import { PriorityList } from '@/features/work/PriorityList'
 import { requireOrganization } from '@/server/session'
-import { ButtonLink } from '@/ui/Button'
-import { ExampleMarker } from '@/ui/Example'
-import { Page } from '@/ui/Layout'
+import { Page, PageHeader } from '@/ui/Layout'
 
-export const metadata: Metadata = { title: 'Dashboard' }
+export const metadata: Metadata = { title: 'Today' }
+
+/** Today keeps the band small: three figures support the priorities, they don't compete with them. */
+const TODAY_METRICS = 3
 
 /**
- * The dashboard (at /today), in three zones: business health (how are we doing?), priorities
- * (what should I work on?) and questions for you (what does the system need
- * from me?). Layout does the explaining; no headline sentence.
+ * Today answers one question: what deserves my attention? A sentence says how
+ * much; a band of three health figures says how the business is doing; the
+ * priorities, the first one large, say what to work on; the rail says what
+ * the system needs from you.
  */
 export default async function TodayPage() {
   const { db, organization } = await requireOrganization()
   const locations = await listLocations(db, organization.id)
   const date = formatToday(locations[0]?.timezone)
   const demo = isDemoPreviewEnabled()
-  const health = demo ? demoHealth : []
+  const health = demo ? demoHealth.slice(0, TODAY_METRICS) : []
   const priorities = demo ? demoPriorities : []
+  const connected = health.length > 0 || priorities.length > 0
 
   return (
     <Page>
-      <header className={styles.head}>
-        <h1 className="visually-hidden">Dashboard</h1>
-        <p className={styles.eyebrow}>{date}{demo && <ExampleMarker />}</p>
-        {!demo && <p className={styles.lead}>Once your sales are connected, this is where you’ll see how the business is doing and what to work on.</p>}
-      </header>
+      <PageHeader
+        eyebrow={date}
+        title="Today"
+        lead={connected
+          ? todaySummary(priorities.length, health)
+          : 'Once your sales are connected, this is where you’ll see how the business is doing and what to work on.'}
+      />
 
-      <div className={today.zones}>
-        {health.length > 0 && (
-          <section aria-labelledby="today-health">
-            <h2 id="today-health" className="visually-hidden">Business health</h2>
-            <HealthSnapshot metrics={health} />
-          </section>
-        )}
+      {health.length > 0 && (
+        <section aria-labelledby="today-health">
+          <h2 id="today-health" className="visually-hidden">Business health</h2>
+          <HealthSnapshot metrics={health} />
+        </section>
+      )}
 
-        {priorities.length > 0 && (
-          <section className={today.zone} aria-labelledby="today-priorities">
+      <div className={today.columns}>
+        {priorities.length > 0 ? (
+          <section aria-labelledby="today-priorities">
             <div className={today.zoneHead}>
               <h2 id="today-priorities" className={today.zoneTitle}>Priorities</h2>
-              <p className={today.zoneLead}>What deserves your attention today.</p>
+              <p className={today.zoneNote}>Ranked for your business</p>
             </div>
-            <div className={today.priorityPanel}>
-              <PriorityList items={priorities} storageKey={`today-order:${organization.id}`} label="Priorities" example={demo} />
-            </div>
+            <PriorityList items={priorities} storageKey={`today-order:${organization.id}`} label="Priorities" example={demo} />
           </section>
-        )}
+        ) : <div />}
 
-        <WeeklyCheckIn />
+        <WeeklyCheckIn>
+          {/* Temporary: a way into the onboarding conversation prototype for demos. Remove with the prototype. */}
+          {demo && (
+            <div className={today.railItem}>
+              <p className={today.railTitle}>Onboarding conversation</p>
+              <p className={today.railText}>A preview of the first meeting with a new retailer.</p>
+              <Link href="/demo/onboarding" className={today.railAction}>Preview</Link>
+            </div>
+          )}
+        </WeeklyCheckIn>
       </div>
-
-      {/* Temporary: a way into the onboarding conversation prototype for demos. Remove with the prototype. */}
-      {demo && (
-        <p>
-          <ButtonLink href="/demo/onboarding" variant="quiet" size="sm">Preview the onboarding conversation</ButtonLink>
-        </p>
-      )}
     </Page>
   )
 }

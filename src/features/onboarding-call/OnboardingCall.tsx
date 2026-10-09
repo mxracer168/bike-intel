@@ -96,7 +96,7 @@ function CheckIn({ offer, example }: { offer: CheckInOffer; example?: boolean })
         <p className={styles.slot}>{day} at {time}</p>
         <p>It happens right here, in the same conversation. In between, you can open it any time to tell me something, answer a question, or ask about your business.</p>
         <div className={styles.actions}>
-          <ButtonLink href="/today" variant="primary">Continue to Dashboard</ButtonLink>
+          <ButtonLink href="/today" variant="primary">Continue to Today</ButtonLink>
         </div>
         {example && <p className={styles.exampleNote}>Example only. Nothing was scheduled.</p>}
       </UpNext>

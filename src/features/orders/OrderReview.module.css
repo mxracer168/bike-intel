@@ -1,7 +1,7 @@
 .work { display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
 
 /* Keeps the question strip above the bottom action bar on smaller screens. */
-@media (max-width: 900px) { .withBar { --anchored-offset: 72px; } }
+@media (max-width: 1023px) { .withBar { --anchored-offset: 72px; } }
 
 /* Filters read as quiet tabs: one baseline, the current one underlined. */
 .filter { display: flex; gap: var(--sp-5); border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }

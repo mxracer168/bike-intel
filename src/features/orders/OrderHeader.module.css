@@ -27,21 +27,21 @@
 .flat { color: var(--ink-3); }
 .action { padding-left: var(--sp-6); }
 
-@media (min-width: 901px) {
+@media (min-width: 1024px) {
   .header {
-    position: sticky; top: 0; z-index: 6;
+    position: sticky; top: var(--topbar-height); z-index: 6;
     margin: 0 calc(-1 * var(--gutter)); padding: var(--sp-3) var(--gutter);
     border-bottom: 1px solid var(--line);
   }
 }
 @media (min-width: 1280px) { .header { flex-wrap: nowrap; } }
 /* Not enough room for one row: the supplier on its own line, the metrics under it. */
-@media (min-width: 901px) and (max-width: 1279px) {
+@media (min-width: 1024px) and (max-width: 1279px) {
   .name { flex-basis: 100%; }
   .metric:first-child { padding-left: 0; }
   .action { margin-left: auto; }
 }
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
   .name { flex-basis: 100%; }
   .metrics { flex-wrap: wrap; row-gap: var(--sp-4); }
   .metric:first-child { padding-left: 0; }
@@ -73,7 +73,7 @@
 
 /* ---------- Bottom bar (smaller screens) ---------- */
 .bar { display: none; }
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
   .bar {
     display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
     position: sticky; bottom: 0; z-index: 5; margin: calc(-1 * var(--sp-6)) calc(-1 * var(--gutter)) 0;

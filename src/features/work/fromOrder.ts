@@ -1,6 +1,6 @@
 import { formatMoney, plural } from '@/domain/language/plain'
 import type { OrderSummary } from '@/features/orders/types'
-import type { WorkItemView } from './types'
+import type { WorkFacts, WorkItemView } from './types'
 
 /** A proposed order as one priority: lead with what it needs from the buyer. */
 export function orderPriority(o: OrderSummary): WorkItemView {
@@ -15,5 +15,22 @@ export function orderPriority(o: OrderSummary): WorkItemView {
   // Questions lead the title when there are any, so the detail is size and what's worth a look.
   const detail = [size, o.review > 0 && `${o.review} worth a look`].filter(Boolean).join(' · ')
 
-  return { id: `order-${o.id}`, kind: 'order', title, detail, action: { href: `/orders/${o.id}`, label: 'Review order' } }
+  const facts: WorkFacts = {
+    figure: { value: formatMoney(Math.round(o.total), o.currency), label: `Recommended · ${plural(o.lineCount, 'line')}` },
+    summary: o.review > 0
+      ? `${o.review === 1 ? 'One line deserves' : `${o.review} lines deserve`} a closer look before you submit.`
+      : undefined,
+  }
+  if (o.freightGap !== undefined && o.freightGap > 0) {
+    facts.progress = {
+      label: `${formatMoney(Math.ceil(o.freightGap), o.currency)} to free freight`,
+      ratio: o.total / (o.total + o.freightGap),
+    }
+  }
+
+  return {
+    id: `order-${o.id}`, kind: 'order', title, detail, facts,
+    status: o.questions > 0 ? 'Needs an answer' : 'Ready for review',
+    action: { href: `/orders/${o.id}`, label: 'Review order' },
+  }
 }

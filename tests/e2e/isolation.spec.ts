@@ -47,7 +47,7 @@ test('two retailers cannot read or modify each other’s private records', async
   expect(aLocations?.map((l) => l.name)).toEqual(['Alpha Main'])
 
   // The app only ever shows A its own business.
-  await expect(pageA.getByRole('region', { name: 'Current retailer' }).first()).toContainText('Alpha Cycles')
+  await expect(pageA.getByRole('region', { name: 'Current retailer: Alpha Cycles' }).first()).toBeAttached()
   await expect(pageA.getByText('Bravo Bikes')).toHaveCount(0)
 
   // Direct attempts with A's real session.

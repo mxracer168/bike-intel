@@ -26,20 +26,54 @@ when the two disagree:
   does less.
 - **A genuine conflict is flagged, not decided silently.**
 
+### The visual system (tokens v0.2)
+
+Translated from the Figma Make project's Tailwind values into tokens; the
+Make app itself is not copied into this repository.
+
+- **Palette.** Cool slate neutrals on a slate-50 canvas with two faint blue
+  glows; one bright blue accent (blue-600). Titles are slate-950
+  (`--ink-strong`), body slate-900, secondary slate-600, quiet slate-500.
+- **Accessibility substitutions.** Figma's quiet notes are slate-400 (2.6:1 on
+  the canvas, fails AA). Text uses `--ink-3` (slate-500, 4.6:1) instead;
+  slate-400 (`--ink-faint`) is for chevrons, rules and bar fills only. Status
+  text uses the 700 shades (`--pos`, `--con`, `--risk`); the bright 500
+  shades are dots (`--dot-*`), never text. On the dark hero, notes use
+  slate-300/400 on slate-950, which pass.
+- **Type.** Inter 400/500/600. Page title 36/40 (30/36 on phones), -0.035em;
+  section heading 18/28; the hero title and band figures 24/32; small
+  metadata 12/16.
+- **Shape.** Radius 8 / 12 / 16 / 24; the hero and chart panels use 24.
+  Controls are 40px tall, white, 12px radius, a hairline border and the
+  faintest shadow. Hairlines are slate-200 at 80%.
+- **Application shell.** A 288px dark navy sidebar (`--nav-*`): the product
+  and the retailer's name on a blue brand tile, icon navigation (24px grid,
+  1.7 stroke), the retailer's status and the account at the bottom. A 72px
+  translucent top bar with search, notifications and Add context. Below
+  1024px the sidebar becomes the phone panel and a 64px bar replaces both.
+- **The sidebar network.** A restrained animated network of lines and nodes
+  in the sidebar's lower left (`ui/AmbientNetwork.tsx`). It is atmosphere,
+  not content: approved for the sidebar only. Nothing else in the product
+  gets glowing or animated "intelligence" effects. Still under reduced motion.
+- **All-caps metadata.** Allowed only for small metadata and eyebrow labels
+  (12px, 600, tracked .15em): the date eyebrow, a status like "Ready for
+  review", small section labels like "Questions for you". Never for titles,
+  buttons, body text or long labels. *(test: uppercase only alongside
+  `--fs-meta`)*
+
 ## Where it lives in code
 
 | Piece | File |
 |---|---|
 | Tokens (color, type scale, spacing, radius, elevation, motion) | `src/design/tokens.css` |
 | Base element styles, focus ring, reduced motion | `src/design/base.css` |
-| Hanken Grotesk (self-hosted by `next/font`) | `src/design/fonts.ts` |
+| Inter (self-hosted by `next/font`) | `src/design/fonts.ts` |
 | Foundational components (CSS Modules, tokens only) | `src/ui/` |
 | User-facing copy that is not screen-specific | `src/content/` |
 
-Tokens are copied exactly from the artifact's v0.1 token block. A few
-additions come from the artifact's own component styles: `--accent-pressed`,
-`--accent-underline`, `--risk-line`, `--inverse`/`--on-inverse`/`--inverse-link`
-(toasts), `--on-accent`, `--page-width`, `--gutter`, `--font-mono`.
+Tokens (v0.2) translate the Figma reference's values; see "The visual
+system" above. Token names from v0.1 are kept so components didn't change
+meaning, only appearance.
 
 ## Foundational components
 
@@ -52,12 +86,15 @@ retailer, personal account; phone panel via native `<dialog>`), `FocusedShell`,
 tabs for a page's sub-pages), `ExampleMarker` / `ExampleRegion`.
 
 Feature components: `OrderList` (proposed orders at supplier level, one
-comparable row each), `HealthSnapshot` (Today's business health: at most five quiet cards on one
-system, white with a thin line; label, a large value, an optional note and a
-small arrow whose color says whether the change is good for the business,
-muted green or red, never whether it went up), `WeeklyCheckIn` (Today's
-"Questions for you": a compact strip in the panel's soft Harbor blue, "3
-questions for you", one line, "Take a look"), `IntelligenceProvider` / `AddContextButton` (the
+comparable row each), `HealthSnapshot` (business health as one quiet band: figures side by side
+between hairlines, label, a 24px value, an optional note and a small arrow
+whose color says whether the change is good for the business, never whether
+it went up; Today shows three, Inventory and Insights their own),
+`PriorityList` (the first item, whichever it is, is the dark hero: a status
+label, the title, one sentence, and the order's figure and free-freight
+progress when known; the rest are rows with a status dot, the action label
+on hover and a chevron), `WeeklyCheckIn` (Today's right rail, "Questions for
+you": the live count and "Answer now", opening the conversation), `IntelligenceProvider` / `AddContextButton` (the
 retailer's ongoing conversation with one assistant, speaking as "I", in a
 side panel: one continuous thread with no date dividers (click, tap or press
 Enter on a message to show when it was sent; the thread is one tab stop,
@@ -91,7 +128,7 @@ reorder by dragging a grip that appears on hover/focus, with arrow keys on the
 grip, or from a "⋯" menu (always visible on touch); no rank numbers; "Back to
 suggested order" appears only once the order has changed), `EvidenceChart`
 (weekly sales; single series, per-bar tooltip, screen-reader table),
-`InsightsView` (performance cards, a recommendation / approved / demand comparison, patterns and opportunities as outlined lists; a question the data can't answer sits in the soft Harbor blue of "Questions for you"; see `docs/insights.md`), `InventoryView` (health cards, ranked brand/category bars that filter the item table, and the item table; see `docs/inventory.md`), `SupplierProfile` (the retailer's standing above the supplier name; about, a row of ordering facts, then roomy program cards with the retailer's Program fit, `4.6 / 5 · Program fit`, and "Why this fit?" opening a pale-blue analysis area; a sticky rail with Your account and Connection; see `docs/suppliers.md` and `docs/programs.md`), `SupplierDirectory`
+`InsightsView` (a performance band; how recent decisions played out, each leading with what happened and then the recommended / approved / demand bars and numbers; patterns and opportunities as hairline rows, conclusion first and facts small; a question the data can't answer sits in the soft Harbor blue of "Questions for you"; see `docs/insights.md`), `InventoryView` (a health band, ranked brand/category bars that filter the item table, and the item table; see `docs/inventory.md`), `SupplierProfile` (the retailer's standing above the supplier name; about, a row of ordering facts, then roomy program cards with the retailer's Program fit, `4.6 / 5 · Program fit`, and "Why this fit?" opening a pale-blue analysis area; a sticky rail with Your account and Connection; see `docs/suppliers.md` and `docs/programs.md`), `SupplierDirectory`
 (instant name search).
 
 Built later with the features that need them: dialogs with undo.
@@ -102,7 +139,7 @@ Across screens:
 
 | Level | Screen | Question it answers | Shows |
 |---|---|---|---|
-| 1 | Today | How are we doing, what should I work on, what do you need from me? | Three zones with space between them and no headline sentence: business health cards; "Priorities" (one ranked, reorderable list in a single outlined container, rows separated by hairlines, an order as one priority: what it needs, lines, estimate); "Questions for you" in soft Harbor blue. No line evidence. |
+| 1 | Today | What deserves my attention? | The date, the title and one sentence derived from real state ("Five things deserve your attention." plus "The rest of the business is moving as expected." only when no health figure is going the wrong way); a band of three health figures; "Priorities", whose first item is the dark hero (positional: it follows the retailer's reordering), the rest quiet rows; "Questions for you" in the right rail (beneath, below 1280px). No line evidence. |
 | 2 | Proposed order | What should I buy from this supplier? | Every line, scannable in hundreds. |
 | 3 | Line (expanded in place) | Why this quantity? | The reasoning, then the evidence only when asked. |
 
@@ -242,7 +279,7 @@ the conversation on the right.
   thing lives (an inventory product opens Inventory already searched for
   it; a product on an order opens the order with that line open).
 - **Notifications** answer "what changed or needs my attention?", not "what
-  should I work on?" (that's the Dashboard). A dot on the bell only while
+  should I work on?" (that's Today). A dot on the bell only while
   something is unread; problems first (a connection that stopped working,
   items a supplier can't ship), then programs closing within 30 days, then
   new questions. Each goes to where to act; questions open the
@@ -250,21 +287,22 @@ the conversation on the right.
 
 ## Rules (enforced where possible)
 
-1. Lead every screen with an answer or a next step. Never a grid of metrics; Today's
-   business health is the one exception (at most five quiet cards, no charts, no colored tiles).
-   Today leads with its structure instead of a sentence.
-2. One primary (Harbor blue) button per screen. Everything else secondary or quiet.
+1. Lead every screen with an answer or a next step. Never a grid of metrics; the
+   business health band is the one exception (a few figures, no charts, no colored tiles).
+   On Insights every item reads answer → reason → evidence: the conclusion is the
+   largest thing on its line, the facts behind it step back.
+2. One primary (blue) button per screen. Everything else secondary or quiet.
 3. Tokens only. No raw colors outside `tokens.css`. *(test: `design-rules.test.ts`)*
-4. Hanken Grotesk 400/600, 500 for 13px labels; 13px minimum; sentence case; no all caps. *(test)*
+4. Inter 400/500/600; 12px minimum, and 12px only for metadata; sentence case; all caps only for small metadata labels (above). *(test)*
 5. Functional colors only with words, only when the user is actually needed. Red is for genuine problems.
 6. Borders before shadows; no nested cards; no pill badges.
 7. Speak like an experienced purchasing advisor. No "AI" labels, no jargon (SKU velocity, ROP, WOS, optimization), no sparkles or robots. *(test)*
 8. Prefer undo over "are you sure?" dialogs. Button labels say exactly what happens. *(test)*
 9. Show uncertainty honestly and ask one question instead of guessing.
 10. The left sidebar is the primary application navigation (approved change to the
-    original guide, which said "no feature sidebars"): one flat list (Dashboard, Orders,
-    Inventory, Programs, Suppliers, Insights, Business), no section headers, no
-    icons. Keep it visually quiet so Today stays the obvious home. Sub-pages use
+    original guide, which said "no feature sidebars"): one flat list (Today, Orders,
+    Inventory, Programs, Suppliers, Insights, Connections, Business), no section
+    headers, one quiet line icon per item, on the dark navy shell. Sub-pages use
     quiet in-page tabs, never a second sidebar. The current retailer and the
     person's own account sit at the bottom of the sidebar.
 11. Works on a phone: no sideways scrolling at 375px. *(E2E test)*

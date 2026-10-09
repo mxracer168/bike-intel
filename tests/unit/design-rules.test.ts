@@ -20,9 +20,18 @@ describe('Visual Direction: tokens only', () => {
     expect(offenders).toEqual([])
   })
 
-  it('never uses all-caps text styling', () => {
-    const offenders = source.filter((f) => /text-transform:\s*uppercase/i.test(readFileSync(f, 'utf8')))
+  // One narrow exception: small metadata and eyebrow labels (dates, "Ready for review",
+  // section metadata) may be uppercase, and only at the metadata size. Nothing else.
+  it('uses all-caps only for small metadata labels', () => {
+    const offenders = source.filter((f) => f.endsWith('.css')).flatMap((f) => {
+      const css = withoutComments(readFileSync(f, 'utf8'))
+      return [...css.matchAll(/([^{}]*)\{([^{}]*)\}/g)]
+        .filter(([, , body]) => /text-transform:\s*uppercase/i.test(body!) && !/font-size:\s*var\(--fs-meta\)/.test(body!))
+        .map(([, selector]) => `${f}: ${selector!.trim()}`)
+    })
     expect(offenders).toEqual([])
+    const elsewhere = source.filter((f) => !f.endsWith('.css') && /text-transform:\s*['"]?uppercase|textTransform/i.test(readFileSync(f, 'utf8')))
+    expect(elsewhere).toEqual([])
   })
 
   it('uses only the approved font weights (400, 500, 600)', () => {

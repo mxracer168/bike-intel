@@ -3,17 +3,18 @@
  * destinations we can defend. Pages with sub-pages (Business) use a quiet
  * row of in-page tabs rather than more sidebar items.
  */
-export type NavItem = { href: string; label: string }
+export type NavIconName = 'today' | 'orders' | 'inventory' | 'programs' | 'suppliers' | 'insights' | 'connections' | 'business'
+export type NavItem = { href: string; label: string; icon?: NavIconName }
 
 export const navigation: NavItem[] = [
-  { href: '/today', label: 'Dashboard' },
-  { href: '/orders', label: 'Orders' },
-  { href: '/inventory', label: 'Inventory' },
-  { href: '/programs', label: 'Programs' },
-  { href: '/suppliers', label: 'Suppliers' },
-  { href: '/insights', label: 'Insights' },
-  { href: '/connections', label: 'Connections' },
-  { href: '/business', label: 'Business' },
+  { href: '/today', label: 'Today', icon: 'today' },
+  { href: '/orders', label: 'Orders', icon: 'orders' },
+  { href: '/inventory', label: 'Inventory', icon: 'inventory' },
+  { href: '/programs', label: 'Programs', icon: 'programs' },
+  { href: '/suppliers', label: 'Suppliers', icon: 'suppliers' },
+  { href: '/insights', label: 'Insights', icon: 'insights' },
+  { href: '/connections', label: 'Connections', icon: 'connections' },
+  { href: '/business', label: 'Business', icon: 'business' },
 ]
 
 /** In-page tabs within Business. */

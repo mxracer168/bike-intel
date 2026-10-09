@@ -21,15 +21,15 @@ for (const path of pages) {
       expect(overflow).toBeLessThanOrEqual(0)
     })
 
-    test('uses the Visual Direction canvas, ink and typeface', async ({ page }) => {
+    test('uses the design system canvas, ink and typeface', async ({ page }) => {
       await page.goto(path)
       const body = await page.evaluate(() => {
         const s = getComputedStyle(document.body)
         return { bg: s.backgroundColor, color: s.color, font: s.fontFamily }
       })
-      expect(body.bg).toBe('rgb(250, 249, 247)')
-      expect(body.color).toBe('rgb(34, 33, 31)')
-      expect(body.font).toMatch(/Hanken/)
+      expect(body.bg).toBe('rgb(248, 250, 252)')
+      expect(body.color).toBe('rgb(15, 23, 42)')
+      expect(body.font).toMatch(/Inter/)
     })
   })
 }

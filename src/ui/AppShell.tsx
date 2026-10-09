@@ -7,15 +7,17 @@ import { NotificationsButton } from '@/features/notifications/NotificationsButto
 import type { NotificationView } from '@/features/notifications/notifications'
 import { SearchButton, SearchProvider } from '@/features/search/SearchDialog'
 import { MobileNav } from './MobileNav'
+import { NavIcon } from './NavIcon'
 import { SidebarPanel, type ShellAccount, type ShellRetailer } from './SidebarPanel'
 import styles from './AppShell.module.css'
 
 export type { ShellAccount, ShellRetailer }
 
+/** The product mark on light bars (phones, sign-in, onboarding). The sidebar has its own brand block. */
 export function Logo() {
   return (
     <Link href="/today" className={styles.logo}>
-      <i className={styles.logoMark} aria-hidden="true" />
+      <span className={styles.logoMark} aria-hidden="true"><NavIcon name="brand" size={18} /></span>
       {productName}
     </Link>
   )
@@ -34,7 +36,7 @@ export type ShellExtras = {
 }
 
 /**
- * Signed-in application frame: a quiet left sidebar (primary navigation,
+ * Signed-in application frame: a dark navy sidebar (primary navigation,
  * current retailer, sync status, personal account), a slim header with the
  * "Add context" entry, and the page content. On phones the sidebar becomes a
  * panel opened from the top bar.
@@ -42,16 +44,16 @@ export type ShellExtras = {
 export function AppShell({ retailer, account, extras, children }: {
   retailer: ShellRetailer; account: ShellAccount; extras: ShellExtras; children: ReactNode
 }) {
-  const panel = (inDrawer: boolean) => (
-    <SidebarPanel retailer={retailer} account={account} sync={extras.sync} logo={<Logo />} inDrawer={inDrawer} />
+  const panel = () => (
+    <SidebarPanel retailer={retailer} account={account} sync={extras.sync} />
   )
   const frame = (
     <div className={styles.shell}>
       <a href="#main" className={styles.skip}>Skip to content</a>
-      <aside className={styles.sidebar} aria-label="Sidebar">{panel(false)}</aside>
+      <aside className={styles.sidebar} aria-label="Sidebar">{panel()}</aside>
       <header className={styles.mobileBar}>
         <span className={styles.barStart}>
-          <MobileNav>{panel(true)}</MobileNav>
+          <MobileNav>{panel()}</MobileNav>
           <Logo />
         </span>
         <span className={styles.barEnd}>

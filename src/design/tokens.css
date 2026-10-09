@@ -1,74 +1,112 @@
 /* =============================================================================
-   Buying Intelligence Platform · design tokens v0.1
-   Source of truth: "Buying Platform Visual Direction" (approved artifact).
+   Buying Intelligence Platform · design tokens v0.2
+   Visual reference: the Buying Intelligence Figma Make project (cool slate
+   neutrals, one bright blue accent, a dark navy sidebar). Figma's Tailwind
+   values are translated here; where a Figma text color fails WCAG AA it is
+   replaced by the nearest one that passes (noted below).
    North star: Complexity behind the glass. Clarity in front of it.
 
    Components use these variables only. No raw colors anywhere else
-   (enforced by tests/unit/design-tokens.test.ts).
+   (enforced by tests/unit/design-rules.test.ts).
    ============================================================================= */
 :root {
   color-scheme: light;
 
   /* Surfaces */
-  --canvas: #FAF9F7;       --surface: #FFFFFF;
-  --subtle: #F3F1ED;       --sunken: #ECE9E3;
-  /* Ink */
-  --ink: #22211F;          --ink-2: #615E58;        --ink-3: #8C8880;
+  --canvas: #F8FAFC;       --surface: #FFFFFF;       /* slate-50, white */
+  --subtle: #F1F5F9;       --sunken: #E2E8F0;        /* slate-100, slate-200 */
+  /* Ink. Figma's quiet notes are slate-400 (2.6:1); ink-3 uses slate-500 (4.6:1) instead. */
+  --ink: #0F172A;          --ink-strong: #020617;    /* slate-900, slate-950 for titles */
+  --ink-2: #475569;        --ink-3: #64748B;         /* slate-600, slate-500 */
+  --ink-faint: #94A3B8;    /* slate-400: chevrons, rules and marks only, never text */
   /* Lines */
-  --line: #E6E2DB;         --line-strong: #D3CEC5;
-  /* Accent: Harbor blue (primary button, links, Why?, focus) */
-  --accent: #3A6EA5;       --accent-hover: #2F5C8C;
-  --accent-soft: #E9F0F8;  --accent-muted: #A9C1DC;
-  --accent-wash: #F4F8FC;  /* an opened order line: "you are looking at this one" */
-  --accent-pressed: #28507A;
-  --accent-underline: rgba(58,110,165,.35);
+  --line: #E2E8F0;         --line-strong: #CBD5E1;   /* slate-200, slate-300 */
+  /* Accent: blue-600 (links, primary button, Why?, focus) */
+  --accent: #2563EB;       --accent-hover: #1D4ED8;
+  --accent-soft: #EFF6FF;  --accent-muted: #BFDBFE;  /* blue-50, blue-200 */
+  --accent-wash: #F5F9FF;  /* an opened order line: "you are looking at this one" */
+  --accent-pressed: #1E40AF;
+  --accent-underline: rgba(37,99,235,.35);
   --on-accent: #FFFFFF;
-  /* Functional (text on soft background) */
-  --pos: #3A6E4E;          --pos-soft: #E8F1EA;
-  --con: #88590C;          --con-soft: #FAF0DC;
-  --risk: #A33C2A;         --risk-soft: #FAE9E5;
-  --risk-line: #E7C3BB;
-  /* Inverse surface (toasts) */
-  --inverse: #22211F;      --on-inverse: #F6F4F0;   --inverse-link: #B9D0EC;
-  /* The conversation stage (onboarding call): a warm, dim room, never black */
-  --stage: #2E2C29;        --stage-2: #4A4640;      --on-stage: #F6F4F0;
-  --stage-veil: rgba(34,33,31,.62);  --stage-control: rgba(246,244,240,.16);
-  /* Backdrop behind the phone navigation panel */
-  --scrim: rgba(34,33,31,.32);
+  /* Functional (text on soft background); 700 shades so text passes AA */
+  --pos: #047857;          --pos-soft: #ECFDF5;      /* emerald */
+  --con: #B45309;          --con-soft: #FFFBEB;      /* amber */
+  --risk: #BE123C;         --risk-soft: #FFF1F2;     /* rose */
+  --risk-line: #FECDD3;
+  /* Status dots (marks, not text) */
+  --dot-info: #3B82F6;     --dot-caution: #F59E0B;   --dot-good: #10B981;   --dot-risk: #F43F5E;
+  /* Inverse surface: toasts and the Today hero */
+  --inverse: #020617;      --on-inverse: #F8FAFC;   --inverse-link: #93C5FD;
+  --inverse-2: #CBD5E1;    --inverse-3: #94A3B8;     /* slate-300, slate-400 on slate-950 */
+  --inverse-eyebrow: #93C5FD;                        /* blue-300 */
+  --inverse-control: rgba(255,255,255,.10);
+  --inverse-track: rgba(255,255,255,.15);  --inverse-fill: #60A5FA;
 
-  /* Type: Hanken Grotesk 400/600 (500 for 13px labels) */
-  --font: var(--font-hanken), 'Helvetica Neue', Arial, sans-serif;
+  /* The application shell: a dark navy sidebar with a quiet blue glow */
+  --nav-bg: #07101F;
+  --nav-glow-1: rgba(37,99,235,.38);       --nav-glow-2: rgba(14,165,233,.12);
+  --nav-shade-1: rgba(8,20,40,.2);         --nav-shade-2: rgba(2,6,23,.7);
+  --nav-edge: rgba(30,58,138,.5);          --nav-rule: rgba(255,255,255,.10);
+  --nav-ink: #94A3B8;      --nav-ink-strong: #FFFFFF;  --nav-ink-quiet: #64748B;
+  --nav-hover: rgba(255,255,255,.05);
+  --nav-current: rgba(96,165,250,.15);     --nav-current-ring: rgba(147,197,253,.10);  --nav-current-ink: #DBEAFE;
+  --nav-sub: rgba(191,219,254,.70);        /* the retailer under the product name */
+  --nav-network: #60A5FA;                  /* the ambient network: atmosphere, not content */
+  --brand: #3B82F6;                        /* blue-500 brand tile */
+  --nav-avatar: rgba(96,165,250,.15);      --nav-avatar-ring: rgba(147,197,253,.15);
+  /* The working canvas: two faint blue glows over slate-50 */
+  --canvas-glow-1: rgba(219,234,254,.55);  --canvas-glow-2: rgba(224,242,254,.55);
+  --canvas-end: #F5F8FC;
+  --bar-bg: rgba(255,255,255,.85);         --bar-line: rgba(226,232,240,.8);
+  --band-bg: rgba(255,255,255,.45);
+
+  /* The conversation stage (onboarding call): a dim room, never black */
+  --stage: #1E293B;        --stage-2: #334155;      --on-stage: #F8FAFC;
+  --stage-veil: rgba(15,23,42,.62);  --stage-control: rgba(248,250,252,.16);
+  /* Backdrop behind dialogs and the phone navigation panel */
+  --scrim: rgba(2,6,23,.35);
+
+  /* Type: Inter 400/500/600 */
+  --font: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   --fs-display: 40px;  --lh-display: 44px;   /* 600, -0.02em */
-  --fs-title: 28px;    --lh-title: 34px;     /* 600, -0.015em */
-  --fs-answer: 22px;   --lh-answer: 28px;    /* 600, -0.015em */
-  --fs-heading: 17px;  --lh-heading: 24px;   /* 600 */
-  --fs-lead: 17px;     --lh-lead: 26px;      /* 400 */
+  --fs-title: 36px;    --lh-title: 40px;     /* 600, -0.035em: page titles */
+  --fs-answer: 24px;   --lh-answer: 32px;    /* 600, -0.025em */
+  --fs-heading: 18px;  --lh-heading: 28px;   /* 600, -0.025em */
+  --fs-lead: 16px;     --lh-lead: 26px;      /* 400 */
   --fs-body: 15px;     --lh-body: 22px;      /* 400 */
-  --fs-label: 13px;    --lh-label: 18px;     /* 500, minimum size */
+  --fs-label: 13px;    --lh-label: 18px;     /* 500 */
+  --fs-meta: 12px;     --lh-meta: 16px;      /* 600, uppercase, tracked: eyebrows and small metadata only */
+  --tracking-meta: .15em;
 
   /* Spacing (4px base) */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px;
   --sp-6: 32px; --sp-7: 48px; --sp-8: 64px; --sp-9: 96px;
-  --reading-width: 640px;
-  --page-width: 1120px;
-  --sidebar-width: 248px;
-  --gutter: 20px;
+  --reading-width: 672px;
+  --page-width: 1200px;
+  --sidebar-width: 288px;
+  --topbar-height: 72px;    /* the sticky top bar beside the sidebar */
+  --gutter: 40px;
 
   /* Radius */
-  --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 24px;
 
   /* Elevation: borders first, shadows rarely */
-  --sh-1: 0 1px 2px rgba(34,33,31,.05);
-  --sh-2: 0 8px 24px -8px rgba(34,33,31,.12);
-  --sh-3: 0 28px 64px -16px rgba(34,33,31,.22);
-  --focus-ring: 0 0 0 3px rgba(58,110,165,.28);
+  --sh-1: 0 1px 2px rgba(15,23,42,.06);
+  --sh-2: 0 10px 30px -12px rgba(15,23,42,.18);
+  --sh-3: 0 25px 50px -12px rgba(2,6,23,.25);
+  --sh-hero: 0 20px 25px -5px rgba(203,213,225,.3), 0 8px 10px -6px rgba(203,213,225,.3);
+  --sh-nav: 0 25px 50px -12px rgba(23,37,84,.2);
+  --focus-ring: 0 0 0 3px rgba(37,99,235,.35);
 
   /* Motion: quick, quiet, purposeful */
   --ease: cubic-bezier(.2,.7,.2,1);
   --t-fast: 120ms; --t-base: 180ms; --t-slow: 260ms;
 }
 
-@media (max-width: 560px) {
-  :root { --gutter: 16px; }
+@media (max-width: 1023px) {
+  :root { --gutter: 28px; }
+}
+@media (max-width: 640px) {
+  :root { --gutter: 16px; --fs-title: 30px; --lh-title: 36px; }
 }

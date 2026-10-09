@@ -8,7 +8,8 @@ const groupTitle: Record<DecisionOutcome['group'], string> = {
 }
 
 /**
- * How recent decisions played out: for each purchase, our recommendation
+ * How recent decisions played out. Each purchase leads with what happened
+ * (the answer), then the evidence: our recommendation
  * (gray bar), what you approved (blue bar) and actual demand (a dark mark
  * across both). The three numbers are written beside each item, so color is
  * never the only cue and the bars stay uncluttered.
@@ -36,24 +37,27 @@ export function DecisionChart({ decisions }: { decisions: DecisionOutcome[] }) {
               const w = (n: number) => `${(n / max) * 100}%`
               return (
                 <li key={d.id} className={styles.decision}>
-                  <div>
+                  {/* The answer first (what happened), then the evidence (the three numbers). */}
+                  <div className={styles.decisionText}>
                     <p className={styles.decisionItem}>{d.item}</p>
+                    <p className={styles.decisionNote}>{d.note}</p>
+                  </div>
+                  <div className={styles.decisionEvidence}>
+                    <div className={styles.decisionPlot} aria-hidden="true">
+                      <div className={styles.track}>
+                        <div className={styles.barLine}>
+                          <span className={styles.recommended} style={{ width: w(d.recommended) }} />
+                        </div>
+                        <div className={styles.barLine}>
+                          <span className={styles.approved} style={{ width: w(d.approved) }} />
+                        </div>
+                        <span className={styles.demand} style={{ left: w(d.demand) }} />
+                      </div>
+                    </div>
                     <p className={styles.decisionNumbers}>
                       <span>{d.recommended} recommended</span> · <span>{d.approved} approved</span> · <b>{d.demand} demand</b>
                     </p>
                   </div>
-                  <div className={styles.decisionPlot} aria-hidden="true">
-                    <div className={styles.track}>
-                      <div className={styles.barLine}>
-                        <span className={styles.recommended} style={{ width: w(d.recommended) }} />
-                      </div>
-                      <div className={styles.barLine}>
-                        <span className={styles.approved} style={{ width: w(d.approved) }} />
-                      </div>
-                      <span className={styles.demand} style={{ left: w(d.demand) }} />
-                    </div>
-                  </div>
-                  <p className={styles.decisionNote}>{d.note}</p>
                 </li>
               )
             })}

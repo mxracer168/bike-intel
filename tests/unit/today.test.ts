@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { OrderSummary } from '@/features/orders/types'
 import { MAX_QUESTIONS, questionTopic, topQuestions, type IntelligenceQuestionView } from '@/features/intelligence/types'
+import { todaySummary } from '@/features/today/summary'
 import { orderPriority } from '@/features/work/fromOrder'
 
 const q = (id: string, status: IntelligenceQuestionView['status'] = 'open'): IntelligenceQuestionView =>
@@ -46,5 +47,29 @@ describe('an order as a priority', () => {
       title: 'Northline is $80 from free freight.',
       detail: '79 lines · $4,898',
     })
+  })
+
+  it('carries the figures the lead position shows, only those that are known', () => {
+    const p = orderPriority({ ...base, total: 4824, freightGap: 176 })
+    expect(p.status).toBe('Ready for review')
+    expect(p.facts?.figure).toEqual({ value: '$4,824', label: 'Recommended · 79 lines' })
+    expect(p.facts?.summary).toBe('7 lines deserve a closer look before you submit.')
+    expect(p.facts?.progress?.label).toBe('$176 to free freight')
+    expect(p.facts?.progress?.ratio).toBeCloseTo(4824 / 5000)
+    const quiet = orderPriority({ ...base, review: 0 }).facts
+    expect(quiet?.summary).toBeUndefined()
+    expect(quiet?.progress).toBeUndefined()
+    expect(orderPriority({ ...base, questions: 1 }).status).toBe('Needs an answer')
+  })
+})
+
+describe('the Today summary', () => {
+  it('counts what deserves attention and only reassures when nothing is going the wrong way', () => {
+    expect(todaySummary(4, [{ label: 'Sales', value: '$1', trend: { direction: 'up', text: '', good: true } }]))
+      .toBe('Four things deserve your attention. The rest of the business is moving as expected.')
+    expect(todaySummary(1, [{ label: 'Sales', value: '$1', trend: { direction: 'down', text: '', good: false } }]))
+      .toBe('One thing deserves your attention.')
+    expect(todaySummary(0, [])).toBe('Nothing needs your attention right now.')
+    expect(todaySummary(14, [])).toBe('14 things deserve your attention.')
   })
 })

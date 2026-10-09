@@ -63,6 +63,8 @@ function ContextQuestion({ questionId }: { questionId: string }) {
 /**
  * Insights: what the business is teaching us over time. Performance (did we
  * buy about the right amount?), patterns worth noticing, and opportunities.
+ * Every item reads answer → reason → evidence: the conclusion is the largest
+ * thing on its line; the facts behind it step back.
  * Example data; the period and location controls don't change it yet.
  */
 export function InsightsView({ performance, decisions, patterns, opportunities, locations }: {
@@ -114,6 +116,7 @@ export function InsightsView({ performance, decisions, patterns, opportunities, 
           <ul className={styles.rows}>
             {patterns.map((p) => (
               <li key={p.id} className={styles.row}>
+                <span className={[styles.dot, p.questionId ? styles.dotAsk : styles.dotInfo].join(' ')} aria-hidden="true" />
                 <div className={styles.rowMain}>
                   <p className={styles.rowTitle}>{p.observation}</p>
                   <p className={styles.rowFacts}>{p.facts.join(' · ')}</p>
@@ -130,9 +133,10 @@ export function InsightsView({ performance, decisions, patterns, opportunities, 
           <ul className={styles.rows}>
             {opportunities.map((o) => (
               <li key={o.id} className={styles.row}>
+                <span className={[styles.dot, styles.dotGood].join(' ')} aria-hidden="true" />
                 <div className={styles.rowMain}>
                   <p className={styles.rowTitle}>{o.title}</p>
-                  <p className={styles.rowFacts}>{o.detail}</p>
+                  <p className={styles.rowReason}>{o.detail}</p>
                   {o.programFit !== undefined && (
                     <p className={styles.fit}><b>{formatFit(o.programFit)}</b> / 5 · Program fit</p>
                   )}

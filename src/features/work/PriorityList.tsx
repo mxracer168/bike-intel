@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type DragEv
 import { Icon } from '@/ui/Icon'
 import { applyUserOrder, isCustomOrder, moveTo } from './order'
 import { QuickAnswer } from './QuickAnswer'
-import type { WorkItemView } from './types'
+import { workStatus, workTone, type WorkItemView } from './types'
 import styles from './Work.module.css'
 
 const ORDER_EVENT = 'priority-order-change'
@@ -57,7 +57,9 @@ function useStoredOrder(key: string): string[] | null {
  * it, and learning from how it differs from ours, is recorded in
  * docs/intelligence.md.
  *
- * Every row with somewhere to go is one link. Reordering: drag the grip
+ * Whatever sits first (our ranking or theirs) is shown large, as the one
+ * thing to start with; the rest follow as quiet rows. Every item with
+ * somewhere to go is one link. Reordering: drag the grip
  * (appears on hover/focus, desktop); focus the grip and use Up/Down
  * (keyboard); or the "⋯" menu (always there on touch screens).
  */
@@ -142,52 +144,110 @@ export function PriorityList({ items, storageKey, label, example = false }: {
           const href = item.action?.href
           const first = index === 0
           const last = index === current.length - 1
+          const tone = styles[workTone(item)]
+          const grip = (
+            <button
+              type="button"
+              ref={(el) => { grips.current.set(item.id, el) }}
+              className={styles.grip}
+              draggable
+              aria-label={`Reorder: ${item.title}`}
+              aria-describedby="priority-reorder-help"
+              onDragStart={(e) => onDragStart(e, item.id)}
+              onDragEnd={onDragEnd}
+              onKeyDown={(e) => onGripKey(e, item.id)}
+            >
+              <Icon name="grip" />
+            </button>
+          )
+          const title = href
+            ? <Link href={href} className={styles.rowLink}>{item.title}</Link>
+            : <span className={styles.titleText}>{item.title}</span>
+          const more = (
+            <div className={styles.more} data-menu>
+              <button type="button" className={styles.moreButton} aria-label={`Move: ${item.title}`}
+                aria-expanded={menuFor === item.id} aria-controls={`${item.id}-menu`}
+                onClick={() => setMenuFor(menuFor === item.id ? null : item.id)}>
+                <Icon name="more" />
+              </button>
+              {menuFor === item.id && (
+                <div id={`${item.id}-menu`} className={styles.menu}>
+                  <button type="button" disabled={first} onClick={() => { commit(moveTo(ids, item.id, 0), item.id); setMenuFor(null) }}>Move to top</button>
+                  <button type="button" disabled={first} onClick={() => { moveBy(item.id, -1); setMenuFor(null) }}>Move up</button>
+                  <button type="button" disabled={last} onClick={() => { moveBy(item.id, 1); setMenuFor(null) }}>Move down</button>
+                </div>
+              )}
+            </div>
+          )
+          const answer = item.choices && (
+            <QuickAnswer name={`work-${item.id}`} prompt={item.title} choices={item.choices} example={example} />
+          )
+
+          // Whatever is first, by our ranking or the retailer's, leads: the
+          // same item with the same controls, given more room.
+          if (first) {
+            const { figure, progress, summary } = item.facts ?? {}
+            return (
+              <li
+                key={item.id}
+                ref={(el) => { rows.current.set(item.id, el) }}
+                className={[styles.item, styles.hero, href && styles.linked, dragging === item.id && styles.dragging].filter(Boolean).join(' ')}
+                onDragOver={(e) => onDragOver(e, item.id)}
+                onDrop={(e) => e.preventDefault()}
+              >
+                {grip}
+                <div className={styles.heroCard}>
+                  <div className={styles.heroTop}>
+                    <div className={styles.heroText}>
+                      <p className={styles.heroStatus}><span className={[styles.dot, tone].join(' ')} aria-hidden="true" />{workStatus(item)}</p>
+                      <h3 className={styles.heroTitle}>{title}</h3>
+                      {(summary ?? item.detail) && <p className={styles.heroDetail}>{summary ?? item.detail}</p>}
+                    </div>
+                    {href && <span className={styles.heroGo} aria-hidden="true"><Icon name="chevron-right" size={20} /></span>}
+                  </div>
+                  {answer && <div className={styles.heroAnswer}>{answer}</div>}
+                  {(figure || progress) && (
+                    <div className={styles.heroFacts}>
+                      {figure && (
+                        <p className={styles.heroFigure}>
+                          <span className={styles.heroValue}>{figure.value}</span>
+                          <span className={styles.heroLabel}>{figure.label}</span>
+                        </p>
+                      )}
+                      {progress && (
+                        <div className={styles.heroProgress}>
+                          <p>{progress.label}</p>
+                          <span className={styles.track} aria-hidden="true">
+                            <span style={{ width: `${Math.round(Math.min(1, Math.max(0, progress.ratio)) * 100)}%` }} />
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {more}
+                </div>
+              </li>
+            )
+          }
+
           return (
             <li
               key={item.id}
               ref={(el) => { rows.current.set(item.id, el) }}
-              className={[styles.item, href && styles.linked, dragging === item.id && styles.dragging].filter(Boolean).join(' ')}
+              className={[styles.item, styles.row, href && styles.linked, dragging === item.id && styles.dragging].filter(Boolean).join(' ')}
               onDragOver={(e) => onDragOver(e, item.id)}
               onDrop={(e) => e.preventDefault()}
             >
-              <button
-                type="button"
-                ref={(el) => { grips.current.set(item.id, el) }}
-                className={styles.grip}
-                draggable
-                aria-label={`Reorder: ${item.title}`}
-                aria-describedby="priority-reorder-help"
-                onDragStart={(e) => onDragStart(e, item.id)}
-                onDragEnd={onDragEnd}
-                onKeyDown={(e) => onGripKey(e, item.id)}
-              >
-                <Icon name="grip" />
-              </button>
-
+              {grip}
+              <span className={[styles.dot, tone].join(' ')} aria-hidden="true" />
               <div className={styles.body}>
-                {href
-                  ? <Link href={href} className={styles.rowLink}>{item.title}</Link>
-                  : <p className={styles.title}>{item.title}</p>}
+                <h3 className={styles.title}>{title}</h3>
                 {item.detail && <p className={styles.detail}>{item.detail}</p>}
-                {item.choices && <QuickAnswer name={`work-${item.id}`} prompt={item.title} choices={item.choices} example={example} />}
+                {answer}
               </div>
-
-              <span className={styles.go} aria-hidden="true">{href && <Icon name="chevron-right" />}</span>
-
-              <div className={styles.more} data-menu>
-                <button type="button" className={styles.moreButton} aria-label={`Move: ${item.title}`}
-                  aria-expanded={menuFor === item.id} aria-controls={`${item.id}-menu`}
-                  onClick={() => setMenuFor(menuFor === item.id ? null : item.id)}>
-                  <Icon name="more" />
-                </button>
-                {menuFor === item.id && (
-                  <div id={`${item.id}-menu`} className={styles.menu}>
-                    <button type="button" disabled={first} onClick={() => { commit(moveTo(ids, item.id, 0), item.id); setMenuFor(null) }}>Move to top</button>
-                    <button type="button" disabled={first} onClick={() => { moveBy(item.id, -1); setMenuFor(null) }}>Move up</button>
-                    <button type="button" disabled={last} onClick={() => { moveBy(item.id, 1); setMenuFor(null) }}>Move down</button>
-                  </div>
-                )}
-              </div>
+              <span className={styles.actionLabel} aria-hidden="true">{href && item.action?.label}</span>
+              <span className={styles.go} aria-hidden="true">{href && <Icon name="chevron-right" size={18} />}</span>
+              {more}
             </li>
           )
         })}

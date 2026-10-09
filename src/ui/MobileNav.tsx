@@ -30,9 +30,8 @@ export function MobileNav({ children }: { children: ReactNode }) {
           if (e.target === dialog.current) dialog.current?.close()
         }}
       >
-        <div className={`${styles.panelHead} ${styles.drawerHead}`}>
+        <div className={styles.drawerHead}>
           <span className="visually-hidden">Navigation</span>
-          <span aria-hidden="true" />
           <button type="button" className={styles.closeButton} aria-label="Close navigation" onClick={() => dialog.current?.close()}>
             <Icon name="close" />
           </button>

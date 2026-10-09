@@ -1,29 +1,33 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { useIntelligence } from '@/features/intelligence/IntelligencePanel'
+import { Icon } from '@/ui/Icon'
 import styles from './Today.module.css'
 
 /**
- * Questions for you: the way back into the same ongoing conversation, in the
- * same soft Harbor blue as the panel's "Questions for you". One line, one action.
+ * Questions for you: Today's right-hand rail and the way back into the same
+ * ongoing conversation. The count is live; answering happens in the panel.
  */
-export function WeeklyCheckIn() {
+export function WeeklyCheckIn({ children }: { children?: ReactNode }) {
   const api = useIntelligence()
   if (!api) return null
   const count = api.openCount
   return (
-    <aside className={styles.checkIn} aria-labelledby="today-questions">
-      <div className={styles.checkInText}>
-        <h2 id="today-questions" className={styles.checkInTitle}>
-          {count === 0 ? 'Anything worth updating?' : count === 1 ? '1 question for you' : `${count} questions for you`}
-        </h2>
-        <p className={styles.checkInLead}>
+    <aside className={styles.rail} aria-labelledby="today-questions">
+      <h2 id="today-questions" className={styles.railLabel}>Questions for you</h2>
+      <div className={styles.railItem}>
+        <p className={styles.railTitle}>
+          {count === 0 ? 'Nothing waiting on you' : count === 1 ? 'One question is waiting' : `${count} questions are waiting`}
+        </p>
+        <p className={styles.railText}>
           {count === 0 ? 'Tell us about anything that could change what you buy.' : 'A few answers would help sharpen upcoming recommendations.'}
         </p>
+        <button type="button" className={styles.railAction} aria-haspopup="dialog" onClick={() => api.open()}>
+          {count === 0 ? 'Add context' : 'Answer now'}<Icon name="arrow-right" size={14} />
+        </button>
       </div>
-      <button type="button" className={styles.checkInPrimary} aria-haspopup="dialog" onClick={() => api.open()}>
-        {count === 0 ? 'Add context' : 'Take a look'}
-      </button>
+      {children}
     </aside>
   )
 }

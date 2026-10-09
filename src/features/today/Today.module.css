@@ -1,26 +1,22 @@
-/* Three zones: business health, priorities, questions. Space between them does the separating. */
-.zones { display: flex; flex-direction: column; gap: var(--sp-7); }
-.zone { display: flex; flex-direction: column; gap: var(--sp-3); }
-.zoneHead { display: flex; flex-direction: column; gap: 2px; }
-.zoneTitle { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; }
-.zoneLead { font-size: 14px; line-height: 20px; color: var(--ink-2); }
-
-/* ---------- Business health: one system of quiet cards ---------- */
-.health { list-style: none; display: grid; grid-template-columns: repeat(var(--cards, 5), minmax(0, 1fr)); gap: var(--sp-3); }
+/* ---------- Business health: one quiet band, figures side by side, hairlines between ---------- */
+.health {
+  list-style: none; display: grid; grid-template-columns: repeat(var(--cards, 3), minmax(0, 1fr));
+  border-block: 1px solid var(--bar-line); background: var(--band-bg); overflow: hidden;
+}
+/* Rules between cells; the band's edge clips the ones that would fall outside it. */
 .card {
-  display: flex; flex-direction: column; gap: 2px; min-width: 0;
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
-  padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-5);
+  display: flex; flex-direction: column; min-width: 0; padding: 20px var(--sp-5);
+  box-shadow: -1px 0 0 var(--bar-line), 0 -1px 0 var(--bar-line);
 }
-.metricLabel { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); }
+.metricLabel { font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 500; color: var(--ink-3); }
 .metricValue {
-  font-size: var(--fs-title); line-height: var(--lh-title); font-weight: 600; letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums; padding-top: 4px; white-space: nowrap;
+  margin-top: var(--sp-2); font-size: var(--fs-answer); line-height: var(--lh-answer); font-weight: 600; letter-spacing: -0.025em;
+  color: var(--ink-strong); font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-.metricNote { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
+.metricNote { margin-top: 4px; font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); }
 .trend {
-  display: inline-flex; align-items: center; gap: 4px; margin-top: auto; padding-top: var(--sp-2);
-  font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; font-variant-numeric: tabular-nums;
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;
+  font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 500; font-variant-numeric: tabular-nums;
 }
 .trend > span:first-child { display: inline-flex; }
 .arrowDown { transform: rotate(180deg); }
@@ -28,39 +24,42 @@
 .good { color: var(--pos); }
 .bad { color: var(--risk); }
 
-/* ---------- Questions for you: the soft Harbor blue of the intelligence panel ---------- */
-.checkIn {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-5);
-  padding: var(--sp-4) var(--sp-5); background: var(--accent-soft); border-radius: var(--r-lg);
-}
-.checkInText { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.checkInTitle { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--ink); }
-.checkInLead { font-size: 14px; line-height: 20px; color: var(--ink-2); }
-.checkInPrimary {
-  flex: none; min-height: 36px; padding: 6px 16px; border: 1px solid var(--accent-muted); border-radius: var(--r-md);
-  background: var(--surface); color: var(--accent); font-size: 15px; font-weight: 600; cursor: pointer;
-}
-.checkInPrimary:hover { border-color: var(--accent); }
-
 @media (max-width: 1100px) {
-  .health { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .health { grid-template-columns: repeat(var(--cards-md, 3), minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
-  .zones { gap: var(--sp-6); }
-  .health { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
-  /* An odd last card takes the full row rather than sitting alone. */
-  .card:last-child:nth-child(odd) { grid-column: 1 / -1; }
-  .card { padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4); }
-  .metricValue { font-size: var(--fs-answer); line-height: var(--lh-answer); }
-  .checkIn { padding: var(--sp-4); }
+  .health { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .health.few { grid-template-columns: minmax(0, 1fr); }
+  .card { padding: var(--sp-4) var(--sp-4) var(--sp-4) 0; }
+  .health:not(.few) .card:nth-child(even) { padding-left: var(--sp-4); }
+  .health.few .card { padding-inline: 0; }
+  /* An odd last figure takes the full row rather than sitting alone. */
+  .health:not(.few) .card:last-child:nth-child(odd) { grid-column: 1 / -1; }
 }
 
-/* ---------- Priorities: one outlined work area, rows separated by hairlines (not cards) ---------- */
-.priorityPanel {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
-  /* Left padding leaves room for the drag grip, which sits in the rows' left gutter. */
-  padding: var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-7);
+/* ---------- Today: priorities beside the questions rail ---------- */
+.columns { display: grid; gap: 40px; margin-top: var(--sp-5); }
+.zoneHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px var(--sp-4); margin-bottom: 20px; }
+.zoneTitle { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; letter-spacing: -0.025em; color: var(--ink-strong); }
+.zoneNote { font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); }
+
+/* Questions for you: a quiet rail, the way back into the conversation. */
+.rail { display: flex; flex-direction: column; gap: 20px; border-top: 1px solid var(--line); padding-top: var(--sp-6); }
+.railLabel {
+  font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600; letter-spacing: var(--tracking-meta);
+  text-transform: uppercase; color: var(--ink-3);
 }
-@media (hover: none), (max-width: 640px) {
-  .priorityPanel { padding: var(--sp-1) var(--sp-2) var(--sp-1) var(--sp-4); }
+.railItem { display: flex; flex-direction: column; gap: 4px; }
+.railTitle { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); }
+.railText { font-size: 14px; line-height: 24px; color: var(--ink-3); }
+.railAction {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; margin-top: var(--sp-1);
+  padding: 0; border: 0; background: none; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--accent);
+  text-decoration: none; cursor: pointer;
+}
+.railAction:hover { color: var(--accent-hover); }
+
+@media (min-width: 1280px) {
+  .columns { grid-template-columns: minmax(0, 1.65fr) minmax(260px, .75fr); }
+  .rail { border-top: 0; padding-top: 0; border-left: 1px solid var(--line); padding-left: var(--sp-6); }
 }
