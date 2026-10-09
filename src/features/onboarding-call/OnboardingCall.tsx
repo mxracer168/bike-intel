@@ -50,8 +50,7 @@ export function OnboardingCall({ script, initial, example }: { script: Onboardin
         <div className={meeting.main}>
           <MeetingStage current={state.current} live={!state.finished}
             status={state.finished ? 'Our first conversation is complete' : 'Listening and learning about your business'}
-            advisor={{ name: 'Your buying advisor', image: '/demo/advisor.jpg' }}
-            self={{ name: 'You', image: '/demo/you.jpg' }} />
+            advisor={{ name: 'Your buying advisor', image: '/demo/advisor.jpg' }} />
           <MeetingTranscript lines={state.said} current={state.current} live={!state.finished} />
         </div>
 

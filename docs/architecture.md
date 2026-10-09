@@ -432,6 +432,9 @@ reuse (`features/meeting`).
   scheduling the recurring check-in is presented as the next item on the
   agenda, not as a separate prompt.
 
+- **The retailer is never asked to turn on a camera.** The call shows the
+  advisor only; there is no picture or self-view of the retailer.
+
 Today this exists only as a scripted example (`/demo/onboarding`, demo
 preview only): no video, voice, speech, extraction, scheduling or writes.
 

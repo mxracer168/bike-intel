@@ -9,13 +9,13 @@ import styles from './Meeting.module.css'
 export type Participant = { name: string; detail?: string; image: string }
 
 /**
- * The call: the advisor large, the retailer small, the line being said as a
- * caption, the advisor's name and what the meeting is doing, and three
- * controls. Mute and captions are local to the screen; nothing here uses a
- * camera or microphone.
+ * The call: the advisor large, the line being said as a caption, the
+ * advisor's name and what the meeting is doing, and three controls. There is
+ * no picture of the retailer: we never ask them to turn on a camera. Mute and
+ * captions are local to the screen; nothing here uses a camera or microphone.
  */
-export function MeetingStage({ advisor, self, current, status, live = true, leaveHref = '/' }: {
-  advisor: Participant; self: Participant; current: TranscriptLine | null
+export function MeetingStage({ advisor, current, status, live = true, leaveHref = '/' }: {
+  advisor: Participant; current: TranscriptLine | null
   /** One line under the advisor's name: what the meeting is doing now. */
   status?: string
   live?: boolean
@@ -33,11 +33,6 @@ export function MeetingStage({ advisor, self, current, status, live = true, leav
         {live ? 'Live' : 'Call ended'}
         {current?.speaker === 'advisor' && live && <Speaking />}
       </p>
-
-      <div className={[styles.self, current?.speaker === 'retailer' && !muted && styles.selfSpeaking].filter(Boolean).join(' ')}>
-        <Portrait src={self.image} alt={self.name} small />
-        <span className={styles.selfLabel}>{muted && <Icon name="mic-off" size={12} label="Muted" />}{self.name}</span>
-      </div>
 
       {captions && current && (
         <p className={styles.captions} aria-live="polite">
@@ -74,14 +69,14 @@ function Speaking() {
  * A photo if one has been provided at `src`, otherwise a clearly marked
  * placeholder. The photo shows only once it has actually loaded.
  */
-function Portrait({ src, alt, note, small }: { src: string; alt: string; note?: string; small?: boolean }) {
+function Portrait({ src, alt, note }: { src: string; alt: string; note?: string }) {
   const [loaded, setLoaded] = useState(false)
   const img = useRef<HTMLImageElement>(null)
   useEffect(() => {
     if (img.current?.complete && img.current.naturalWidth > 0) setLoaded(true)
   }, [])
   return (
-    <div className={[styles.portrait, small && styles.portraitSmall].filter(Boolean).join(' ')}>
+    <div className={styles.portrait}>
       {!loaded && (
         <div className={styles.placeholder} aria-hidden="true">
           <svg viewBox="0 0 120 120" className={styles.silhouette}>

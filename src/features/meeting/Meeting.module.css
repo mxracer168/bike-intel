@@ -46,7 +46,6 @@
 .placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(120% 90% at 50% 30%, var(--stage-2), var(--stage) 70%); }
 .silhouette { width: 34%; max-width: 260px; fill: var(--on-stage); opacity: .14; margin-top: 6%; }
 .placeholderNote { position: absolute; left: 50%; top: var(--sp-5); transform: translateX(-50%); white-space: nowrap; font-size: var(--fs-label); color: var(--on-stage); opacity: .5; }
-.portraitSmall .placeholderNote { display: none; }
 /* Darker toward the bottom, where the name and controls sit. */
 .stageShade {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
@@ -67,18 +66,6 @@
 .speaking i:nth-child(3) { animation-delay: 300ms; }
 @keyframes talk { to { height: 12px; } }
 @media (prefers-reduced-motion: reduce) { .speaking i { animation: none; height: 8px; } }
-
-.self {
-  position: absolute; right: 20px; top: 20px; z-index: 2; width: 20%; min-width: 120px; aspect-ratio: 4 / 3;
-  border-radius: var(--r-lg); overflow: hidden; background: var(--stage-2);
-  box-shadow: 0 0 0 1px var(--stage-control); transition: box-shadow var(--t-base) var(--ease);
-}
-.selfSpeaking { box-shadow: 0 0 0 2px var(--on-stage); }
-.portraitSmall .silhouette { width: 46%; opacity: .2; margin-top: 18%; }
-.selfLabel {
-  position: absolute; left: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 4px;
-  font-size: var(--fs-meta); line-height: 1; padding: 4px 6px; border-radius: var(--r-sm); background: var(--stage-veil);
-}
 
 .captions {
   position: absolute; left: 50%; bottom: 112px; z-index: 2; transform: translateX(-50%); width: min(76%, 720px);
@@ -229,7 +216,6 @@
 /* ---------- Narrow ---------- */
 @media (max-width: 640px) {
   .stage { min-height: 430px; }
-  .self { width: 30%; min-width: 0; right: 16px; top: 16px; }
   .livePill { left: 16px; top: 16px; }
   .captions { width: calc(100% - 32px); bottom: 160px; font-size: 14px; line-height: 20px; }
   .stageFoot { left: 16px; right: 16px; bottom: 16px; flex-direction: column; align-items: stretch; }
