@@ -30,6 +30,12 @@ work against.
 - **Preserve truth in the data; interpret in the analysis.** Sales stay on the
   retailer item that produced them. Matches and lineage are separate,
   correctable links, never merges.
+- **Rights travel with source data.** Every catalog fact remembers whether
+  its source allows platform-wide use; restricted data stays with the
+  retailer whose connection supplied it (`catalog.md`).
+- **Identity is not presentation.** Product → Variant is how things are
+  identified; how the Catalog groups results is decided by discovery, not
+  by the hierarchy.
 - **Recommendation ≠ purchase order.** Recommendations are immutable system
   output. Orders carry the buyer's decisions.
 - **Retailer data is private by default.** Suppliers see nothing identifiable
@@ -137,18 +143,18 @@ Visibility key: **G** global/shared · **R** retailer-private ·
 | | `supplier_warehouse` | G | Optional fulfillment locations |
 | | `brand` | G | Brand, optionally owned by a supplier |
 | | `category` | G | Our taxonomy, per industry |
-| | `product_group` | G | Model / model year grouping variants |
+| | `product_group` | G | Model / model year grouping variants (to be renamed `product` and made required, `catalog.md`) |
 | Integration | `connection` | O | POS or supplier connection; capabilities; retention policies; Vault pointer |
 | | `document` | O | Uploaded files (bytes in Storage) |
 | | `import_batch` | O | Every pull/upload; raw payload pointer + retention state |
 | | `sync_coverage` | R | What each sync fully observed ("unchanged" vs "not observed") |
 | | `change_log` | O | Audit trail |
-| Catalog | `product` | G (private while provisional from POS data) | Canonical sellable variant |
-| | `product_identifier` | follows product | UPC / EAN / GTIN / MPN |
-| | `supplier_item` | G | Supplier catalog entry; raw + normalized UOM; no wholesale price |
+| Catalog | `product` | G (private while provisional from POS data) | Canonical sellable variant (to be renamed `product_variant`, `catalog.md`) |
+| | `product_identifier` | follows product | UPC / EAN / GTIN / MPN (types to become open-ended and sourced, `catalog.md`) |
+| | `supplier_item` | G (to become G or restricted by source rights, `catalog.md`) | Supplier offer: catalog entry; raw + normalized UOM; no wholesale price |
 | | `retailer_item` | R | POS item as the POS has it; selling UOM; stocking intent |
 | | `product_match` | G (supplier items) / R (retailer items) | Item → product with confidence, evidence, status |
-| | `product_relationship` | G | Successor / replaced-by / equivalent / comparable |
+| | `product_relationship` | G | Lineage; types become direct successor / functional replacement / substitute (`catalog.md`) |
 | Relationships | `supplier_relationship` | Rel | Claimed / verified / inactive / suspended; preference |
 | | `supplier_terms` | Rel | Time-aware terms; optional location override |
 | | `supplier_offer_observation` | Rel | Cached price/availability; optional warehouse level |
@@ -334,7 +340,9 @@ view while the lines scroll. Behaviour decided so far:
 supplier submission *or* the POS purchase order, not both. Scenario A needs
 both. When submission is built, add a small `purchase_order_handoff` table
 (one row per target: supplier or POS; connection, method, status, external
-reference, error, timestamps) rather than widening `purchase_order`; keep
+reference, error, timestamps; for the POS, either create a PO or update the
+POS PO a working order was imported from, see `catalog.md`) rather than
+widening `purchase_order`; keep
 `purchase_order.submission_method` as the supplier-side summary. Order
 context (cadence, typical order) is derived from order history; terms,
 freight thresholds and programs already have homes in `supplier_terms` and
@@ -449,32 +457,39 @@ state reads as new again. Nothing is invented to fill the panel.
   stored yet, so outside example data only new questions can appear. Each
   source turns on as its data becomes real.
 
-## Catalog, sourcing and order creation (proposed, not approved)
+## Catalog, sourcing and order creation (approved, not built)
 
-The shared Catalog, product identity and provenance, catalog matching,
-product lineage, order creation from several entry points, and sourcing
-optimization ("what to buy" vs "how to buy") are reviewed against this
-schema in [`catalog.md`](catalog.md). The foundation already separates
-identity (`product`), a supplier's offer (`supplier_item`) and observed price
-and warehouse availability (`supplier_offer_observation`). The review finds
-these conflicts with the new requirements, each awaiting a decision:
+Approved 2026-10-09 (decisions D1–D8); the full model, the schema changes
+and what's still open are in [`catalog.md`](catalog.md). Nothing is built or
+migrated yet. In short:
 
-- **Names**: the schema's `product_group` is the Product (model) and
-  `product` is the Variant.
-- **The model grouping is optional**: a Variant need not belong to a
-  Product today.
-- **POS draft orders can't be imported**: a POS-origin `purchase_order`
-  must already be submitted.
-- **Supplier content may be shared too widely**: catalog content received
-  through one retailer's connection is global today.
-- **No home for sourcing decisions**: nothing records a "how to buy"
-  decision.
-- **Lineage types**: they overlap (`replaced_by` is the inverse of
-  `successor`), and lineage exists between Variants only.
-
-Identifier types are also closed by a CHECK constraint, attributes have no
-definitions, and canonical product fields don't record their source. Nothing
-here is built or migrated until approved.
+- **Product → Variant.** `product_group` becomes `product` (the model) and
+  `product` becomes `product_variant`; every Variant belongs to a Product.
+  Variant dimensions and attributes are defined data, never columns.
+  Identifiers are open-ended and sourced.
+- **Identity, offer, observation.** A supplier offer (`supplier_item`) is
+  matched to a Variant. Price and warehouse availability are observations
+  of an offer through a retailer's relationship, never product attributes.
+  Pricing can grow conditions (quantity breaks, dates, programs) without
+  touching identity or offers.
+- **Source rights per source.** Only platform-usable data feeds the shared
+  catalog; anything that arrived through a retailer's private connection
+  stays restricted to that retailer. Resolution built on restricted data
+  inherits the restriction. The default is restricted.
+- **Duplicates vs lineage.** Duplicates are matched or merged. Replacements
+  stay distinct, linked as direct successor, functional replacement or
+  substitute, between Products or Variants.
+- **The hierarchy is not the presentation.** Discovery reads a derived,
+  rights-filtered index that may collapse or expand variants.
+- **Orders.** One working `purchase_order` with many ways in: Catalog,
+  supplier-scoped Catalog, POS import and recommendations. By default
+  there's one draft per supplier and ship-to location, in application
+  logic only. The POS stays the system of record for its own PO; Buying
+  Intelligence owns a linked working order and changes the POS only
+  through an explicit handoff.
+- **What vs how.** A recommendation is the need. A new immutable sourcing
+  plan is the decision about how to fill it, across suppliers, orders,
+  freight and programs, with alternatives and a plain explanation.
 
 ## Recorded for later (no schema change yet)
 
