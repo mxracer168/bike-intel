@@ -1,58 +1,74 @@
 /*
- * The order header. Wide screens: supplier on the left, the glance metrics and
- * the one action on the right, sticky while the lines scroll. Smaller screens:
- * stacked and not sticky; the action moves to a bar along the bottom.
+ * The order header (Figma reference: order detail). A compact bar: back, the
+ * supplier and where the order stands, then the exact total and the one
+ * action. Full-bleed and sticky under the top bar on wider screens; on
+ * smaller screens it scrolls away and the action moves to a bar along the
+ * bottom.
  */
 .header {
-  display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-6);
-  background: var(--canvas);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-5);
+  margin: calc(-1 * var(--sp-7)) calc(-1 * var(--gutter)) 0; padding: var(--sp-3) var(--gutter);
+  background: var(--bar-bg); backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--bar-line); box-shadow: var(--sh-1);
 }
-.name { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-.eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); }
-.title { font-size: var(--fs-title); line-height: var(--lh-title); letter-spacing: -0.015em; }
+.name { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; }
+.back {
+  flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: var(--r-md);
+  color: var(--ink-3); text-decoration: none;
+}
+.back:hover { background: var(--subtle); color: var(--ink-strong); }
+.nameText { min-width: 0; }
+.titleRow { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
+.title { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; letter-spacing: -0.025em; color: var(--ink-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.status {
+  flex: none; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-hover);
+  font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600;
+}
+.statusDone { background: var(--pos-soft); color: var(--pos); }
+.sub { margin-top: 2px; font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); }
+.end { flex: none; display: flex; align-items: center; gap: var(--sp-4); }
+.total { display: flex; flex-direction: column; align-items: flex-end; }
+.totalLabel {
+  font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 500; letter-spacing: var(--tracking-meta);
+  text-transform: uppercase; color: var(--ink-3);
+}
+.totalValue { margin-top: 2px; font-size: 15px; line-height: 20px; font-weight: 600; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
 
-/* Glance metrics: label, one strong value, one quiet line. Thin dividers, no cards. */
-.metrics { display: flex; align-items: stretch; margin: 0; }
-.metric { display: flex; flex-direction: column; gap: 2px; padding: 0 var(--sp-6); min-width: 0; }
-.metric + .metric, .metrics + .action { border-left: 1px solid var(--line); }
-.metric dt { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); }
-.metric dd { margin: 0; display: flex; flex-direction: column; gap: 1px; font-size: 14px; line-height: 20px; color: var(--ink-2); white-space: nowrap; }
-.value { font-size: var(--fs-answer); line-height: var(--lh-answer); font-weight: 600; letter-spacing: -0.01em; color: var(--ink); font-variant-numeric: tabular-nums; }
+@media (min-width: 1024px) {
+  .header { position: sticky; top: var(--topbar-height); z-index: 6; }
+}
+@media (max-width: 1023px) { .end { display: none; } }
+/* The page's own top padding is smaller on phones. */
+@media (max-width: 560px) { .header { margin-top: calc(-1 * var(--sp-6)); } }
+
+/* ---------- The order at a glance: one panel, the total leading ---------- */
+.glance {
+  background: var(--band-bg); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--sh-1);
+  padding: var(--sp-5) 28px;
+}
+.metrics { margin: 0; display: grid; grid-template-columns: minmax(0, 1.25fr) repeat(2, minmax(0, 1fr)); gap: var(--sp-5) 0; }
+.metric { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; padding: 0 var(--sp-5); }
+.metric:first-child { padding-left: 0; }
+.metric + .metric { border-left: 1px solid var(--line); }
+.metric dt { font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 500; color: var(--ink-3); }
+.metric dd { margin: 0; display: flex; flex-direction: column; gap: 4px; font-size: var(--fs-meta); line-height: 18px; color: var(--ink-3); }
+.value { font-size: var(--fs-answer); line-height: var(--lh-answer); font-weight: 600; letter-spacing: -0.025em; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
+.valueMid { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; letter-spacing: -0.015em; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
 .gap { color: var(--con); }
+.track { display: block; width: 112px; height: 4px; margin-top: 6px; border-radius: 999px; overflow: hidden; background: var(--sunken); }
+.track > span { display: block; height: 100%; border-radius: inherit; background: var(--dot-info); }
 .done { color: var(--pos); font-weight: 600; }
 .prices { display: inline-flex; align-items: center; gap: 4px; color: var(--con); }
 .up, .down, .flat { font-weight: 600; font-variant-numeric: tabular-nums; }
 .up { color: var(--pos); }
 .down { color: var(--risk); }
 .flat { color: var(--ink-3); }
-.action { padding-left: var(--sp-6); }
 
-@media (min-width: 1024px) {
-  .header {
-    position: sticky; top: var(--topbar-height); z-index: 6;
-    margin: 0 calc(-1 * var(--gutter)); padding: var(--sp-3) var(--gutter);
-    border-bottom: 1px solid var(--line);
-  }
-}
-@media (min-width: 1280px) { .header { flex-wrap: nowrap; } }
-/* Not enough room for one row: the supplier on its own line, the metrics under it. */
-@media (min-width: 1024px) and (max-width: 1279px) {
-  .name { flex-basis: 100%; }
-  .metric:first-child { padding-left: 0; }
-  .action { margin-left: auto; }
-}
-@media (max-width: 1023px) {
-  .name { flex-basis: 100%; }
-  .metrics { flex-wrap: wrap; row-gap: var(--sp-4); }
-  .metric:first-child { padding-left: 0; }
-  .action { display: none; }
-}
-@media (max-width: 520px) {
-  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4) var(--sp-4); width: 100%; }
-  .metric { padding: 0; }
-  .metric + .metric { border-left: 0; }
-  .metric:first-child { grid-column: 1 / -1; }
-  .value { font-size: 20px; line-height: 26px; }
+@media (max-width: 760px) {
+  .glance { padding: var(--sp-4) 20px; }
+  .metrics { grid-template-columns: 1fr 1fr; }
+  .metric.lead { grid-column: 1 / -1; padding: 0 0 var(--sp-4); border-bottom: 1px solid var(--line); }
+  .metric:nth-child(2) { padding-left: 0; border-left: 0; }
 }
 
 /* ---------- After approval: what happened, files, what's left ---------- */

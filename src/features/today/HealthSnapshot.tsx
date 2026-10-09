@@ -7,11 +7,15 @@ import styles from './Today.module.css'
  * small arrow shows the change, colored by whether it's good for the business
  * (not by whether the number went up).
  */
-export function HealthSnapshot({ metrics, label }: { metrics: HealthMetric[]; label?: string }) {
+export function HealthSnapshot({ metrics, label, variant = 'band' }: {
+  metrics: HealthMetric[]; label?: string
+  /** band: between hairlines (Today, Inventory). panel: on its own surface (Insights). */
+  variant?: 'band' | 'panel'
+}) {
   const shown = metrics.slice(0, MAX_METRICS)
   const vars = { '--cards': shown.length, '--cards-md': Math.min(shown.length, 3) } as React.CSSProperties
   return (
-    <ul className={[styles.health, shown.length <= 3 && styles.few].filter(Boolean).join(' ')} aria-label={label} style={vars}>
+    <ul className={[styles.health, shown.length <= 3 && styles.few, variant === 'panel' && styles.panel].filter(Boolean).join(' ')} aria-label={label} style={vars}>
       {shown.map((m) => (
         <li key={m.label} className={styles.card}>
           <p className={styles.metricLabel}>{m.label}</p>

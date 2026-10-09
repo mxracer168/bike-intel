@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { ContextEquation } from '@/features/meeting/ContextEquation'
 import { MeetingAgenda, UpNext } from '@/features/meeting/MeetingAgenda'
@@ -7,17 +8,18 @@ import { MeetingLearned } from '@/features/meeting/MeetingLearned'
 import { MeetingStage } from '@/features/meeting/MeetingStage'
 import { MeetingTranscript } from '@/features/meeting/MeetingTranscript'
 import meeting from '@/features/meeting/Meeting.module.css'
-import { Button, ButtonLink } from '@/ui/Button'
+import { Button } from '@/ui/Button'
+import { Icon } from '@/ui/Icon'
 import { Field, Select } from '@/ui/Field'
 import { callState, clampSaid, type CheckInOffer, type OnboardingScript } from './script'
 import styles from './OnboardingCall.module.css'
 
 /**
- * The first intelligence meeting: getting to know the retailer. Left, why
- * this conversation matters (the equation), the call, and what we're
- * learning. Right, the meeting panel: what's up next and the agenda, then the
- * transcript. At the end, scheduling the weekly check-in becomes what's up
- * next. Built from the reusable meeting pieces in features/meeting.
+ * The first intelligence meeting: getting to know the retailer. On top, why
+ * this conversation matters (the equation). Left, the call and the
+ * conversation under it. Right, the agenda (and, at the end, scheduling the
+ * weekly check-in as what's up next), then what we're learning. Built from
+ * the reusable meeting pieces in features/meeting.
  *
  * Prototype: a presenter steps through a scripted conversation (→ and ←, or
  * the quiet controls underneath). No camera, microphone, speech or AI.
@@ -41,42 +43,41 @@ export function OnboardingCall({ script, initial, example }: { script: Onboardin
 
   return (
     <div className={styles.page}>
+      <h1 className="visually-hidden">Getting to know {script.retailer}</h1>
+      <div className={meeting.why}><ContextEquation /></div>
+
       <div className={meeting.layout}>
-        <header className={meeting.intro}>
-          <h1 className={meeting.title}>Getting to know {script.retailer}</h1>
-          <p className={meeting.lead}>We don’t just analyze your sales data. We learn how your business works.</p>
-        </header>
-
-        <div className={meeting.why}><ContextEquation /></div>
-
-        <div className={meeting.call}>
-          <MeetingStage current={state.current}
-            advisor={{ name: 'Your buying advisor', detail: 'Buying Intelligence', image: '/demo/advisor.jpg' }}
+        <div className={meeting.main}>
+          <MeetingStage current={state.current} live={!state.finished}
+            status={state.finished ? 'Our first conversation is complete' : 'Listening and learning about your business'}
+            advisor={{ name: 'Your buying advisor', image: '/demo/advisor.jpg' }}
             self={{ name: 'You', image: '/demo/you.jpg' }} />
+          <MeetingTranscript lines={state.said} current={state.current} live={!state.finished} />
         </div>
 
-        <div className={meeting.reference}>
+        <aside className={meeting.side} aria-label="Meeting">
+          <MeetingAgenda agenda={state.agenda}
+            title={`Getting to know ${script.retailer}`}
+            lead="We don’t just analyze your sales data. We learn how your business works."
+            doneTitle="Our first conversation"
+            doneLead="I’ll use what I learned to make recommendations that fit your business."
+            next={state.finished ? <CheckIn offer={script.checkIn} example={example} /> : undefined} />
           <MeetingLearned learned={state.learned} fresh={state.current?.learned ?? []} ended={state.finished} />
-        </div>
-
-        <aside className={meeting.panel} aria-label="Meeting">
-          <div className={meeting.panelInner}>
-            <MeetingAgenda agenda={state.agenda}
-              next={state.finished ? <CheckIn offer={script.checkIn} example={example} /> : undefined} />
-            <MeetingTranscript lines={state.said} current={state.current} live={!state.finished} />
-          </div>
         </aside>
       </div>
 
-      {example && (
-        <nav className={styles.presenter} aria-label="Example conversation">
-          <span>Example conversation · use ← → to step through</span>
-          <button type="button" onClick={() => step(-1)} disabled={said <= 1}>Back</button>
-          <button type="button" onClick={() => step(1)} disabled={state.finished}>Next</button>
-          {!state.wrapping && <button type="button" onClick={() => setSaid(script.wrapAt + 1)}>Go to wrap-up</button>}
-          {!state.finished && <button type="button" onClick={() => setSaid(script.lines.length)}>Go to the end</button>}
-        </nav>
-      )}
+      <footer className={styles.foot}>
+        {example ? (
+          <nav className={styles.presenter} aria-label="Example conversation">
+            <span>Example conversation · use ← → to step through</span>
+            <button type="button" onClick={() => step(-1)} disabled={said <= 1}>Back</button>
+            <button type="button" onClick={() => step(1)} disabled={state.finished}>Next</button>
+            {!state.wrapping && <button type="button" onClick={() => setSaid(script.wrapAt + 1)}>Go to wrap-up</button>}
+            {!state.finished && <button type="button" onClick={() => setSaid(script.lines.length)}>Go to the end</button>}
+          </nav>
+        ) : <span />}
+        <Link href="/today" className={styles.continue}>Continue to Today<Icon name="chevron-right" size={16} /></Link>
+      </footer>
     </div>
   )
 }
@@ -92,11 +93,13 @@ function CheckIn({ offer, example }: { offer: CheckInOffer; example?: boolean })
 
   if (mode === 'scheduled') {
     return (
-      <UpNext eyebrow="Scheduled" title="Weekly check-in">
-        <p className={styles.slot}>{day} at {time}</p>
-        <p>It happens right here, in the same conversation. In between, you can open it any time to tell me something, answer a question, or ask about your business.</p>
-        <div className={styles.actions}>
-          <ButtonLink href="/today" variant="primary">Continue to Today</ButtonLink>
+      <UpNext eyebrow="Up next" title="Let’s keep this current">
+        <div className={styles.scheduled} role="status">
+          <Icon name="check" size={18} />
+          <div>
+            <p className={styles.scheduledTitle}>Weekly check-in scheduled</p>
+            <p>{day} at {time} · It happens right here, in the same conversation. In between, open it any time to tell me something, answer a question, or ask about your business.</p>
+          </div>
         </div>
         {example && <p className={styles.exampleNote}>Example only. Nothing was scheduled.</p>}
       </UpNext>

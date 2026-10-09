@@ -115,12 +115,12 @@ the lines where they have stock. Prominence follows relevance
 
 | Supplier | Shown in the opened line |
 |---|---|
-| Available or limited | An outlined disclosure after "Why N?": "3 retailers have some ⌄". |
-| Out of stock or delayed | The same disclosure, stronger: "2 retailers can cover all 3 ⌄". The supplier's status is under "Why N?" (supplier availability, and the recommended next step). |
+| Available or limited | A quiet blue card in the recommendation: the signal ("3 retailers have some"), units available and Wholesale Market Value, with "Show retailers". |
+| Out of stock or delayed | The same card, emphasized: "2 retailers can cover all 3". The supplier's status is in the recommendation's Supply evidence and next step. |
 
 - **The signal:** "1 retailer can cover all 3" (full match) or "3 retailers
   have some" (partial). No match shows nothing.
-- **The list** (only after clicking the signal): retailers who can cover the
+- **The list** (only after "Show retailers"): retailers who can cover the
   whole quantity first, then "Other retailers with some"; within each, the
   lowest network price first. Each offer shows retailer and place,
   reputation, units available, network price and how it compares to

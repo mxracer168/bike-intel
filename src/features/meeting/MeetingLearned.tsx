@@ -10,70 +10,45 @@ import styles from './Meeting.module.css'
 const PREVIEW = 3
 
 /**
- * What the conversation has surfaced, under the call: reference, not
+ * What the conversation has surfaced, beside the call: reference, not
  * something to watch while talking. During the meeting it shows the latest
  * few; at the end it invites a review. A durable rule is only ever a
  * suggestion for the retailer's business instructions; nothing here writes
  * to them.
  */
 export function MeetingLearned({ learned, fresh = [], ended = false }: { learned: Learned[]; fresh?: Learned[]; ended?: boolean }) {
-  const [open, setOpen] = useState(true)
   const [all, setAll] = useState(false)
   const listId = useId()
   const suggested = learned.filter((k) => k.kind === 'instruction').length
   const isFresh = new Set(fresh.map((f) => f.id))
   const insights = `${learned.length} ${learned.length === 1 ? 'insight' : 'insights'}`
+  const shown = ended || all ? learned : learned.slice(-PREVIEW)
 
-  if (ended) {
-    return (
-      <section className={[styles.learned, styles.learnedEnd].join(' ')} aria-labelledby={`${listId}-t`}>
-        <div className={styles.learnedHead}>
-          <span className={styles.learnedIcon}><ConceptIcon name="insight" size={22} /></span>
-          <div className={styles.learnedTitles}>
-            <h2 id={`${listId}-t`} className={styles.learnedTitle}>What we learned</h2>
-            <p className={styles.learnedSub}>
-              {insights} from today’s conversation
-              {suggested > 0 && <> · {suggested} suggested Business {suggested === 1 ? 'Instruction' : 'Instructions'}</>}
-            </p>
-          </div>
-          {!all && <Button size="sm" onClick={() => setAll(true)}>Review what we learned</Button>}
-        </div>
-        {all && <Items id={listId} items={learned} fresh={isFresh} review />}
-      </section>
-    )
-  }
-
-  const shown = all ? learned : learned.slice(-PREVIEW)
   return (
-    <section className={styles.learned} aria-labelledby={`${listId}-t`}>
+    <section className={[styles.learned, ended && styles.learnedEnd].filter(Boolean).join(' ')} aria-labelledby={`${listId}-t`}>
       <div className={styles.learnedHead}>
-        <span className={styles.learnedIcon}><ConceptIcon name="insight" size={22} /></span>
+        <span className={styles.learnedIcon}><ConceptIcon name="insight" size={18} /></span>
         <div className={styles.learnedTitles}>
-          <h2 id={`${listId}-t`} className={styles.learnedTitle}>What we’re learning</h2>
+          <h2 id={`${listId}-t`} className={styles.learnedTitle}>{ended ? 'What we learned' : 'What we’re learning'}</h2>
           <p className={styles.learnedSub}>
-            {open
-              ? 'We’re capturing key points to create recommendations that fit your business.'
-              : suggested > 0 ? `${suggested} may belong in your Business Instructions` : 'Key points from this conversation'}
+            {ended
+              ? <>From today’s conversation{suggested > 0 && <> · {suggested} suggested Business {suggested === 1 ? 'Instruction' : 'Instructions'}</>}</>
+              : 'We’re capturing key points to create recommendations that fit your business.'}
           </p>
         </div>
-        {learned.length > 0 && (
-          <button type="button" className={styles.learnedToggle} aria-expanded={open} aria-controls={listId} onClick={() => setOpen((v) => !v)}>
-            {open ? `${shown.length} of ${insights}` : insights}
-            <Icon name="chevron-down" size={14} />
-          </button>
-        )}
+        {learned.length > 0 && <p className={styles.learnedCount}>{insights} captured</p>}
       </div>
-      {open && (
-        learned.length === 0
-          ? <p className={styles.learnedEmpty}>As we talk, what I learn about your business shows up here.</p>
-          : (
-            <div className={styles.learnedBody}>
-              <Items id={listId} items={shown} fresh={isFresh} />
-              {learned.length > PREVIEW && (
-                <Button size="sm" onClick={() => setAll((v) => !v)}>{all ? 'Show latest' : 'View all insights'}</Button>
-              )}
-            </div>
-          )
+
+      {learned.length === 0
+        ? <p className={styles.learnedEmpty}>As we talk, what I learn about your business shows up here.</p>
+        : ended && !all
+          ? <Button size="sm" onClick={() => setAll(true)}>Review what we learned</Button>
+          : <Items id={listId} items={shown} fresh={isFresh} review={ended} />}
+
+      {!ended && learned.length > PREVIEW && (
+        <button type="button" className={styles.learnedMore} aria-expanded={all} aria-controls={listId} onClick={() => setAll((v) => !v)}>
+          {all ? 'Show latest' : `View all ${insights}`}
+        </button>
       )}
     </section>
   )
@@ -85,8 +60,11 @@ function Items({ id, items, fresh, review }: { id: string; items: Learned[]; fre
       <ul id={id} className={styles.learnedList}>
         {items.map((k) => (
           <li key={k.id} className={fresh.has(k.id) ? styles.fresh : undefined}>
-            {k.text}
-            {kindNote(k) && <span className={styles.kind}> · {kindNote(k)}</span>}
+            <span className={styles.learnedCheck} aria-hidden="true"><Icon name="check" size={14} /></span>
+            <span>
+              {k.text}
+              {kindNote(k) && <span className={styles.kind}> · {kindNote(k)}</span>}
+            </span>
           </li>
         ))}
       </ul>

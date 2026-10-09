@@ -25,6 +25,7 @@
   --accent: #2563EB;       --accent-hover: #1D4ED8;
   --accent-soft: #EFF6FF;  --accent-muted: #BFDBFE;  /* blue-50, blue-200 */
   --accent-wash: #F5F9FF;  /* an opened order line: "you are looking at this one" */
+  --accent-line: #DBEAFE;  /* blue-100: rules inside blue surfaces */
   --accent-pressed: #1E40AF;
   --accent-underline: rgba(37,99,235,.35);
   --on-accent: #FFFFFF;

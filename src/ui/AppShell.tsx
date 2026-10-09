@@ -14,11 +14,11 @@ import styles from './AppShell.module.css'
 export type { ShellAccount, ShellRetailer }
 
 /** The product mark on light bars (phones, sign-in, onboarding). The sidebar has its own brand block. */
-export function Logo() {
+export function Logo({ sub }: { sub?: ReactNode }) {
   return (
     <Link href="/today" className={styles.logo}>
       <span className={styles.logoMark} aria-hidden="true"><NavIcon name="brand" size={18} /></span>
-      {productName}
+      {sub ? <span className={styles.logoText}>{productName}<span className={styles.logoSub}>{sub}</span></span> : productName}
     </Link>
   )
 }
@@ -84,11 +84,11 @@ export function AppShell({ retailer, account, extras, children }: {
 }
 
 /** Minimal frame for sign-in and onboarding: logo only, no navigation. */
-export function FocusedShell({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
+export function FocusedShell({ children, aside, sub }: { children: ReactNode; aside?: ReactNode; sub?: ReactNode }) {
   return (
     <div className={styles.focused}>
       <header className={styles.bar}>
-        <Logo />
+        <Logo sub={sub} />
         <span className={styles.spacer} />
         {aside}
       </header>

@@ -10,23 +10,29 @@ export type Participant = { name: string; detail?: string; image: string }
 
 /**
  * The call: the advisor large, the retailer small, the line being said as a
- * caption, and three controls. Mute and captions are local to the screen;
- * nothing here uses a camera or microphone.
+ * caption, the advisor's name and what the meeting is doing, and three
+ * controls. Mute and captions are local to the screen; nothing here uses a
+ * camera or microphone.
  */
-export function MeetingStage({ advisor, self, current, leaveHref = '/' }: {
-  advisor: Participant; self: Participant; current: TranscriptLine | null; leaveHref?: string
+export function MeetingStage({ advisor, self, current, status, live = true, leaveHref = '/' }: {
+  advisor: Participant; self: Participant; current: TranscriptLine | null
+  /** One line under the advisor's name: what the meeting is doing now. */
+  status?: string
+  live?: boolean
+  leaveHref?: string
 }) {
   const [captions, setCaptions] = useState(true)
   const [muted, setMuted] = useState(false)
   return (
     <section className={styles.stage} aria-label={`Call with ${advisor.name.toLowerCase()}`}>
       <Portrait src={advisor.image} alt={advisor.name} note="Advisor image" />
+      <div className={styles.stageShade} aria-hidden="true" />
 
-      <div className={styles.nameTag}>
-        <span className={styles.name}>{advisor.name}</span>
-        {advisor.detail && <span className={styles.nameSub}>{advisor.detail}</span>}
-        {current?.speaker === 'advisor' && <Speaking />}
-      </div>
+      <p className={styles.livePill}>
+        <i aria-hidden="true" className={live ? styles.liveDot : styles.endedDot} />
+        {live ? 'Live' : 'Call ended'}
+        {current?.speaker === 'advisor' && live && <Speaking />}
+      </p>
 
       <div className={[styles.self, current?.speaker === 'retailer' && !muted && styles.selfSpeaking].filter(Boolean).join(' ')}>
         <Portrait src={self.image} alt={self.name} small />
@@ -40,14 +46,20 @@ export function MeetingStage({ advisor, self, current, leaveHref = '/' }: {
         </p>
       )}
 
-      <div className={styles.controls}>
-        <button type="button" className={styles.control} aria-pressed={muted} aria-label={muted ? 'Unmute' : 'Mute'} onClick={() => setMuted((v) => !v)}>
-          <Icon name={muted ? 'mic-off' : 'mic'} size={20} />
-        </button>
-        <button type="button" className={styles.control} aria-pressed={captions} aria-label="Captions" onClick={() => setCaptions((v) => !v)}>
-          <Icon name="captions" size={20} />
-        </button>
-        <Link href={leaveHref} className={styles.leave}><Icon name="phone-down" size={20} />Leave</Link>
+      <div className={styles.stageFoot}>
+        <div className={styles.nameTag}>
+          <span className={styles.name}>{advisor.name}</span>
+          {(status ?? advisor.detail) && <span className={styles.nameSub}>{status ?? advisor.detail}</span>}
+        </div>
+        <div className={styles.controls}>
+          <button type="button" className={styles.control} aria-pressed={muted} aria-label={muted ? 'Unmute' : 'Mute'} onClick={() => setMuted((v) => !v)}>
+            <Icon name={muted ? 'mic-off' : 'mic'} size={20} />
+          </button>
+          <button type="button" className={styles.control} aria-pressed={captions} aria-label="Captions" onClick={() => setCaptions((v) => !v)}>
+            <Icon name="captions" size={20} />
+          </button>
+          <Link href={leaveHref} className={styles.leave}><Icon name="phone-down" size={20} />Leave</Link>
+        </div>
       </div>
     </section>
   )

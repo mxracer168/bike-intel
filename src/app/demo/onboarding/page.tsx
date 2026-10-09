@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { isDemoPreviewEnabled } from '@/demo/config'
 import { papaWheelies } from '@/demo/onboarding'
@@ -6,6 +7,7 @@ import { OnboardingCall } from '@/features/onboarding-call/OnboardingCall'
 import { openingLine } from '@/features/onboarding-call/script'
 import { requireUser } from '@/server/session'
 import { FocusedShell } from '@/ui/AppShell'
+import styles from '@/features/onboarding-call/OnboardingCall.module.css'
 
 export const metadata: Metadata = { title: 'Getting to know your business' }
 
@@ -19,7 +21,8 @@ export default async function OnboardingCallPage({ searchParams }: { searchParam
   if (!isDemoPreviewEnabled()) notFound()
   const { at } = await searchParams
   return (
-    <FocusedShell>
+    <FocusedShell sub={`Private to ${papaWheelies.retailer}`}
+      aside={<Link href="/today" className={styles.later}>Finish later</Link>}>
       <OnboardingCall key={String(at)} script={papaWheelies} initial={openingLine(papaWheelies, at)} example />
     </FocusedShell>
   )

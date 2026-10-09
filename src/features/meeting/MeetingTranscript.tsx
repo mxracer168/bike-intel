@@ -1,14 +1,15 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { NavIcon } from '@/ui/NavIcon'
 import { ConceptIcon } from './icons'
 import type { TranscriptLine } from './types'
 import styles from './Meeting.module.css'
 
 /**
- * The meeting as it's being said: speaker, time and words. No bubbles; the
- * advisor's lines carry a thin rule. Kept quieter than the call and the
- * agenda, and pinned to the newest line.
+ * The meeting as it's being said, under the call: the advisor's lines on the
+ * left with the product mark, the retailer's on the right, each with its
+ * time. Pinned to the newest line; the call above stays the hero.
  */
 export function MeetingTranscript({ lines, current, live = true }: {
   lines: TranscriptLine[]; current: TranscriptLine | null; live?: boolean
@@ -18,20 +19,26 @@ export function MeetingTranscript({ lines, current, live = true }: {
   return (
     <section className={styles.transcriptCard} aria-labelledby="transcript-title">
       <header className={styles.transcriptHead}>
-        <ConceptIcon name="chat" size={22} />
+        <ConceptIcon name="chat" size={18} />
         <h2 id="transcript-title" className={styles.transcriptTitle}>Conversation</h2>
         {live && <span className={styles.live}><i aria-hidden="true" />Live</span>}
       </header>
       <ol ref={list} className={styles.transcript} tabIndex={0} aria-label="Transcript">
-        {lines.map((l) => (
-          <li key={l.id} className={[styles.line, l.speaker === 'advisor' ? styles.advisorLine : styles.youLine, l === current && styles.now].filter(Boolean).join(' ')}>
-            <p className={styles.who}>
-              <span>{l.speaker === 'advisor' ? 'Advisor' : 'You'}</span>
-              {l.time && <time className={styles.time}>{l.time}</time>}
-            </p>
-            <p className={styles.words}>{l.text}</p>
-          </li>
-        ))}
+        {lines.map((l) => {
+          const advisor = l.speaker === 'advisor'
+          return (
+            <li key={l.id} className={[styles.line, advisor ? styles.advisorLine : styles.youLine, l === current && styles.now].filter(Boolean).join(' ')}>
+              {advisor && <span className={styles.lineMark} aria-hidden="true"><NavIcon name="brand" size={15} /></span>}
+              <div className={styles.lineBody}>
+                <p className={styles.who}>
+                  <span>{advisor ? 'Advisor' : 'You'}</span>
+                  {l.time && <time className={styles.time}>{l.time}</time>}
+                </p>
+                <p className={styles.words}>{l.text}</p>
+              </div>
+            </li>
+          )
+        })}
       </ol>
     </section>
   )

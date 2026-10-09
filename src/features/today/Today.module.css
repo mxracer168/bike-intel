@@ -3,6 +3,8 @@
   list-style: none; display: grid; grid-template-columns: repeat(var(--cards, 3), minmax(0, 1fr));
   border-block: 1px solid var(--bar-line); background: var(--band-bg); overflow: hidden;
 }
+/* The same figures on their own surface, where a page needs them to stand apart. */
+.panel { border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--sh-1); padding: 0 var(--sp-2); }
 /* Rules between cells; the band's edge clips the ones that would fall outside it. */
 .card {
   display: flex; flex-direction: column; min-width: 0; padding: 20px var(--sp-5);
@@ -35,6 +37,7 @@
   .health.few .card { padding-inline: 0; }
   /* An odd last figure takes the full row rather than sitting alone. */
   .health:not(.few) .card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .health.panel .card { padding-left: var(--sp-4); padding-right: var(--sp-4); }
 }
 
 /* ---------- Today: priorities beside the questions rail ---------- */

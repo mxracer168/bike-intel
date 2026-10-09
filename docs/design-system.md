@@ -55,6 +55,16 @@ Make app itself is not copied into this repository.
   in the sidebar's lower left (`ui/AmbientNetwork.tsx`). It is atmosphere,
   not content: approved for the sidebar only. Nothing else in the product
   gets glowing or animated "intelligence" effects. Still under reduced motion.
+- **Shared patterns from the Figma screens.** Section headings are 20px
+  600 with one 14px sentence under them; small section labels are uppercase
+  metadata in the accent. Panels (the order at a glance, Insights'
+  performance: `HealthSnapshot variant="panel"`) sit on one faint surface
+  with a hairline and the faintest shadow; the band variant stays for Today
+  and Inventory. Evidence rows (name, what it covers, the value, a caret)
+  open in place and step back from the answer above them. Table header
+  bands are uppercase metadata on the canvas color. Focused screens
+  (sign-in, onboarding) use a 72px bar with the product tile and an
+  optional line under the product name.
 - **All-caps metadata.** Allowed only for small metadata and eyebrow labels
   (12px, 600, tracked .15em): the date eyebrow, a status like "Ready for
   review", small section labels like "Questions for you". Never for titles,
@@ -116,11 +126,10 @@ quick answers in place and answering resolves the same question everywhere;
 Dismiss hides it until the page is loaded again (for now, during review;
 later it will stay away for a while), the question stays open in the panel
 and check-in; on a phone the strip is one line until Answer),
-`OrderReview` (one supplier's order as a plain table of facts: product, on
-hand, on order, order quantity, cost; no reasons, labels, icons or questions
-in rows beyond a quiet chevron; clicking a row opens it as one washed,
-accent-edged surface: quantity, "Why N?" and other
-retailers as outlined disclosures, each opening its own panel; see "Order review" below and
+`OrderReview` (one supplier's order: a compact order bar, the order at a
+glance, then the lines as a table of facts: product with a quiet "Why N?",
+on hand, on order, the quantity stepper, unit cost and line total; clicking
+a row opens its recommendation card in place; see "Order review" below and
 `docs/network.md`), `PriorityList`
 (Today's priorities: orders, deadlines, stock, sync problems, one row shape; each
 row with a destination is one link with a quiet chevron; the retailer can
@@ -128,7 +137,7 @@ reorder by dragging a grip that appears on hover/focus, with arrow keys on the
 grip, or from a "⋯" menu (always visible on touch); no rank numbers; "Back to
 suggested order" appears only once the order has changed), `EvidenceChart`
 (weekly sales; single series, per-bar tooltip, screen-reader table),
-`InsightsView` (a performance band; how recent decisions played out, each leading with what happened and then the recommended / approved / demand bars and numbers; patterns and opportunities as hairline rows, conclusion first and facts small; a question the data can't answer sits in the soft Harbor blue of "Questions for you"; see `docs/insights.md`), `InventoryView` (a health band, ranked brand/category bars that filter the item table, and the item table; see `docs/inventory.md`), `SupplierProfile` (the retailer's standing above the supplier name; about, a row of ordering facts, then roomy program cards with the retailer's Program fit, `4.6 / 5 · Program fit`, and "Why this fit?" opening a pale-blue analysis area; a sticky rail with Your account and Connection; see `docs/suppliers.md` and `docs/programs.md`), `SupplierDirectory`
+`InsightsView` (an eyebrow, title and one sentence with the period on the right; performance as a panel of figures; how recent decisions played out as three lesson cards (choose one) above that lesson's decisions, each leading with what happened and then the evidence box: recommended › you approved › demand, and which plan landed closer; patterns and opportunities as cards, conclusion first and facts small; a question the data can't answer sits in the soft Harbor blue of "Questions for you"; see `docs/insights.md`), `InventoryView` (a health band, ranked brand/category bars that filter the item table, and the item table; see `docs/inventory.md`), `SupplierProfile` (the retailer's standing above the supplier name; about, a row of ordering facts, then roomy program cards with the retailer's Program fit, `4.6 / 5 · Program fit`, and "Why this fit?" opening a pale-blue analysis area; a sticky rail with Your account and Connection; see `docs/suppliers.md` and `docs/programs.md`), `SupplierDirectory`
 (instant name search).
 
 Built later with the features that need them: dialogs with undo.
@@ -145,58 +154,53 @@ Across screens:
 
 ## Order review
 
-**The default order table is operational facts only. Recommendation context
-must be requested by the user.** A buyer may review hundreds of lines; the
-table has to scan like a plain list.
+Figma reference: order detail. **This is a decision-making screen, not a
+data table:** the order-level intelligence leads, the lines follow, and each
+line's reasoning is one click away.
 
-| Level | When | Shows |
-|---|---|---|
-| Default table | Always | Product description, on hand, on order, order quantity, cost. Nothing else: no reason, proof, confidence, supplier status, delivery, retailer availability, attention labels, icons, badges or questions. |
-| Row clicked | The buyer opens a line | The row and its detail become one surface across the full table width: a very light blue wash (`--accent-wash`), a 3px accent edge on the left, the product name in bold. Inside: one line of controls: quantity, "Why 4? ⌄", "3 retailers have some ⌄". No heading and no one-line reason: the quantity is already in the table and the control, and the reasoning is behind "Why 4?". |
-| Why | "Why 3?" | Answer, reason, evidence (`docs/recommendations.md`). Left: one explanation paragraph (any reason that shaped the quantity said inside it), the calculation as one connected strip, and recent weekly sales; nothing below the chart. Right, narrower: a quiet "Add context for this item" (opens the conversation about this item), then "What we considered" with one value per row (supplier availability opens in place to supplier and warehouse detail), then "Recommended next step". Stacks below on narrow screens. "Other options" follows as a small panel when there are any. |
-| Other retailers | Separate, collapsed | The signal is an outlined disclosure, bold only when the supplier is out of stock or delayed. Opened, "Other retailers" is its own white panel: Wholesale Market Value once at the top, then each offer with retailer, place and reputation, units available, network price and how it compares, and "Contact retailer". |
+| Part | Shows |
+|---|---|
+| Order bar | Compact and full-bleed under the top bar, sticky from 1024px: back to Orders, the supplier (18px) with a status pill (Draft / Approved / Submitted), "79 lines · Proposed order"; on the right ORDER TOTAL (exact) and the one action. Below 1024px it scrolls away and the total and action move to the bar along the bottom. |
+| The order at a glance | One panel (16px radius, hairline, faint shadow) with thin dividers: Order total (24px, exact; lines, status and ▲/▼ against typical), Freight ($176 away in the caution color, Free over $5,000, a thin progress bar), Typical order ($3,950, Every ~12 days). Only facts that are known. |
+| Lines heading | "Recommended lines" (20px) and one sentence; the filters (All / Needs a look / Other retailers) as quiet tabs on the right. |
+| Table | One surface with a header band (12px uppercase, tracked) and roomy rows: product (500) with its variant and a quiet "Why N?" under it, on hand, on order, the quantity stepper (changes the total immediately; "was N" under it once changed), unit cost, line total (500). Every data column sorts from its header. Unit cost hides below 1280px, On order below 760px. |
+| Opened line | The row washes; beneath it, the recommendation as one card (24px radius): RECOMMENDATION, "Order N" (30px), confidence, the line total at the current quantity, "Add context" (the conversation, about this item); the explanation paragraph; expected demand with a bar showing on hand, already ordered and to order; other retailers when they have it; then the evidence as quiet rows, each opening in place: Demand (a 12-week spark and the weekly average, opening the weekly sales chart), Supply (availability and delivery, opening the supplier's detail), Seasonal trend when there is one, Confidence; other options; and a blue foot band with RECOMMENDED NEXT STEP and the line total ("Back to N" when changed). |
+| Other retailers | A blue card inside the opened line: the signal ("2 retailers can cover all 18"), how many are available and Wholesale Market Value once. **The list stays closed until "Show retailers"** (prominence follows relevance, `docs/network.md`); the card is only emphasized when the supplier is out of stock or delayed. |
 
-**Zones follow what's open.** Why and other retailers both open: Why takes
-about two thirds on the left, other retailers the right third, assumptions and
-options run underneath both. Only one open: it takes the full width (the
-retailer list then shows one line per retailer). Neither: just the reason and
-controls. On a phone everything stacks in the same order.
-
-- Lines that need a look are found through the "Needs a look" filter, not
-  by labeling rows. Questions that could change a recommendation stay in the
-  intelligence-question system (an anchored strip at the bottom of the order,
-  the panel, the check-in), never inside a row or above the table.
-- **Each fact appears once** at its most useful level: the quantity in the
-  table and the control (no "Order 4" heading); pace, stock, supplier and
-  delivery as key facts (the sentence under the chart doesn't repeat them,
-  and delivery isn't listed again as an assumption).
-- Structure comes from layout, a light wash, thin outlines and whitespace:
-  white panels with a 1px line on the wash, one faint tint for key facts.
-  No shadows, no cards inside panels, no icons beyond the chevron and
-  carets.
-- **The order header.** The supplier's name under an "Orders" link stays
-  the dominant thing. Beside it: glance metrics (a label, one strong value,
-  one quiet line) separated by thin dividers, no cards: Order total
-  ($4,824.10 · 79 lines · Draft), Freight ($176 away · Free over $5,000),
-  Typical order ($3,950 · Every ~12 days · ▲ 22%), then the one primary
-  action. Sticky above 900px wide (on one row from 1280px; the name on its
-  own row below that). Smaller screens: stacked, not sticky, and the action
-  moves to a bar along the bottom with the total. After approval, what
-  happened, the files and "Still to do" sit in one strip under the header,
-  and the header's action becomes "Mark as sent" when the retailer still
-  has to send the order.
-- **The lines stay full width.** Nothing beside the table, so an opened
-  line keeps "What we considered" (with "Add context for this item" above
-  it) on the right of the Why panel, and the chart stays the bottom of the
-  left column. "Why 2?" is a subsection heading (17px) and its paragraph is
-  body copy (15px).
-- **Filters are quiet tabs**: one baseline under the row, the current filter
-  in the accent color with a 2px underline, counts muted beside each label,
-  and a faint underline on hover. No pills, boxes or segmented controls.
-- Part numbers are left out for now.
+- Rows carry no status labels, badges or questions: lines that need a look
+  are found through "Needs a look", and questions that could change the
+  order stay in the anchored strip at the bottom, the panel and the
+  check-in.
+- **Each fact appears once** at its most useful level.
 - Before adding anything to this screen ask: **would a buyer need this while
-  scanning 100 lines?** If not, it goes behind the row click or behind
-  "Why".
+  scanning 100 lines?** If not, it goes behind the row click.
+
+## The intelligence meeting (onboarding)
+
+Figma reference: Onboarding. A focused screen (no sidebar): the 72px bar
+with "Private to {retailer}" and "Finish later".
+
+- **Why it matters, up front:** the equation (historical truth + market
+  intelligence + your context = clear recommendations) as one compact strip
+  between hairlines, "Your context · We're here" marked.
+- **Left (1.55fr): the call, then the conversation.** The call is the hero:
+  24px radius, the photo darkening toward the bottom, a "Live" pill top left
+  (speaking bars while the advisor talks), the retailer's own video top
+  right, captions above the advisor's name plate (bottom left) and the
+  controls (bottom right). Under it the conversation: the advisor's lines on
+  the left beside the product tile, the retailer's in a quiet bubble on the
+  right, each with its time; pinned to the newest line.
+- **Right (min 340px): the agenda, then what we're learning.** The agenda
+  is a blue card: GETTING TO KNOW {RETAILER} with one sentence, then where
+  the conversation is (just covered, now, up next with its one-line intro)
+  between rules, and "Full agenda · 6 topics" to see all of it. No step
+  counts, time left or progress bars. At the end, scheduling the weekly
+  check-in is a white card under it (UP NEXT, "Let's keep this current",
+  the recommended slot, one full-width button). What we're learning is a
+  blue card of white rows with a check each; the latest three, "View all".
+- A footer rule: the presenter controls (example only) and "Continue to
+  Today" (dark).
+- Stacks below 1280px in the same order: call, conversation, agenda, learning.
 
 ## Information budget
 

@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef, type ReactNode } from 'react'
+import Link from 'next/link'
+import { useEffect, useRef } from 'react'
 import { formatMoney, plural } from '@/domain/language/plain'
 import { Button } from '@/ui/Button'
 import { Icon } from '@/ui/Icon'
@@ -29,14 +30,14 @@ function primaryAction(progress: OrderProgress, plan: HandoffPlan | null, onRevi
 }
 
 /**
- * The order header: the supplier, then the few order-level facts worth a
- * glance (exact total, free-freight gap, typical order) and the one action.
- * Sticky on wider screens so the total and Review & submit stay in view while
- * the full-width lines scroll beneath it.
+ * The order header: a compact bar with the supplier, where the order stands,
+ * the exact total and the one action. Sticky on wider screens so the total
+ * and Review & submit stay in view while the lines scroll beneath it.
  */
-export function OrderHeader({ order, eyebrow, total, lineCount, progress, onProgress, onReview }: {
+export function OrderHeader({ order, backHref, total, lineCount, progress, onProgress, onReview }: {
   order: ProposedOrderView
-  eyebrow?: ReactNode
+  /** Where the back arrow goes (the list of orders). */
+  backHref?: string
   total: number
   lineCount: number
   progress: OrderProgress
@@ -44,25 +45,56 @@ export function OrderHeader({ order, eyebrow, total, lineCount, progress, onProg
   onReview: () => void
 }) {
   const plan = order.handoff ? handoffPlan(order.handoff, order.supplier) : null
-  const glance = orderGlance(order, total)
-  const prices = priceNote(order)
-  const money = (n: number) => formatMoney(Math.ceil(n), order.currency)
   const action = primaryAction(progress, plan, onReview, onProgress)
 
   return (
     <header className={styles.header}>
       <div className={styles.name}>
-        {eyebrow && <p className={styles.eyebrow}>{eyebrow}</p>}
-        <h1 className={styles.title}>{order.supplier}</h1>
+        {backHref && (
+          <Link href={backHref} className={styles.back} aria-label="Back to orders"><Icon name="chevron-left" size={18} /></Link>
+        )}
+        <div className={styles.nameText}>
+          <div className={styles.titleRow}>
+            <h1 className={styles.title}>{order.supplier}</h1>
+            <span className={[styles.status, progress.status !== 'draft' && styles.statusDone].filter(Boolean).join(' ')}>{statusLabel[progress.status]}</span>
+          </div>
+          <p className={styles.sub}>{plural(lineCount, 'line')} · Proposed order</p>
+        </div>
       </div>
 
+      <div className={styles.end}>
+        <p className={styles.total}>
+          <span className={styles.totalLabel}>Order total</span>
+          <span className={styles.totalValue}>{exactMoney(total, order.currency)}</span>
+        </p>
+        {action && <Button variant="primary" onClick={action.run}>{action.label}</Button>}
+      </div>
+    </header>
+  )
+}
+
+/**
+ * The order-level intelligence, between the header and the lines: the exact
+ * total against the typical order, the free-freight gap, and how often this
+ * supplier is ordered from. Each fact appears only when it's known; the
+ * total leads, the freight gap (which can change what to add) comes next.
+ */
+export function OrderGlance({ order, total, lineCount, progress }: {
+  order: ProposedOrderView; total: number; lineCount: number; progress: OrderProgress
+}) {
+  const glance = orderGlance(order, total)
+  const prices = priceNote(order)
+  const money = (n: number) => formatMoney(Math.ceil(n), order.currency)
+  return (
+    <section className={styles.glance} aria-label="This order at a glance">
       <dl className={styles.metrics}>
-        <div className={styles.metric}>
+        <div className={[styles.metric, styles.lead].join(' ')}>
           <dt>Order total</dt>
           <dd>
             <b className={styles.value}>{exactMoney(total, order.currency)}</b>
             <span>
               {plural(lineCount, 'line')} · <span className={progress.status === 'draft' ? undefined : styles.done}>{statusLabel[progress.status]}</span>
+              {glance.typical && <> · <Trend c={glance.typical.comparison} /></>}
             </span>
             {prices && <span className={styles.prices}><Icon name="alert" size={14} /> {prices}</span>}
           </dd>
@@ -71,8 +103,11 @@ export function OrderHeader({ order, eyebrow, total, lineCount, progress, onProg
           <div className={styles.metric}>
             <dt>Freight</dt>
             <dd>
-              <b className={[styles.value, styles.gap].join(' ')}>{money(glance.freight.gap)} away</b>
+              <b className={[styles.valueMid, styles.gap].join(' ')}>{money(glance.freight.gap)} away</b>
               <span>Free over {money(glance.freight.threshold)}</span>
+              <span className={styles.track} aria-hidden="true">
+                <span style={{ width: `${Math.min(100, Math.round((total / glance.freight.threshold) * 100))}%` }} />
+              </span>
             </dd>
           </div>
         )}
@@ -80,22 +115,13 @@ export function OrderHeader({ order, eyebrow, total, lineCount, progress, onProg
           <div className={styles.metric}>
             <dt>Typical order</dt>
             <dd>
-              <b className={styles.value}>{money(glance.typical.amount)}</b>
-              <span>
-                {glance.typical.cadenceDays !== undefined && <>Every ~{glance.typical.cadenceDays} days · </>}
-                <Trend c={glance.typical.comparison} />
-              </span>
+              <b className={styles.valueMid}>{money(glance.typical.amount)}</b>
+              <span>{glance.typical.cadenceDays !== undefined ? `Every ~${glance.typical.cadenceDays} days` : 'To this supplier'}</span>
             </dd>
           </div>
         )}
       </dl>
-
-      {action && (
-        <div className={styles.action}>
-          <Button variant="primary" onClick={action.run}>{action.label}</Button>
-        </div>
-      )}
-    </header>
+    </section>
   )
 }
 
@@ -105,8 +131,7 @@ function Trend({ c }: { c: Comparison }) {
   const up = c.direction === 'above'
   return (
     <span className={up ? styles.up : styles.down}>
-      <span aria-hidden="true">{up ? '▲' : '▼'}</span> {c.percent}%
-      <span className="visually-hidden"> {up ? 'above' : 'below'} typical</span>
+      <span aria-hidden="true">{up ? '▲' : '▼'}</span> {c.percent}% {up ? 'above' : 'below'} typical
     </span>
   )
 }

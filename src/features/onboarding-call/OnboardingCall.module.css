@@ -1,27 +1,46 @@
 /* The onboarding meeting page. Layout and meeting pieces live in features/meeting. */
 .page {
-  width: 100%; max-width: calc(1440px + 2 * var(--sp-6)); margin: 0 auto;
-  padding: var(--sp-5) var(--sp-6) var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-5);
+  width: 100%; max-width: calc(1480px + 2 * var(--gutter)); margin: 0 auto;
+  padding: 28px var(--gutter) var(--sp-6); display: flex; flex-direction: column; gap: 20px;
 }
 
-/* ---------- Check-in, as the last thing up next ---------- */
-.recommend { display: flex; flex-direction: column; gap: 2px; padding-top: var(--sp-2); }
-.recommendLabel { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500; color: var(--ink-2); }
-.slot { font-size: 20px; line-height: 26px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
-.recommendWhy { font-size: 14px; line-height: 20px; }
-.actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-4); padding-top: var(--sp-2); }
-.textButton { border: 0; background: none; padding: 6px 0; font: inherit; font-weight: 600; color: var(--accent); cursor: pointer; }
-.textButton:hover { text-decoration: underline; text-underline-offset: 3px; }
-.choose { display: flex; flex-wrap: wrap; gap: var(--sp-3); padding-top: var(--sp-2); }
-.choose > * { min-width: 140px; flex: 1; }
-.exampleNote { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-3); }
+/* The header's "Finish later". */
+.later { font-size: var(--fs-meta); font-weight: 600; color: var(--ink-3); text-decoration: none; }
+.later:hover { color: var(--ink); }
 
-/* ---------- Presenter (example only) ---------- */
-.presenter { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-4); font-size: var(--fs-label); color: var(--ink-3); }
-.presenter button { border: 0; background: none; padding: 4px 0; font: inherit; color: var(--ink-2); cursor: pointer; }
+/* ---------- Check-in, as the last thing up next ---------- */
+.recommend { display: flex; flex-direction: column; gap: 4px; padding: var(--sp-4); border-radius: var(--r-md); background: var(--canvas); }
+.recommendLabel { font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 500; color: var(--ink-3); }
+.slot { font-size: 20px; line-height: 28px; font-weight: 600; color: var(--ink-strong); letter-spacing: -0.015em; }
+.recommendWhy { font-size: var(--fs-meta); line-height: 18px; color: var(--ink-3); }
+.actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--sp-3); }
+.actions > :first-child { width: 100%; }
+.textButton { border: 0; background: none; padding: 4px 0; font: inherit; font-size: 14px; font-weight: 600; color: var(--accent-hover); cursor: pointer; text-align: center; }
+.textButton:hover { text-decoration: underline; text-underline-offset: 3px; }
+.choose { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+.choose > * { min-width: 120px; flex: 1; }
+.scheduled { display: flex; align-items: flex-start; gap: var(--sp-3); padding: var(--sp-4); border-radius: var(--r-md); background: var(--pos-soft); color: var(--pos); font-size: var(--fs-meta); line-height: 18px; }
+.scheduled svg { flex: none; margin-top: 1px; }
+.scheduledTitle { font-size: 14px; line-height: 20px; font-weight: 600; margin-bottom: 4px; }
+.exampleNote { font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); }
+
+/* ---------- Footer: the presenter (example only) and the way on ---------- */
+.foot {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-4);
+  margin-top: var(--sp-1); padding-top: 20px; border-top: 1px solid var(--line);
+}
+.presenter { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-4); font-size: var(--fs-meta); color: var(--ink-3); }
+.presenter button { border: 0; background: none; padding: 4px 0; font: inherit; font-weight: 500; color: var(--ink-2); cursor: pointer; }
 .presenter button:hover:not(:disabled) { color: var(--accent); }
 .presenter button:disabled { opacity: .4; cursor: default; }
+.continue {
+  display: inline-flex; align-items: center; gap: var(--sp-2); padding: 12px 20px; border-radius: var(--r-md);
+  background: var(--inverse); color: var(--on-inverse); font-size: 14px; font-weight: 600; text-decoration: none;
+  transition: background var(--t-fast) var(--ease);
+}
+.continue:hover { background: var(--ink); }
 
 @media (max-width: 640px) {
   .page { padding: var(--sp-4) var(--gutter) var(--sp-6); }
+  .continue { width: 100%; justify-content: center; }
 }

@@ -7,7 +7,7 @@ import { formatFit } from '@/features/suppliers/programFit'
 import { HealthSnapshot } from '@/features/today/HealthSnapshot'
 import type { HealthMetric } from '@/features/today/types'
 import { Icon } from '@/ui/Icon'
-import { DecisionChart } from './DecisionChart'
+import { DecisionOutcomes } from './DecisionOutcomes'
 import type { DecisionOutcome, InsightAction, OpportunityView, PatternView } from './types'
 import styles from './Insights.module.css'
 
@@ -21,8 +21,8 @@ function Action({ action }: { action: InsightAction }) {
 
 /**
  * When the data can't explain a pattern: the same question the intelligence
- * panel and weekly check-in ask (one question, many places), in the soft
- * Harbor blue of "Questions for you". Answering here resolves it everywhere.
+ * panel and weekly check-in ask (one question, many places). Answering here
+ * resolves it everywhere.
  */
 function ContextQuestion({ questionId }: { questionId: string }) {
   const api = useIntelligence()
@@ -62,10 +62,10 @@ function ContextQuestion({ questionId }: { questionId: string }) {
 
 /**
  * Insights: what the business is teaching us over time. Performance (did we
- * buy about the right amount?), patterns worth noticing, and opportunities.
- * Every item reads answer → reason → evidence: the conclusion is the largest
- * thing on its line; the facts behind it step back.
- * Example data; the period and location controls don't change it yet.
+ * buy about the right amount?), how recent decisions played out, patterns
+ * worth noticing, and opportunities. Every item reads answer → reason →
+ * evidence: the conclusion is the largest thing on its line; the facts
+ * behind it step back.
  */
 export function InsightsView({ performance, decisions, patterns, opportunities, locations }: {
   performance: HealthMetric[]
@@ -79,7 +79,11 @@ export function InsightsView({ performance, decisions, patterns, opportunities, 
   return (
     <>
       <header className={styles.head}>
-        <h1 className={styles.title}>Insights</h1>
+        <div>
+          <p className={styles.eyebrow}>Learning from every decision</p>
+          <h1 className={styles.title}>Insights</h1>
+          <p className={styles.lead}>How recommendations performed, where your experience made the difference, and what we can learn together.</p>
+        </div>
         <div className={styles.controls}>
           <label className={styles.control}>
             <span className="visually-hidden">Period</span>
@@ -101,52 +105,54 @@ export function InsightsView({ performance, decisions, patterns, opportunities, 
         </div>
       </header>
 
-      <div className={styles.zones}>
-        <section className={styles.zone} aria-labelledby="insights-performance">
-          <h2 id="insights-performance" className={styles.zoneTitle}>Performance</h2>
-          <HealthSnapshot metrics={performance} />
-          <div className={styles.panel}>
-            <h3 className={styles.panelTitle}>How recent decisions played out</h3>
-            <DecisionChart decisions={decisions} />
-          </div>
-        </section>
+      <section aria-labelledby="insights-performance">
+        <h2 id="insights-performance" className="visually-hidden">Performance</h2>
+        <HealthSnapshot metrics={performance} variant="panel" />
+      </section>
 
-        <section className={styles.zone} aria-labelledby="insights-patterns">
-          <h2 id="insights-patterns" className={styles.zoneTitle}>Patterns worth noticing</h2>
-          <ul className={styles.rows}>
-            {patterns.map((p) => (
-              <li key={p.id} className={styles.row}>
-                <span className={[styles.dot, p.questionId ? styles.dotAsk : styles.dotInfo].join(' ')} aria-hidden="true" />
-                <div className={styles.rowMain}>
-                  <p className={styles.rowTitle}>{p.observation}</p>
-                  <p className={styles.rowFacts}>{p.facts.join(' · ')}</p>
-                  {p.questionId && <ContextQuestion questionId={p.questionId} />}
-                </div>
+      <section className={styles.zone} aria-labelledby="insights-decisions">
+        <div className={styles.zoneHead}>
+          <h2 id="insights-decisions" className={styles.zoneTitle}>How recent decisions played out</h2>
+          <p className={styles.zoneLead}>Choose a lesson to review the decisions behind it.</p>
+        </div>
+        <DecisionOutcomes decisions={decisions} />
+      </section>
+
+      <section className={styles.zoneRuled} aria-labelledby="insights-patterns">
+        <h2 id="insights-patterns" className={styles.zoneEyebrow}>Patterns worth noticing</h2>
+        <ul className={styles.cards}>
+          {patterns.map((p) => (
+            <li key={p.id} className={[styles.card, p.questionId && styles.cardWide].filter(Boolean).join(' ')}>
+              <span className={[styles.dot, p.questionId ? styles.dotAsk : styles.dotInfo].join(' ')} aria-hidden="true" />
+              <div className={styles.cardMain}>
+                <h3 className={styles.cardTitle}>{p.observation}</h3>
+                <p className={styles.cardFacts}>{p.facts.join(' · ')}</p>
+                {p.questionId && <ContextQuestion questionId={p.questionId} />}
                 {p.action && <Action action={p.action} />}
-              </li>
-            ))}
-          </ul>
-        </section>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-        <section className={styles.zone} aria-labelledby="insights-opportunities">
-          <h2 id="insights-opportunities" className={styles.zoneTitle}>Opportunities</h2>
-          <ul className={styles.rows}>
-            {opportunities.map((o) => (
-              <li key={o.id} className={styles.row}>
-                <span className={[styles.dot, styles.dotGood].join(' ')} aria-hidden="true" />
-                <div className={styles.rowMain}>
-                  <p className={styles.rowTitle}>{o.title}</p>
-                  <p className={styles.rowReason}>{o.detail}</p>
-                  {o.programFit !== undefined && (
-                    <p className={styles.fit}><b>{formatFit(o.programFit)}</b> / 5 · Program fit</p>
-                  )}
-                </div>
+      <section className={styles.zoneRuled} aria-labelledby="insights-opportunities">
+        <h2 id="insights-opportunities" className={styles.zoneEyebrow}>Opportunities</h2>
+        <ul className={styles.cards}>
+          {opportunities.map((o) => (
+            <li key={o.id} className={styles.card}>
+              <span className={[styles.dot, styles.dotGood].join(' ')} aria-hidden="true" />
+              <div className={styles.cardMain}>
+                <h3 className={styles.cardTitle}>{o.title}</h3>
+                <p className={styles.cardReason}>{o.detail}</p>
+                {o.programFit !== undefined && (
+                  <p className={styles.fit}><b>{formatFit(o.programFit)}</b> / 5 · Program fit</p>
+                )}
                 {o.action && <Action action={o.action} />}
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
     </>
   )
 }

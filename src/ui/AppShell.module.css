@@ -121,6 +121,8 @@
 
 /* ---------- Light bars: the product mark ---------- */
 .logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: var(--ink); text-decoration: none; white-space: nowrap; border-radius: var(--r-sm); }
+.logoText { display: flex; flex-direction: column; font-size: 14px; line-height: 20px; letter-spacing: -0.01em; }
+.logoSub { font-size: 11px; line-height: 14px; font-weight: 400; letter-spacing: 0; color: var(--ink-3); }
 .logoMark { width: 30px; height: 30px; border-radius: var(--r-sm); background: var(--brand); color: var(--on-accent); display: grid; place-items: center; flex: none; }
 
 /* ---------- Phones and tablets: slim bar + slide-in drawer (native <dialog>: focus trap + Escape) ---------- */
@@ -160,9 +162,10 @@
 /* ---------- Focused shell (sign-in, onboarding): logo only ---------- */
 .focused { min-height: 100dvh; display: flex; flex-direction: column; }
 .bar {
-  background: var(--surface); border-bottom: 1px solid var(--line);
+  background: var(--bar-bg); backdrop-filter: blur(16px); border-bottom: 1px solid var(--line);
   display: flex; align-items: center; gap: var(--sp-6);
-  min-height: 56px; padding: 0 var(--gutter);
+  min-height: 72px; padding: 0 var(--gutter);
 }
+.bar .logoMark { width: 36px; height: 36px; border-radius: var(--r-md); background: var(--accent); }
 .spacer { flex: 1; }
 .focusedMain { flex: 1; }
