@@ -29,8 +29,10 @@
 
 /* ---------- Sidebar content (desktop sidebar and phone drawer) ---------- */
 .panel {
-  position: relative; isolation: isolate; overflow: hidden;
-  height: 100%; display: flex; flex-direction: column; padding: var(--sp-4) var(--sp-4) 20px; overflow-y: auto;
+  position: relative; isolation: isolate;
+  height: 100%; display: flex; flex-direction: column; padding: var(--sp-4) var(--sp-4) 20px;
+  /* No visible scrollbar. In a very short window the panel still scrolls (wheel, touch, keyboard). */
+  overflow: hidden auto; scrollbar-width: none;
   color: var(--nav-ink-strong); background-color: var(--nav-bg);
   background-image:
     radial-gradient(circle at 8% 5%, var(--nav-glow-1), transparent 34%),
@@ -38,6 +40,7 @@
     linear-gradient(180deg, var(--nav-shade-1), var(--nav-shade-2));
 }
 .panel > :not(.network) { position: relative; z-index: 1; }
+.panel::-webkit-scrollbar { display: none; }
 
 .brand {
   display: flex; align-items: center; gap: var(--sp-3); padding: 0 var(--sp-2); margin-bottom: var(--sp-6);
@@ -97,11 +100,12 @@
 
 /* The ambient network: lower left, building gently toward the bottom edge. */
 .network {
-  position: absolute; bottom: -2%; left: -4%; z-index: 0; width: 154%; height: 74%;
+  /* Inside the panel's bottom edge, so the decoration never makes the panel scroll. */
+  position: absolute; bottom: 0; left: -4%; z-index: 0; width: 154%; height: 74%;
   color: var(--nav-network); pointer-events: none; opacity: .4;
   mask-image: linear-gradient(to bottom, transparent 0%, color-mix(in srgb, black 6%, transparent) 12%, color-mix(in srgb, black 18%, transparent) 28%, color-mix(in srgb, black 72%, transparent) 62%, black 100%);
 }
-.network svg { width: 100%; height: 100%; }
+.network svg { display: block; width: 100%; height: 100%; }
 .connections { stroke: currentColor; stroke-width: 1; opacity: .38; }
 .signals { stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 2 34; opacity: .75; animation: signal 16s linear infinite; }
 .signals path:nth-child(2) { animation-delay: -5s; }
