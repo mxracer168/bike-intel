@@ -13,30 +13,40 @@ were the same thing. "Units on hand" is never one of the top health cards.
 
 ## The page
 
-1. **Inventory health**: three cards in Today's card language:
-   inventory value, weeks of supply, inventory turn.
-2. **Inventory composition**: "Inventory by brand" and "Inventory by
-   category" as ranked horizontal bars (not pies: easier to compare, rank
-   and scale). Each defaults to **Dollars** ("where is our inventory value
-   concentrated?") with a compact **Dollars | Units** toggle, because at
-   this level units are useful and can tell a very different story (spokes
-   and tubes dominate units; bikes and suspension dominate dollars).
+1. **How inventory stands**, in one sentence on a soft status surface
+   (green when healthy, amber when worth a look): how many items hold how
+   much in excess, by the same rule as the Excess inventory tab, and how
+   many are running low, with a link to Excess inventory. Healthy while the
+   excess stays under 15% of inventory value (`EXCESS_SHARE_ALERT`).
+2. **Inventory health**: three figures on one panel (the shared
+   `HealthSnapshot` panel): inventory value, weeks of supply, inventory turn.
+3. **Inventory composition**: one ranked list of horizontal bars (not pies:
+   easier to compare, rank and scale), switched between **Brand | Category**
+   and **Dollars | Units**. Dollars by default ("where is our inventory
+   value concentrated?"); units are useful at this level and can tell a very
+   different story (spokes and tubes dominate units; bikes and suspension
+   dominate dollars).
    - The top six groups, the rest folded into **Other**; "View all" shows
-     the full ranking at full width.
+     the full ranking.
    - Hover or focus a bar for its value, units, share and weeks of supply.
    - **Charts are navigation**: choosing a bar filters the item table to the
-     items behind it (and takes you there); choosing it again, or removing
-     the filter chip, clears it. Totals are summed from the same items, so
-     the bar and the filtered table always agree.
-3. **Inventory detail**: search ("Search inventory…", which will also match
-   part numbers, UPCs and manufacturer numbers without showing them as
-   columns), one **Filters** control (brand, category, supplier, condition),
-   **Coverage: Days / Weeks / Months**, and the item table:
-   Product · On hand · Value · Coverage, sortable by each.
-   - An item opens in the Orders page's washed, accent-edged surface: weekly
-     sales, then the facts not already in the row (average cost, on order,
-     supplier, recent activity) and, for retailers with several locations,
-     stock by location.
+     items behind it (and takes you there); the other bars step back while
+     one is chosen; choosing it again, removing the filter chip or "Clear
+     filter" clears it. Totals are summed from the same items, so the bar and
+     the filtered table always agree.
+4. **Items**: the heading says what the table shows ("All inventory",
+   "Shimano inventory") with the count and value on hand; search ("Search
+   this inventory", which also matches part numbers, UPCs and manufacturer
+   numbers without showing them as columns), one **Filters** control (brand,
+   category, supplier, condition), **Coverage: Days / Weeks / Months**, and
+   the item table: Product (with brand · category under it) · Demand ·
+   On hand · On order · Value · Coverage, every column sortable.
+   - **Demand** describes recent sales, not a forecast: the last four weeks
+     against the weeks before (Rising, Steady, Slowing), "Few sales" when
+     there are too few to tell, "No recent sales" when there are none.
+   - An item opens beneath its row: weekly sales, then the facts not already
+     in the row (average cost, on order, supplier, recent activity) and, for
+     retailers with several locations, stock by location.
    - Conditions (low, healthy, excess, not selling) are filters, never
      badges on every row.
 
@@ -51,7 +61,7 @@ were the same thing. "Units on hand" is never one of the top health cards.
    The inventory table's **Excess** condition uses the same rule.
 
 **Locations.** With more than one stocking location, a location control
-("All locations" by default) changes the cards, charts and table; all
+("All locations" by default) changes the status, figures, chart and table; all
 locations are consolidated and an opened item shows its split. With one
 location there's no control and no split.
 

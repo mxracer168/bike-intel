@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useState } from 'react'
+import { useState } from 'react'
 import { formatMoney } from '@/domain/language/plain'
 import { formatCoverage, topWithOther, type Group } from './summarize'
 import type { CoverageUnit, Measure } from './types'
@@ -13,17 +13,17 @@ const pct = (share: number) => (share > 0 && share < 0.005 ? '<1%' : `${Math.rou
 
 /**
  * Where inventory is concentrated, as ranked horizontal bars (one series, one
- * hue; the title names it, so no legend). Each bar is also a filter for the
- * table below: choose one to see the items behind it.
+ * hue; the section heading names it, so no legend). Each bar is also a
+ * filter for the table below: choose one to see the items behind it; the
+ * others step back while one is chosen.
  */
-export function CompositionChart({ title, noun, groups, measure, onMeasure, selected, onSelect, expanded, onExpand, coverageUnit }: {
+export function CompositionChart({ title, noun, groups, measure, selected, onSelect, expanded, onExpand, coverageUnit }: {
   title: string
   /** "brand" or "category", for labels. */
   noun: string
   /** All groups, largest first for `measure`. */
   groups: Group[]
   measure: Measure
-  onMeasure: (m: Measure) => void
   /** The group names currently filtering the table. */
   selected: string[]
   onSelect: (group: Group | null) => void
@@ -32,23 +32,14 @@ export function CompositionChart({ title, noun, groups, measure, onMeasure, sele
   coverageUnit: CoverageUnit
 }) {
   const [active, setActive] = useState<string | null>(null)
-  const titleId = useId()
   const shown = expanded ? groups : topWithOther(groups, TOP)
   const max = Math.max(1, ...shown.map((g) => g[measure]))
   const isSelected = (g: Group) => selected.length > 0 && g.members.length === selected.length && g.members.every((m) => selected.includes(m))
   const valueText = (g: Group) => (measure === 'dollars' ? formatMoney(Math.round(g.dollars)) : units(g.units))
 
   return (
-    <section className={[styles.panel, expanded && styles.panelWide].filter(Boolean).join(' ')} aria-labelledby={titleId}>
-      <div className={styles.chartHead}>
-        <h3 id={titleId} className={styles.chartTitle}>{title}</h3>
-        <div className={styles.segmented} role="group" aria-label={`${title}: show`}>
-          <button type="button" aria-pressed={measure === 'dollars'} onClick={() => onMeasure('dollars')}>Dollars</button>
-          <button type="button" aria-pressed={measure === 'units'} onClick={() => onMeasure('units')}>Units</button>
-        </div>
-      </div>
-
-      <ol className={styles.bars} onMouseLeave={() => setActive(null)}>
+    <div className={styles.composition}>
+      <ol className={[styles.bars, selected.length > 0 && styles.barsChosen].filter(Boolean).join(' ')} aria-label={title} onMouseLeave={() => setActive(null)}>
         {shown.map((g, i) => {
           const on = isSelected(g)
           const tipBelow = i < 2
@@ -90,6 +81,6 @@ export function CompositionChart({ title, noun, groups, measure, onMeasure, sele
           {expanded ? `Show top ${TOP}` : `View all ${groups.length} ${noun === 'category' ? 'categories' : 'brands'}`}
         </button>
       )}
-    </section>
+    </div>
   )
 }

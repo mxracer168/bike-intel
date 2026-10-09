@@ -104,7 +104,79 @@ export function topWithOther(groups: Group[], n: number): Group[] {
   return [...top, other]
 }
 
-export type SortKey = 'product' | 'onHand' | 'value' | 'coverage'
+/**
+ * How recent sales compare with the weeks before them: the last four weeks
+ * against the earlier ones. A description of what has happened, not a
+ * forecast. Too few sales to tell is said as such.
+ */
+export type DemandTrend = 'rising' | 'steady' | 'slowing' | 'few' | 'none'
+
+export const demandLabel: Record<DemandTrend, string> = {
+  rising: 'Rising', steady: 'Steady', slowing: 'Slowing', few: 'Few sales', none: 'No recent sales',
+}
+
+/** Rising and slowing need at least this many units sold, so one sale doesn't make a trend. */
+const TREND_MIN_UNITS = 4
+const RECENT_WEEKS = 4
+
+export function demandTrend(item: Pick<InventoryItemView, 'weeklySales'>): DemandTrend {
+  const w = item.weeklySales
+  const total = w.reduce((a, b) => a + b, 0)
+  if (total === 0) return 'none'
+  if (total < TREND_MIN_UNITS || w.length <= RECENT_WEEKS) return 'few'
+  const recent = w.slice(-RECENT_WEEKS)
+  const earlier = w.slice(0, -RECENT_WEEKS)
+  const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length
+  const before = avg(earlier)
+  const now = avg(recent)
+  if (before === 0) return 'rising'
+  const ratio = now / before
+  if (ratio >= 1.25) return 'rising'
+  if (ratio <= 0.75) return 'slowing'
+  return 'steady'
+}
+
+/** Sort order for demand: the ones to watch (no sales, slowing) first when ascending. */
+const demandRank: Record<DemandTrend, number> = { none: 0, slowing: 1, few: 2, steady: 3, rising: 4 }
+
+/** Value beyond this share of inventory in excess or not selling turns the status from healthy to worth a look. */
+export const EXCESS_SHARE_ALERT = 0.15
+
+export type InventoryStatus = { tone: 'good' | 'caution'; title: string; detail: string; excessItems: number }
+
+/**
+ * One sentence on the state of inventory, by the same rule the Excess
+ * inventory tab uses: what the units beyond the rule cost, and how much is
+ * running low. Healthy while that excess stays under EXCESS_SHARE_ALERT of
+ * inventory value.
+ */
+export function inventoryStatus(items: InventoryItemView[], locationId: string | null): InventoryStatus {
+  const stocked = items.filter((i) => onHandAt(i, locationId) > 0)
+  const total = stocked.reduce((s, i) => s + valueAt(i, locationId), 0)
+  const beyond = (i: InventoryItemView) => {
+    const units = onHandAt(i, locationId)
+    const perWeek = perWeekAt(i, locationId)
+    return perWeek <= 0 ? units : Math.max(0, units - Math.ceil(EXAMPLE_EXCESS_WEEKS * perWeek))
+  }
+  const excess = stocked.filter((i) => beyond(i) > 0)
+  const excessCost = excess.reduce((s, i) => s + beyond(i) * i.unitCost, 0)
+  const low = stocked.filter((i) => condition(i, locationId) === 'low').length
+  const good = total > 0 && excessCost / total < EXCESS_SHARE_ALERT
+  const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(excessCost)
+  const count = (n: number) => `${n} ${n === 1 ? 'item' : 'items'}`
+  const first = excess.length === 0
+    ? 'Nothing is beyond what you’re likely to sell'
+    : `${count(excess.length)} ${excess.length === 1 ? 'holds' : 'hold'} ${money} in excess`
+  const rest = low > 0 ? `${count(low)} ${low === 1 ? 'is' : 'are'} running low` : 'everything else is within its expected range'
+  return {
+    tone: good ? 'good' : 'caution',
+    title: good ? 'Inventory is generally healthy' : 'More inventory than usual is in excess',
+    detail: `${first}; ${rest}.`,
+    excessItems: excess.length,
+  }
+}
+
+export type SortKey = 'product' | 'demand' | 'onHand' | 'onOrder' | 'value' | 'coverage'
 export type Sort = SortState<SortKey>
 
 /** Sort rows; items that aren't selling have the longest coverage. */
@@ -112,7 +184,9 @@ export function sortItems(items: InventoryItemView[], sort: Sort, locationId: st
   const k = (i: InventoryItemView): number | string => {
     switch (sort.key) {
       case 'product': return `${i.product} ${i.variant ?? ''}`.toLowerCase()
+      case 'demand': return demandRank[demandTrend(i)]
       case 'onHand': return onHandAt(i, locationId)
+      case 'onOrder': return i.onOrder
       case 'value': return valueAt(i, locationId)
       case 'coverage': return coverWeeks(onHandAt(i, locationId), perWeekAt(i, locationId)) ?? Number.POSITIVE_INFINITY
     }

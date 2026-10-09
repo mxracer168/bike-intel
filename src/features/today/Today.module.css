@@ -3,8 +3,6 @@
   list-style: none; display: grid; grid-template-columns: repeat(var(--cards, 3), minmax(0, 1fr));
   border-block: 1px solid var(--bar-line); background: var(--band-bg); overflow: hidden;
 }
-/* The same figures on their own surface, where a page needs them to stand apart. */
-.panel { border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--sh-1); padding: 0 var(--sp-2); }
 /* Rules between cells; the band's edge clips the ones that would fall outside it. */
 .card {
   display: flex; flex-direction: column; min-width: 0; padding: 20px var(--sp-5);
@@ -26,6 +24,19 @@
 .good { color: var(--pos); }
 .bad { color: var(--risk); }
 
+/*
+ * The same figures on one surface (Today, Insights, Inventory): a hairline
+ * card with the faintest shadow, the figures inset, and short rules between
+ * them that don't reach the card's edges.
+ */
+.health.panel {
+  border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--sh-1);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  padding: var(--sp-5) 28px; row-gap: var(--sp-4);
+}
+.panel .card { padding: 0 var(--sp-5); box-shadow: -1px 0 0 var(--line); }
+.panel .card:first-child { padding-left: 0; box-shadow: none; }
+
 @media (max-width: 1100px) {
   .health { grid-template-columns: repeat(var(--cards-md, 3), minmax(0, 1fr)); }
 }
@@ -37,7 +48,10 @@
   .health.few .card { padding-inline: 0; }
   /* An odd last figure takes the full row rather than sitting alone. */
   .health:not(.few) .card:last-child:nth-child(odd) { grid-column: 1 / -1; }
-  .health.panel .card { padding-left: var(--sp-4); padding-right: var(--sp-4); }
+  .health.panel { padding: 20px; }
+  .health.panel.few .card { padding: var(--sp-4) 0; box-shadow: 0 -1px 0 var(--line); }
+  .health.panel.few .card:first-child { padding-top: 0; box-shadow: none; }
+  .health.panel.few .card:last-child { padding-bottom: 0; }
 }
 
 /* ---------- Today: priorities beside the questions rail ---------- */

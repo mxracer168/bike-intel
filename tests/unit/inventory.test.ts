@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { condition, coverWeeks, formatCoverage, groupBy, matchesSearch, sortItems, topWithOther } from '@/features/inventory/summarize'
+import { condition, coverWeeks, demandTrend, formatCoverage, groupBy, inventoryStatus, matchesSearch, sortItems, topWithOther } from '@/features/inventory/summarize'
 import type { InventoryItemView } from '@/features/inventory/types'
 
 function item(id: string, brand: string, cost: number, onHand: number, perWeek: number, byLocation?: [string, number][]): InventoryItemView {
@@ -69,5 +69,42 @@ describe('the item table', () => {
     const split = item('7', 'Maxxis', 10, 10, 2, [['a', 6], ['b', 4]])
     expect(groupBy([split], 'brand', 'units', 'b')[0]).toMatchObject({ units: 4, dollars: 40 })
     expect(coverWeeks(4, 0.8)).toBe(5)
+  })
+})
+
+describe('demand trend', () => {
+  const w = (weeklySales: number[]) => ({ weeklySales })
+  it('compares the last four weeks with the weeks before', () => {
+    expect(demandTrend(w([2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4]))).toBe('rising')
+    expect(demandTrend(w([4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2]))).toBe('slowing')
+    expect(demandTrend(w([3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]))).toBe('steady')
+  })
+  it('does not call a trend from one or two sales', () => {
+    expect(demandTrend(w([0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1]))).toBe('few')
+    expect(demandTrend(w([0, 0, 0, 0]))).toBe('none')
+  })
+  it('sorts by demand with no sales and slowing first when ascending', () => {
+    const rows = [
+      { ...items[2]!, id: 'r', weeklySales: [1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3] },
+      { ...items[2]!, id: 'n', weeklySales: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+      { ...items[2]!, id: 's', weeklySales: [3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1] },
+    ]
+    expect(sortItems(rows, { key: 'demand', dir: 'asc' }, null).map((i) => i.id)).toEqual(['n', 's', 'r'])
+    expect(sortItems(rows, { key: 'demand', dir: 'desc' }, null)[0]!.id).toBe('r')
+  })
+})
+
+describe('inventory status', () => {
+  it('is healthy when little value sits in excess, and says what does', () => {
+    // Beyond 26 weeks: DT Swiss 600 − 520 = 80 units ($80); Fox isn't selling, all 2 ($500).
+    const many = [...items, item('7', 'Big', 100, 100, 10)]
+    expect(inventoryStatus(many, null)).toMatchObject({
+      tone: 'good', title: 'Inventory is generally healthy',
+      detail: '2 items hold $580 in excess; everything else is within its expected range.',
+    })
+    expect(inventoryStatus([...many, item('5', 'X', 1, 2, 1)], null).detail).toBe('2 items hold $580 in excess; 1 item is running low.')
+  })
+  it('turns to worth a look when much of the value is sitting', () => {
+    expect(inventoryStatus([item('8', 'X', 100, 50, 0), item('9', 'Y', 10, 10, 2)], null).tone).toBe('caution')
   })
 })

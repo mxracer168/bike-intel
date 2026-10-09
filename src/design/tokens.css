@@ -34,6 +34,9 @@
   --con: #B45309;          --con-soft: #FFFBEB;      /* amber */
   --risk: #BE123C;         --risk-soft: #FFF1F2;     /* rose */
   --risk-line: #FECDD3;
+  /* Status surfaces: a soft wash with a matching hairline (emerald / amber 200 and 50) */
+  --pos-line: #A7F3D0;     --pos-wash: rgba(236,253,245,.6);
+  --con-line: #FDE68A;     --con-wash: rgba(255,251,235,.6);
   /* Status dots (marks, not text) */
   --dot-info: #3B82F6;     --dot-caution: #F59E0B;   --dot-good: #10B981;   --dot-risk: #F43F5E;
   /* Inverse surface: toasts and the Today hero */

@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Fragment, useId, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { average, formatMoney } from '@/domain/language/plain'
 import { EvidenceChart } from '@/features/recommendations/EvidenceChart'
@@ -8,8 +9,8 @@ import type { HealthMetric, HealthTrend } from '@/features/today/types'
 import { Icon } from '@/ui/Icon'
 import { CompositionChart } from './CompositionChart'
 import {
-  condition, conditionLabel, coverWeeks, formatCoverage, groupBy, matchesSearch, onHandAt, perWeekAt, sortItems, valueAt,
-  type Group, type Sort, type SortKey,
+  condition, conditionLabel, coverWeeks, demandLabel, demandTrend, formatCoverage, groupBy, inventoryStatus, matchesSearch,
+  onHandAt, perWeekAt, sortItems, valueAt, type DemandTrend, type Group, type Sort, type SortKey,
 } from './summarize'
 import type { Condition, CoverageUnit, InventoryItemView, InventoryLocation, Measure } from './types'
 import { SortHeader } from '@/ui/SortHeader'
@@ -30,7 +31,23 @@ const NONE: Filters = { brand: [], category: [], supplier: null, condition: null
 
 const money = (n: number) => formatMoney(Math.round(n))
 const dateText = (iso: string | null) => (iso ? new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' }) : '–')
-const sortLabel: Record<SortKey, string> = { product: 'Product', onHand: 'On hand', value: 'Value', coverage: 'Coverage' }
+const sortLabel: Record<SortKey, string> = { product: 'Product', demand: 'Demand', onHand: 'On hand', onOrder: 'On order', value: 'Value', coverage: 'Coverage' }
+
+/** Columns hidden on phones (the detail row must span only the visible ones). */
+const WIDE: SortKey[] = ['demand', 'onOrder']
+
+/** Recent demand as a small line and a word; the line's shape says the direction, so color is never the only cue. */
+function DemandMark({ trend }: { trend: DemandTrend }) {
+  const points = trend === 'rising' ? '2,11 10,10 18,8 26,6 38,3'
+    : trend === 'slowing' ? '2,3 10,4 18,6 26,8 38,11'
+    : trend === 'none' ? '' : '2,7 10,7 18,6.5 26,7 38,7'
+  return (
+    <span className={[styles.demand, styles[`demand_${trend}`]].join(' ')}>
+      <svg viewBox="0 0 40 14" width="40" height="14" aria-hidden="true">{points && <polyline points={points} />}</svg>
+      {demandLabel[trend]}
+    </span>
+  )
+}
 
 /** An opened item: its sales, the few facts not already in the row, and where it sits. */
 function ItemDetail({ item, locationId, locations, coverageUnit }: {
@@ -81,9 +98,10 @@ function ItemDetail({ item, locationId, locations, coverageUnit }: {
 }
 
 /**
- * The Inventory page's working area: health cards, where the value sits (by
- * brand and by category), and the item table the charts filter. All local
- * state over example data; no forecasting or real calculations.
+ * The Inventory page's working area: how inventory stands in one sentence,
+ * its health figures, where the value sits (by brand or by category), and the
+ * item table the chart filters. All local state over example data; no
+ * forecasting or real calculations.
  */
 export function InventoryView({ items, locations, trends, initialQuery = '' }: {
   items: InventoryItemView[]
@@ -93,8 +111,9 @@ export function InventoryView({ items, locations, trends, initialQuery = '' }: {
   initialQuery?: string
 }) {
   const [locationId, setLocationId] = useState<string | null>(null)
-  const [measure, setMeasure] = useState<{ brand: Measure; category: Measure }>({ brand: 'dollars', category: 'dollars' })
-  const [expanded, setExpanded] = useState<'brand' | 'category' | null>(null)
+  const [dimension, setDimension] = useState<'brand' | 'category'>('brand')
+  const [measure, setMeasure] = useState<Measure>('dollars')
+  const [expanded, setExpanded] = useState(false)
   const [filters, setFilters] = useState<Filters>(NONE)
   const [showFilters, setShowFilters] = useState(false)
   const [query, setQuery] = useState(initialQuery)
@@ -108,14 +127,14 @@ export function InventoryView({ items, locations, trends, initialQuery = '' }: {
   const multi = locations.length > 1
 
   const stocked = useMemo(() => items.filter((i) => onHandAt(i, locationId) > 0), [items, locationId])
-  const byBrand = useMemo(() => groupBy(stocked, 'brand', measure.brand, locationId), [stocked, measure.brand, locationId])
-  const byCategory = useMemo(() => groupBy(stocked, 'category', measure.category, locationId), [stocked, measure.category, locationId])
+  const groups = useMemo(() => groupBy(stocked, dimension, measure, locationId), [stocked, dimension, measure, locationId])
+  const status = useMemo(() => inventoryStatus(items, locationId), [items, locationId])
 
   const totalValue = stocked.reduce((s, i) => s + valueAt(i, locationId), 0)
   const weeklyValue = stocked.reduce((s, i) => s + perWeekAt(i, locationId) * i.unitCost, 0)
   const everywhere = locationId === null
   const health: HealthMetric[] = [
-    { label: 'Inventory value', value: money(totalValue) },
+    { label: 'Inventory value', value: money(totalValue), note: multi && everywhere ? `Across ${locations.length} locations` : undefined },
     { label: 'Weeks of supply', value: `${(totalValue / Math.max(1, weeklyValue)).toFixed(1)} weeks`, trend: everywhere ? trends.weeksOfSupply : undefined },
     { label: 'Inventory turn', value: trends.turn.value, trend: everywhere ? trends.turn.trend : undefined },
   ]
@@ -131,8 +150,8 @@ export function InventoryView({ items, locations, trends, initialQuery = '' }: {
   const categories = useMemo(() => [...new Set(items.map((i) => i.category))].sort(), [items])
   const suppliers = useMemo(() => [...new Set(items.map((i) => i.supplier))].sort(), [items])
 
-  function selectFromChart(key: 'brand' | 'category', g: Group | null) {
-    setFilters((f) => ({ ...f, [key]: g ? g.members : [] }))
+  function selectFromChart(g: Group | null) {
+    setFilters((f) => ({ ...f, [dimension]: g ? g.members : [] }))
     setOpen(null)
     if (g) {
       setAnnouncement(`Showing ${g.name} items.`)
@@ -151,11 +170,22 @@ export function InventoryView({ items, locations, trends, initialQuery = '' }: {
     ...(filters.condition ? [{ label: `Condition: ${conditionLabel[filters.condition]}`, clear: () => setFilters((f) => ({ ...f, condition: null })) }] : []),
   ]
   const one = (list: string[]) => (list.length === 1 ? list[0]! : '')
+  // The heading names what the table shows when one brand or category is chosen.
+  const only = [one(filters.brand), one(filters.category)].filter(Boolean)
+  const heading = only.length === 1 && chips.length === 1 ? `${only[0]} inventory` : chips.length > 0 ? 'Filtered inventory' : 'All inventory'
+  const shownValue = rows.reduce((s, i) => s + valueAt(i, locationId), 0)
+  const columns: SortKey[] = ['product', 'demand', 'onHand', 'onOrder', 'value', 'coverage']
 
   return (
     <>
-      {multi && (
-        <header className={styles.head}>
+      <section className={[styles.status, status.tone === 'caution' && styles.statusCaution].filter(Boolean).join(' ')} aria-label="Inventory status">
+        <span className={styles.statusIcon} aria-hidden="true"><Icon name={status.tone === 'good' ? 'check' : 'alert'} size={16} /></span>
+        <p className={styles.statusText}>
+          <b>{status.title}</b>{' '}
+          <span>{status.detail}</span>
+        </p>
+        {status.excessItems > 0 && <Link href="/inventory/excess" className={styles.statusLink}>Excess inventory<Icon name="chevron-right" size={13} /></Link>}
+        {multi && (
           <label className={styles.control}>
             <span className="visually-hidden">Location</span>
             <select value={locationId ?? ''} onChange={(e) => { setLocationId(e.target.value || null); setOpen(null) }}>
@@ -163,45 +193,66 @@ export function InventoryView({ items, locations, trends, initialQuery = '' }: {
               {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
             </select>
           </label>
-        </header>
-      )}
+        )}
+      </section>
 
-      <div className={styles.zones}>
-        <section aria-labelledby="inventory-health">
-          <h2 id="inventory-health" className="visually-hidden">Inventory health</h2>
-          <HealthSnapshot metrics={health} />
-        </section>
+      <section aria-labelledby="inventory-health">
+        <h2 id="inventory-health" className="visually-hidden">Inventory health</h2>
+        <HealthSnapshot metrics={health} variant="panel" />
+      </section>
 
-        <section className={styles.zone} aria-labelledby="inventory-composition">
-          <h2 id="inventory-composition" className="visually-hidden">Inventory composition</h2>
-          <div className={styles.charts}>
-            <CompositionChart title="Inventory by brand" noun="brand" groups={byBrand} measure={measure.brand}
-              onMeasure={(m) => setMeasure((s) => ({ ...s, brand: m }))} selected={filters.brand}
-              onSelect={(g) => selectFromChart('brand', g)} expanded={expanded === 'brand'}
-              onExpand={(e) => setExpanded(e ? 'brand' : null)} coverageUnit={coverageUnit} />
-            <CompositionChart title="Inventory by category" noun="category" groups={byCategory} measure={measure.category}
-              onMeasure={(m) => setMeasure((s) => ({ ...s, category: m }))} selected={filters.category}
-              onSelect={(g) => selectFromChart('category', g)} expanded={expanded === 'category'}
-              onExpand={(e) => setExpanded(e ? 'category' : null)} coverageUnit={coverageUnit} />
+      <section className={styles.zone} aria-labelledby="inventory-composition">
+        <div className={styles.zoneHead}>
+          <div>
+            <h2 id="inventory-composition" className={styles.zoneTitle}>Inventory composition</h2>
+            <p className={styles.zoneLead}>Select a {dimension} to see the items behind it.</p>
           </div>
-        </section>
+          <div className={styles.switches}>
+            <div className={styles.segmented} role="group" aria-label="Group inventory by">
+              <button type="button" aria-pressed={dimension === 'brand'} onClick={() => { setDimension('brand'); setExpanded(false) }}>Brand</button>
+              <button type="button" aria-pressed={dimension === 'category'} onClick={() => { setDimension('category'); setExpanded(false) }}>Category</button>
+            </div>
+            <div className={styles.segmented} role="group" aria-label="Measure">
+              <button type="button" aria-pressed={measure === 'dollars'} onClick={() => setMeasure('dollars')}>Dollars</button>
+              <button type="button" aria-pressed={measure === 'units'} onClick={() => setMeasure('units')}>Units</button>
+            </div>
+          </div>
+        </div>
+        <CompositionChart key={dimension} title={`Inventory by ${dimension}`} noun={dimension} groups={groups} measure={measure}
+          selected={filters[dimension]} onSelect={selectFromChart} expanded={expanded} onExpand={setExpanded} coverageUnit={coverageUnit} />
+      </section>
 
-        <section ref={detailRef} className={[styles.zone, styles.scrollTarget].join(' ')} aria-labelledby="inventory-items">
-          <h2 id="inventory-items" className={styles.zoneTitle}>Items</h2>
+      <section ref={detailRef} className={[styles.zone, styles.scrollTarget].join(' ')} aria-labelledby="inventory-items">
+        <div className={styles.zoneHead}>
+          <div>
+            <p className={styles.eyebrow}>Items</p>
+            <h2 id="inventory-items" className={styles.itemsTitle}>{heading}</h2>
+            <p className={styles.zoneLead} role="status">
+              {rows.length === stocked.length ? `${rows.length} items` : `${rows.length} of ${stocked.length} items`}
+              {rows.length > 0 && ` · ${money(shownValue)} on hand`}
+            </p>
+          </div>
+          {chips.length > 0 && (
+            <button type="button" className={styles.clear} onClick={() => setFilters(NONE)}>
+              Clear {chips.length === 1 ? 'filter' : 'filters'}<Icon name="close" size={13} />
+            </button>
+          )}
+        </div>
 
-          <div className={styles.toolbar}>
-            <label className={styles.search}>
-              <Icon name="search" size={15} />
-              <span className="visually-hidden">Search inventory</span>
-              <input type="search" placeholder="Search inventory…" value={query} onChange={(e) => setQuery(e.target.value)} />
-            </label>
+        <div className={styles.toolbar}>
+          <label className={styles.search}>
+            <Icon name="search" size={15} />
+            <span className="visually-hidden">Search inventory</span>
+            <input type="search" placeholder="Search this inventory" value={query} onChange={(e) => setQuery(e.target.value)} />
+          </label>
+          <div className={styles.toolbarEnd}>
             <button type="button" className={styles.control} aria-expanded={showFilters} aria-controls={filtersId}
               onClick={() => setShowFilters((v) => !v)}>
               Filters{chips.length > 0 && <span className={styles.count}> · {chips.length}</span>}
               <Icon name="chevron-down" size={14} />
             </button>
             <label className={styles.control}>
-              <span>Coverage:</span>
+              <span>Coverage</span>
               <select value={coverageUnit} onChange={(e) => setCoverageUnit(e.target.value as CoverageUnit)}>
                 <option value="days">Days</option>
                 <option value="weeks">Weeks</option>
@@ -209,54 +260,49 @@ export function InventoryView({ items, locations, trends, initialQuery = '' }: {
               </select>
             </label>
           </div>
+        </div>
 
-          <div id={filtersId} hidden={!showFilters} className={styles.filterPanel}>
-            <label><span>Brand</span>
-              <select value={one(filters.brand)} onChange={(e) => setFilters((f) => ({ ...f, brand: e.target.value ? [e.target.value] : [] }))}>
-                <option value="">Any brand</option>{brands.map((b) => <option key={b}>{b}</option>)}
-              </select>
-            </label>
-            <label><span>Category</span>
-              <select value={one(filters.category)} onChange={(e) => setFilters((f) => ({ ...f, category: e.target.value ? [e.target.value] : [] }))}>
-                <option value="">Any category</option>{categories.map((c) => <option key={c}>{c}</option>)}
-              </select>
-            </label>
-            <label><span>Supplier</span>
-              <select value={filters.supplier ?? ''} onChange={(e) => setFilters((f) => ({ ...f, supplier: e.target.value || null }))}>
-                <option value="">Any supplier</option>{suppliers.map((s) => <option key={s}>{s}</option>)}
-              </select>
-            </label>
-            <label><span>Condition</span>
-              <select value={filters.condition ?? ''} onChange={(e) => setFilters((f) => ({ ...f, condition: (e.target.value || null) as Condition | null }))}>
-                <option value="">Any condition</option>
-                {(Object.keys(conditionLabel) as Condition[]).map((c) => <option key={c} value={c}>{conditionLabel[c]}</option>)}
-              </select>
-            </label>
+        <div id={filtersId} hidden={!showFilters} className={styles.filterPanel}>
+          <label><span>Brand</span>
+            <select value={one(filters.brand)} onChange={(e) => setFilters((f) => ({ ...f, brand: e.target.value ? [e.target.value] : [] }))}>
+              <option value="">Any brand</option>{brands.map((b) => <option key={b}>{b}</option>)}
+            </select>
+          </label>
+          <label><span>Category</span>
+            <select value={one(filters.category)} onChange={(e) => setFilters((f) => ({ ...f, category: e.target.value ? [e.target.value] : [] }))}>
+              <option value="">Any category</option>{categories.map((c) => <option key={c}>{c}</option>)}
+            </select>
+          </label>
+          <label><span>Supplier</span>
+            <select value={filters.supplier ?? ''} onChange={(e) => setFilters((f) => ({ ...f, supplier: e.target.value || null }))}>
+              <option value="">Any supplier</option>{suppliers.map((x) => <option key={x}>{x}</option>)}
+            </select>
+          </label>
+          <label><span>Condition</span>
+            <select value={filters.condition ?? ''} onChange={(e) => setFilters((f) => ({ ...f, condition: (e.target.value || null) as Condition | null }))}>
+              <option value="">Any condition</option>
+              {(Object.keys(conditionLabel) as Condition[]).map((c) => <option key={c} value={c}>{conditionLabel[c]}</option>)}
+            </select>
+          </label>
+        </div>
+
+        {chips.length > 0 && (
+          <div className={styles.chips}>
+            {chips.map((c) => (
+              <button key={c.label} type="button" className={styles.chip} onClick={c.clear} aria-label={`Remove filter ${c.label}`}>
+                {c.label}<Icon name="close" size={12} />
+              </button>
+            ))}
           </div>
+        )}
 
-          {chips.length > 0 && (
-            <div className={styles.chips}>
-              {chips.map((c) => (
-                <button key={c.label} type="button" className={styles.chip} onClick={c.clear} aria-label={`Remove filter ${c.label}`}>
-                  {c.label}<Icon name="close" size={12} />
-                </button>
-              ))}
-              {chips.length > 1 && <button type="button" className={styles.textButton} onClick={() => setFilters(NONE)}>Clear all</button>}
-            </div>
-          )}
-
-          <p className={styles.resultCount} role="status">
-            {rows.length === stocked.length ? `${rows.length} items` : `${rows.length} of ${stocked.length} items`}
-            {rows.length > 0 && rows.length !== stocked.length && ` · ${money(rows.reduce((s, i) => s + valueAt(i, locationId), 0))}`}
-          </p>
-
+        <div className={styles.tableCard}>
           <table className={styles.table} aria-label="Inventory items">
             <thead>
               <tr>
-                <th scope="col" className={[styles.cGo, styles.wide].join(' ')}><span className="visually-hidden">Open</span></th>
-                {(['product', 'onHand', 'value', 'coverage'] as SortKey[]).map((k) => (
-                  <SortHeader key={k} sortKey={k} sort={sort} onSort={toggleSort} numeric={k !== 'product'}
-                    className={k === 'product' ? undefined : [styles.num, styles[`c_${k}`]].join(' ')}>
+                {columns.map((k) => (
+                  <SortHeader key={k} sortKey={k} sort={sort} onSort={toggleSort} numeric={k !== 'product' && k !== 'demand'}
+                    className={[k !== 'product' && k !== 'demand' && styles.num, styles[`c_${k}`], WIDE.includes(k) && styles.wide].filter(Boolean).join(' ') || undefined}>
                     {sortLabel[k]}
                   </SortHeader>
                 ))}
@@ -269,20 +315,25 @@ export function InventoryView({ items, locations, trends, initialQuery = '' }: {
                 return (
                   <Fragment key={item.id}>
                     <tr className={[styles.row, isOpen && styles.openRow].filter(Boolean).join(' ')} onClick={() => setOpen(isOpen ? null : item.id)}>
-                      <td className={[styles.go, styles.wide].join(' ')} aria-hidden="true"><Icon name="chevron-right" size={14} /></td>
                       <th scope="row" className={styles.product}>
                         <button type="button" className={styles.lineButton} aria-expanded={isOpen} aria-controls={`${item.id}-detail`}
                           onClick={(e) => { e.stopPropagation(); setOpen(isOpen ? null : item.id) }}>
-                          {item.product}{item.variant && <>{' '}<span className={styles.variant}>{item.variant}</span></>}
+                          <span className={styles.caret} aria-hidden="true"><Icon name="chevron-down" size={14} /></span>
+                          <span className={styles.lineText}>
+                            <span className={styles.lineName}>{item.product}{item.variant && <>{' '}<span className={styles.variant}>{item.variant}</span></>}</span>
+                            <span className={styles.lineSub}>{item.brand} · {item.category}</span>
+                          </span>
                         </button>
                       </th>
+                      <td className={styles.wide}><DemandMark trend={demandTrend(item)} /></td>
                       <td className={styles.num}>{here.toLocaleString('en-US')}</td>
-                      <td className={styles.num}>{money(valueAt(item, locationId))}</td>
+                      <td className={[styles.num, styles.wide].join(' ')}>{item.onOrder ? item.onOrder.toLocaleString('en-US') : <span className={styles.none}>–</span>}</td>
+                      <td className={[styles.num, styles.value].join(' ')}>{money(valueAt(item, locationId))}</td>
                       <td className={[styles.num, styles.coverage].join(' ')}>{formatCoverage(coverWeeks(here, perWeekAt(item, locationId)), coverageUnit)}</td>
                     </tr>
                     {isOpen && (
                       <tr className={styles.detailRow} id={`${item.id}-detail`}>
-                        <td colSpan={narrow ? 4 : 5}>
+                        <td colSpan={narrow ? columns.length - WIDE.length : columns.length}>
                           <ItemDetail item={item} locationId={locationId} locations={locations} coverageUnit={coverageUnit} />
                         </td>
                       </tr>
@@ -293,12 +344,13 @@ export function InventoryView({ items, locations, trends, initialQuery = '' }: {
             </tbody>
           </table>
           {rows.length === 0 && (
-            <p className={styles.empty}>
-              Nothing matches. <button type="button" className={styles.textButton} onClick={() => { setFilters(NONE); setQuery('') }}>Clear search and filters</button>
-            </p>
+            <div className={styles.empty}>
+              <p className={styles.emptyTitle}>No matching items</p>
+              <p>Try clearing the chart selection or changing your search. <button type="button" className={styles.textButton} onClick={() => { setFilters(NONE); setQuery('') }}>Clear search and filters</button></p>
+            </div>
           )}
-        </section>
-      </div>
+        </div>
+      </section>
       <p className="visually-hidden" role="status" aria-live="polite">{announcement}</p>
     </>
   )

@@ -9,7 +9,7 @@ import styles from './Today.module.css'
  */
 export function HealthSnapshot({ metrics, label, variant = 'band' }: {
   metrics: HealthMetric[]; label?: string
-  /** band: between hairlines (Today, Inventory). panel: on its own surface (Insights). */
+  /** panel: on one surface (Today, Inventory, Insights). band: between hairlines. */
   variant?: 'band' | 'panel'
 }) {
   const shown = metrics.slice(0, MAX_METRICS)

@@ -45,7 +45,7 @@ export default async function TodayPage() {
       {health.length > 0 && (
         <section aria-labelledby="today-health">
           <h2 id="today-health" className="visually-hidden">Business health</h2>
-          <HealthSnapshot metrics={health} />
+          <HealthSnapshot metrics={health} variant="panel" />
         </section>
       )}
 

@@ -25,46 +25,65 @@
 .control[aria-expanded='true'] svg { transform: rotate(180deg); }
 .count { color: var(--accent); font-weight: 600; }
 
-/* ---------- Composition charts ---------- */
-.charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); align-items: start; }
-.panel {
-  background: var(--surface); border: 1px solid var(--bar-line); border-radius: var(--r-xl); box-shadow: var(--sh-1);
-  padding: var(--sp-5) var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0;
+/* ---------- How inventory stands: one sentence, in a soft status surface ---------- */
+.status {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-4);
+  padding: var(--sp-4) 20px; border: 1px solid var(--pos-line); border-radius: var(--r-lg); background: var(--pos-wash);
 }
-/* "View all": the chart takes the full width and lists every group. */
-.panelWide { grid-column: 1 / -1; order: -1; }
-.chartHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2); }
-.chartTitle { font-size: 16px; line-height: 24px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink-strong); }
-.segmented { display: inline-flex; padding: 3px; background: var(--subtle); border-radius: var(--r-md); }
-.segmented button {
-  border: 0; background: none; padding: 3px 10px; font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 500;
-  color: var(--ink-3); border-radius: var(--r-sm); cursor: pointer;
-}
-.segmented button[aria-pressed='true'] { background: var(--surface); color: var(--ink); box-shadow: var(--sh-1); }
+.statusCaution { border-color: var(--con-line); background: var(--con-wash); }
+.statusIcon { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--pos); color: var(--on-accent); }
+.statusCaution .statusIcon { background: var(--con); }
+.statusText { flex: 1 1 320px; min-width: 0; font-size: 14px; line-height: 22px; color: var(--ink-2); }
+.statusText b { margin-right: var(--sp-2); font-weight: 600; color: var(--ink-strong); }
+.statusLink { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: var(--accent-hover); text-decoration: none; }
+.statusLink:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-.bars { list-style: none; display: flex; flex-direction: column; }
+/* ---------- Section heads ---------- */
+.zoneHead { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--sp-4) var(--sp-5); }
+.zoneLead { margin-top: 4px; font-size: 14px; line-height: 20px; color: var(--ink-3); }
+.eyebrow {
+  font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600; letter-spacing: var(--tracking-meta);
+  text-transform: uppercase; color: var(--ink-3);
+}
+.itemsTitle { margin-top: var(--sp-2); font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.025em; color: var(--ink-strong); }
+.clear { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 4px 0; font-size: 14px; font-weight: 600; color: var(--accent-hover); cursor: pointer; }
+.clear:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Composition: one ranked list; the switches choose brand or category, dollars or units ---------- */
+.switches { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+.segmented { display: inline-flex; padding: 4px; background: var(--subtle); border-radius: var(--r-sm); }
+.segmented button {
+  border: 0; background: none; padding: 6px 12px; font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600;
+  color: var(--ink-3); border-radius: 6px; cursor: pointer;
+}
+.segmented button:hover { color: var(--ink); }
+.segmented button[aria-pressed='true'] { background: var(--surface); color: var(--ink-strong); box-shadow: var(--sh-1); }
+
+.composition { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-2); }
+.bars { list-style: none; display: flex; flex-direction: column; gap: 4px; }
 .barRow { position: relative; }
 /* The whole row is the hit target, larger than the bar. */
 .barButton {
-  width: 100%; display: grid; grid-template-columns: minmax(84px, 9.5rem) minmax(0, 1fr) 5.5rem 2.5rem; gap: var(--sp-3);
-  align-items: center; padding: 5px 6px; border: 0; background: none; border-radius: var(--r-sm);
+  width: 100%; display: grid; grid-template-columns: 150px minmax(180px, 1fr) 100px 48px; gap: var(--sp-3);
+  align-items: center; padding: var(--sp-3); border: 0; background: none; border-radius: var(--r-md);
   font-size: 14px; line-height: 20px; color: var(--ink); text-align: left; cursor: pointer;
+  transition: background var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease);
 }
-.barButton:hover, .barButton:focus-visible { background: var(--subtle); }
-.barName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.barTrack { display: block; height: 8px; }
-/* One hue, fully rounded, like the progress tracks elsewhere. */
-.bar { display: block; height: 100%; background: var(--accent-muted); border-radius: 999px; transition: background var(--t-fast); }
-.barButton:hover .bar, .barButton:focus-visible .bar { background: var(--accent-hover); }
-.barValue { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.barButton:hover, .barButton:focus-visible { background: var(--band-bg); }
+.barName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; color: var(--ink-2); }
+.barTrack { display: block; height: 8px; border-radius: 999px; overflow: hidden; background: var(--subtle); }
+.bar { display: block; height: 100%; border-radius: 999px; background: var(--accent-muted); transition: background var(--t-fast), width var(--t-slow) var(--ease); }
+.barButton:hover .bar, .barButton:focus-visible .bar { background: var(--inverse-fill); }
+.barValue { text-align: right; font-weight: 500; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .barShare { text-align: right; font-size: var(--fs-meta); color: var(--ink-3); font-variant-numeric: tabular-nums; }
 /* "Other" is many groups together: a neutral bar so it doesn't read as one big brand. */
 .barOther .bar { background: var(--line-strong); }
-.barOther:hover .bar, .barOther:focus-visible .bar { background: var(--ink-3); }
-/* The bar filtering the table. */
+/* The bar filtering the table; the others step back while one is chosen. */
 .barOn { background: var(--accent-soft); }
-.barOn .bar { background: var(--accent); }
-.barOn .barName { font-weight: 600; }
+.barOn .bar, .barOn:hover .bar { background: var(--accent); }
+.barOn .barName { font-weight: 600; color: var(--ink-strong); }
+.barsChosen .barButton:not(.barOn) { opacity: .5; }
+.barsChosen .barButton:not(.barOn):hover, .barsChosen .barButton:not(.barOn):focus-visible { opacity: .85; }
 
 .tip {
   position: absolute; z-index: 5; right: 3rem; bottom: calc(100% + 4px); pointer-events: none;
@@ -77,9 +96,10 @@
 .tipBelow { bottom: auto; top: calc(100% + 4px); }
 
 /* ---------- Items ---------- */
-.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.toolbarEnd { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .search {
-  flex: 1 1 260px; display: flex; align-items: center; gap: var(--sp-2); min-height: 40px; padding: 0 14px;
+  flex: 0 1 320px; display: flex; align-items: center; gap: var(--sp-2); min-height: 40px; padding: 0 12px;
   border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-1); color: var(--ink-3);
 }
 .search:focus-within { border-color: var(--accent); box-shadow: var(--focus-ring); }
@@ -129,6 +149,37 @@
 .lineButton:focus-visible { box-shadow: var(--focus-ring); border-radius: 2px; }
 .variant { color: var(--ink-3); }
 
+/* ---------- The item table (Figma): one surface, a header band, two-line products ---------- */
+.tableCard { border: 1px solid var(--line); border-radius: var(--r-lg); background: color-mix(in srgb, var(--surface) 70%, transparent); overflow: hidden; }
+.tableCard .table th, .tableCard .table td { padding: var(--sp-4); border-bottom: 1px solid var(--bar-line); vertical-align: middle; }
+.tableCard .table th:first-child, .tableCard .table td:first-child { padding-left: 20px; }
+.tableCard .table th:last-child, .tableCard .table td:last-child { padding-right: 20px; }
+.tableCard .table thead th {
+  padding-top: 14px; padding-bottom: 14px; background: color-mix(in srgb, var(--canvas) 70%, transparent); border-bottom-color: var(--line);
+  font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3);
+}
+.tableCard .table thead th button { text-transform: inherit; letter-spacing: inherit; }
+.tableCard .table tbody tr:last-child > * { border-bottom: 0; }
+.tableCard .row:hover { background: var(--surface); }
+.c_demand { width: 150px; }
+.c_onOrder { width: 96px; }
+.caret { flex: none; display: inline-flex; color: var(--ink-faint); transition: transform var(--t-fast) var(--ease), color var(--t-fast); }
+.openRow .caret { transform: rotate(180deg); color: var(--accent); }
+.tableCard .lineButton { display: flex; align-items: center; gap: var(--sp-3); white-space: normal; overflow: visible; }
+.tableCard .openRow .lineButton { font-weight: inherit; }
+.openRow .lineName { font-weight: 600; }
+.lineText { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.lineName { font-weight: 500; color: var(--ink-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lineSub { font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); }
+.value { font-weight: 500; color: var(--ink-strong); }
+.none { color: var(--ink-faint); }
+.demand { display: inline-flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 500; color: var(--accent-hover); white-space: nowrap; }
+.demand svg { flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.demand_slowing { color: var(--con); }
+.demand_few, .demand_none { color: var(--ink-3); }
+.tableCard .empty { padding: var(--sp-7) var(--sp-4); text-align: center; color: var(--ink-3); font-size: 14px; }
+.emptyTitle { font-weight: 500; color: var(--ink-2); margin-bottom: 4px; }
+
 /* ---------- An opened item: the Orders page's washed surface and accent edge ---------- */
 .openRow, .openRow:hover { background: var(--accent-wash) !important; }
 .openRow > * { border-top: 1px solid var(--accent-muted); border-bottom-color: transparent !important; }
@@ -149,14 +200,23 @@
 .facts dd { margin: 0; text-align: right; }
 .here dt, .here dd { font-weight: 600; color: var(--ink); }
 
+@media (max-width: 1100px) {
+  .c_demand { width: 128px; }
+}
 @media (max-width: 900px) {
-  .charts { grid-template-columns: minmax(0, 1fr); }
   .detailGrid { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 640px) {
   .zones { gap: var(--sp-6); }
-  .panel { padding: var(--sp-3) var(--sp-4); }
-  .barButton { grid-template-columns: minmax(0, 6.5rem) minmax(0, 1fr) auto; gap: var(--sp-2); padding: 5px 4px; }
+  .barButton { grid-template-columns: minmax(0, 6.5rem) minmax(0, 1fr) auto; gap: var(--sp-2); padding: 10px 8px; }
+  .search { flex-basis: 100%; }
+  .tableCard .table th, .tableCard .table td { padding: var(--sp-3) 6px; }
+  .tableCard .table th:first-child, .tableCard .table td:first-child { padding-left: 12px; }
+  .tableCard .table th:last-child, .tableCard .table td:last-child { padding-right: 12px; }
+  .tableCard .table thead th { letter-spacing: .02em; white-space: normal; vertical-align: bottom; }
+  .tableCard .c_value { width: 84px; }
+  .caret { display: none; }
+  .lineName { white-space: normal; }
   .barShare { display: none; }
   .tip { right: 0; }
   .filterPanel { grid-template-columns: repeat(2, minmax(0, 1fr)); }

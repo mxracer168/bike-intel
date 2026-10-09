@@ -57,10 +57,14 @@ Make app itself is not copied into this repository.
   gets glowing or animated "intelligence" effects. Still under reduced motion.
 - **Shared patterns from the Figma screens.** Section headings are 20px
   600 with one 14px sentence under them; small section labels are uppercase
-  metadata in the accent. Panels (the order at a glance, Insights'
-  performance: `HealthSnapshot variant="panel"`) sit on one faint surface
-  with a hairline and the faintest shadow; the band variant stays for Today
-  and Inventory. Evidence rows (name, what it covers, the value, a caret)
+  metadata in the accent. Panels (the order at a glance, and the health
+  figures on Today, Inventory and Insights: `HealthSnapshot variant="panel"`)
+  sit on one 70% white surface with a hairline and the faintest shadow, the
+  figures inset 28px with short rules between them that don't reach the
+  edges (stacked with rules between on phones). A page's status sentence
+  (Inventory) sits on a soft status surface: a 50 wash with a 200 hairline
+  in the status color (`--pos-wash`/`--pos-line`, `--con-wash`/`--con-line`)
+  and a filled round icon. Evidence rows (name, what it covers, the value, a caret)
   open in place and step back from the answer above them. Table header
   bands are uppercase metadata on the canvas color. Focused screens
   (sign-in, onboarding) use a 72px bar with the product tile and an
@@ -96,8 +100,8 @@ retailer, personal account; phone panel via native `<dialog>`), `FocusedShell`,
 tabs for a page's sub-pages), `ExampleMarker` / `ExampleRegion`.
 
 Feature components: `OrderList` (proposed orders at supplier level, one
-comparable row each), `HealthSnapshot` (business health as one quiet band: figures side by side
-between hairlines, label, a 24px value, an optional note and a small arrow
+comparable row each), `HealthSnapshot` (business health as one panel of figures side by side
+with short rules between them, label, a 24px value, an optional note and a small arrow
 whose color says whether the change is good for the business, never whether
 it went up; Today shows three, Inventory and Insights their own),
 `PriorityList` (the first item, whichever it is, is the dark hero: a status
@@ -137,7 +141,7 @@ reorder by dragging a grip that appears on hover/focus, with arrow keys on the
 grip, or from a "⋯" menu (always visible on touch); no rank numbers; "Back to
 suggested order" appears only once the order has changed), `EvidenceChart`
 (weekly sales; single series, per-bar tooltip, screen-reader table),
-`InsightsView` (an eyebrow, title and one sentence with the period on the right; performance as a panel of figures; how recent decisions played out as three lesson cards (choose one) above that lesson's decisions, each leading with what happened and then the evidence box: recommended › you approved › demand, and which plan landed closer; patterns and opportunities as cards, conclusion first and facts small; a question the data can't answer sits in the soft Harbor blue of "Questions for you"; see `docs/insights.md`), `InventoryView` (a health band, ranked brand/category bars that filter the item table, and the item table; see `docs/inventory.md`), `SupplierProfile` (the retailer's standing above the supplier name; about, a row of ordering facts, then roomy program cards with the retailer's Program fit, `4.6 / 5 · Program fit`, and "Why this fit?" opening a pale-blue analysis area; a sticky rail with Your account and Connection; see `docs/suppliers.md` and `docs/programs.md`), `SupplierDirectory`
+`InsightsView` (an eyebrow, title and one sentence with the period on the right; performance as a panel of figures; how recent decisions played out as three lesson cards (choose one) above that lesson's decisions, each leading with what happened and then the evidence box: recommended › you approved › demand, and which plan landed closer; patterns and opportunities as cards, conclusion first and facts small; a question the data can't answer sits in the soft Harbor blue of "Questions for you"; see `docs/insights.md`), `InventoryView` (a status sentence, a panel of health figures, one ranked list of bars switched between brand and category and dollars and units that filters the item table, and the item table with a header band, two-line products and a demand mark; see `docs/inventory.md`), `SupplierProfile` (the retailer's standing above the supplier name; about, a row of ordering facts, then roomy program cards with the retailer's Program fit, `4.6 / 5 · Program fit`, and "Why this fit?" opening a pale-blue analysis area; a sticky rail with Your account and Connection; see `docs/suppliers.md` and `docs/programs.md`), `SupplierDirectory`
 (instant name search).
 
 Built later with the features that need them: dialogs with undo.
@@ -148,7 +152,7 @@ Across screens:
 
 | Level | Screen | Question it answers | Shows |
 |---|---|---|---|
-| 1 | Today | What deserves my attention? | The date, the title and one sentence derived from real state ("Five things deserve your attention." plus "The rest of the business is moving as expected." only when no health figure is going the wrong way); a band of three health figures; "Priorities", whose first item is the dark hero (positional: it follows the retailer's reordering), the rest quiet rows; "Questions for you" in the right rail (beneath, below 1280px). No line evidence. |
+| 1 | Today | What deserves my attention? | The date, the title and one sentence derived from real state ("Five things deserve your attention." plus "The rest of the business is moving as expected." only when no health figure is going the wrong way); a panel of three health figures; "Priorities", whose first item is the dark hero (positional: it follows the retailer's reordering), the rest quiet rows; "Questions for you" in the right rail (beneath, below 1280px). No line evidence. |
 | 2 | Proposed order | What should I buy from this supplier? | Every line, scannable in hundreds. |
 | 3 | Line (expanded in place) | Why this quantity? | The reasoning, then the evidence only when asked. |
 
@@ -292,7 +296,7 @@ the conversation on the right.
 ## Rules (enforced where possible)
 
 1. Lead every screen with an answer or a next step. Never a grid of metrics; the
-   business health band is the one exception (a few figures, no charts, no colored tiles).
+   business health figures are the one exception (a few figures, no charts, no colored tiles).
    On Insights every item reads answer → reason → evidence: the conclusion is the
    largest thing on its line, the facts behind it step back.
 2. One primary (blue) button per screen. Everything else secondary or quiet.
