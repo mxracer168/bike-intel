@@ -1,7 +1,8 @@
 # Catalog, sourcing and order creation
 
-**Status: architecture approved (decisions D1–D8, 2026-10-09). Not built,
-not migrated.**
+**Status: architecture approved (decisions D1–D8, 2026-10-09). Adjustments
+G1–G5 from the first Catalog exploration are proposed and await approval.
+Not built, not migrated.**
 
 This file is the reference for the shared Catalog, product identity and
 provenance, catalog matching, product lineage, order creation and
@@ -154,6 +155,199 @@ show one row per Product or one row per Variant.
 - How results collapse or expand is ranking and presentation logic, not
   schema, so it can keep improving.
 
+## Pressure test: the first Catalog exploration
+
+The first Figma exploration of the retailer-facing Catalog (2026-10-09) was
+used as evidence about the interaction model, not as product truth. It
+confirmed:
+- Catalog is a top-level destination between Orders and Inventory.
+- It answers "What can I buy?"; Today keeps "What deserves my attention?".
+- Canonical products stay consolidated however many suppliers sell them.
+- The product page reads: Product → retailer-specific buying intelligence →
+  Variant selection → sourcing recommendation → supplier offers → the
+  sourcing explanation.
+- Supplier comparison should recommend the best sourcing option, not the
+  lowest unit price. The case that sold it: a higher unit price wins
+  because the items push an existing order over its free-freight threshold.
+
+Discovery comes first: search → navigation → filters/facets → sort →
+results → product/variant → sourcing. Retailer intelligence appears inside
+those layers, with progressive disclosure, never as a hero or a work queue.
+
+### What the approved architecture already supports
+
+- **Brand and supplier stay distinct.**
+  - Brand is a property of the Product (`brand_id`).
+  - A supplier is who offers a Variant (`supplier_item` → supplier
+    market).
+  - `brand.owner_organization_id` records that a supplier owns a brand
+    (Trek), never that a supplier's name is the brand.
+  - Guardrail: canonical brand comes only from brand evidence
+    (`catalog_assertion`). An unknown brand shows as unknown, never as the
+    supplier who sent the record.
+  - In the search index, `brand` and `suppliers` are separate fields and
+    separate facets.
+- **Global and supplier-scoped Catalog are one system.** Supplier is a
+  facet over each Variant's visible offers. Entering from a QBP order is
+  the same query with the supplier filter fixed, and "Everything I can get
+  from QBP" is that filter chosen by hand.
+  - Offers are visible when they come from the retailer's own
+    connections, or are platform-usable facts (D4/D5).
+  - "Not connected" is a state of the facet value, not a separate catalog.
+- **Hierarchical categories.** `category.parent_id` already forms a tree
+  per industry, so navigation can show one level at a time. The search
+  index carries each Product's category path, so a filter on "Components"
+  includes Tires.
+- **Grid and List.** Both are presentations of the same results ("identity
+  is not presentation").
+- **Industry-agnostic attributes.** Wheel size, width, frame size, closure
+  type, discipline and color are attribute definitions scoped to categories
+  in an industry, never columns.
+- **Explicit sorts.** Relevance is the default for a typed query. Every
+  other sort is named for what it does (name, brand, your cost, available
+  now, on hand). Nothing ships as a vague "Recommended"; any intelligent
+  ranking later must be explainable. No ranking algorithm is locked in.
+
+### Gaps exposed, and the smallest durable change for each
+
+**G1. Product-level vs Variant-level recommendations (needs a change).**
+Today `recommendation_line` has one product reference, which after D1 means
+a Variant. It can say "18 of the 29 × 2.4 Black", and "allocate across
+Variants" only as unconnected lines. It cannot say "18 across this tire"
+without naming a Variant, and it can't tie an allocation back to the
+family need it splits. Proposed, folded into the D1 renames:
+- `recommendation_line.product_id`: the Product, always set.
+- `recommendation_line.variant_id`: nullable.
+- `recommendation_line.parent_line_id`: nullable, so a Variant line can
+  allocate part of a Product-level line.
+
+This gives three unambiguous cases:
+
+| Case | Product | Variant | Parent |
+|---|---|---|---|
+| Product-level need ("18 across this tire") | set | — | — |
+| Variant-level need ("6 of 29 × 2.4 Black") | set | set | — |
+| Allocation (6 + 8 + 4 of the 18) | set | set | the Product line |
+
+Orders always buy Variants: an order line needs a Variant, so a
+Product-level need must be allocated (by the system or the retailer)
+before it becomes an order line. Screens must always say which case they
+show, e.g. "18 across this tire" beside a Variant picker, never "18" alone.
+
+**Quantity units.** A need with no supplier is in canonical units.
+Converting to ordering units belongs to the sourcing plan line, because
+packs differ by offer.
+
+No size-run or allocation engine is designed here.
+
+**G2. Unit cost vs landed economics (needs a rule, small change later).**
+These are three different things, kept apart:
+- **Supplier unit cost** is an observation of one offer: per ordering
+  unit, per relationship, with a price type and a time. It's already
+  modelled.
+- **Freight and order impact** depend on the whole order: which working
+  order the items join, whether it crosses a free-freight threshold, and
+  the freight cost otherwise.
+- **Estimated landed cost** is derived from both, for a specific
+  allocation, so it exists only inside a sourcing decision.
+
+Landed cost is never stored on an offer and never indexed. "Best landed
+option $81.20" is a sourcing result for this retailer's current basket and
+working orders. When freight is free, landed unit cost equals unit cost,
+but the plan records both.
+
+Proposed for the sourcing migration, on each `sourcing_plan_line`:
+- the observed unit cost and pack;
+- cost per canonical unit;
+- allocated freight;
+- estimated landed cost per canonical unit.
+
+On the plan and per target order: order subtotal, threshold gap, and
+estimated freight.
+
+Offers in different packs (a box of 10 tubes vs single tubes) are compared
+per canonical unit.
+
+The landed-cost engine itself is not designed here.
+
+**G3. Category-specific, inherited facets (needs a small change).** A
+single `attribute_definition.scope` can't express "applies to Tires and
+everything under it, filterable, third in the rail, and a variant axis
+here but not there". Proposed for the catalog migration:
+- **`attribute_definition`** describes the attribute itself:
+  - key, label, data type, unit;
+  - allowed values or value normalization;
+  - industry.
+- **`category_attribute`** applies an attribute to a category and its
+  descendants:
+  - `filterable`;
+  - `variant_axis`;
+  - `facet_priority`;
+  - optional display order.
+  - A child category may override what it inherits (e.g. hide or
+    re-order a facet).
+
+Necessary now: the two tables, inheritance down the tree, and the
+filterable, variant-axis and priority flags. Flexible: value
+normalization depth, "required" attributes, multi-category listing,
+mapping supplier category text to our taxonomy, and merchandising
+collections.
+
+**Category belongs to the Product.** After D1, `product_variant` drops its
+own `category_id`, so the two can't disagree.
+
+**G4. Dynamic facets and retailer context in discovery (an index
+requirement, not schema).**
+- **Dynamic facets.** Counts that change with the result set, values that
+  disappear, and more specific facets as the retailer narrows are search
+  behaviors.
+  - Facets are chosen from the `category_attribute` rows that apply to the
+    categories present in the current results, ordered by priority.
+  - Counts come from the index.
+  - Counts are per collapsed result (a Product), unless the retailer is
+    filtering on a variant axis.
+- **Retailer signals.** Signals such as replenishment recommended, on
+  hand / incoming, normal supplier, demand rising and new to your
+  assortment come from data that already exists:
+  - matched `retailer_item`s;
+  - inventory history;
+  - open order lines;
+  - supplier preference and purchase history;
+  - open recommendation lines.
+
+  They are joined at the Product and Variant through `product_match`.
+  Proposed: a **derived, rebuildable per-retailer signal overlay**, keyed
+  by organization and Product/Variant. It is refreshed on sync, protected
+  by RLS and never a source of truth. Discovery combines it with the
+  canonical index at query time, so canonical documents stay shared and
+  nothing leaks across retailers.
+  - Belongs to the first implementation slice, not the catalog migration.
+- **Engine.** Postgres (full-text plus jsonb attribute indexes plus facet
+  counting queries) is enough for the first catalog sizes. Choosing a
+  dedicated engine is deferred until the catalog is large enough to need
+  one.
+  - It must support per-tenant filtering, faceted counts and result
+    collapsing (grouping Variants under their Product).
+
+**G5. A sourcing recommendation on a product page is a preview (needs a
+rule).** The product page computes the best option for this item against
+the retailer's current working orders. Proposed:
+- That preview is computed on demand.
+- It is persisted as a `sourcing_plan` only when the retailer acts on it
+  (adds to an order), or when the system proposes orders.
+
+The explanation behind an action is then always kept, without storing
+every page view.
+
+### The model after the pressure test
+
+Product → Variant → Supplier offer → Observation holds. None of the
+findings puts supplier into identity, price or availability onto the
+product, or one presentation into the schema. Three things move:
+- recommendations name their scope (G1);
+- landed economics lives only in sourcing (G2);
+- attribute applicability gets its own category link (G3).
+
 ## The order and sourcing model
 
 ```
@@ -252,14 +446,22 @@ tables hold no data and no application code reads them yet.
      becomes `product_id`, and its `product_id` (variant) target becomes
      `variant_id`.
 2. **Required Product** (D2): `product_variant.product_id not null`.
+   Category lives on the Product only (`product_variant.category_id`
+   dropped, G3).
+2a. **Recommendation scope** (G1, proposed): `recommendation_line` gets
+   `product_id` (required), `variant_id` (nullable) and `parent_line_id`
+   (nullable). A line without a supplier is in canonical units.
 3. **Identifiers.**
    - The closed CHECK becomes an `identifier_type` reference table.
    - An identifier attaches to a Product or a Variant.
    - It records the source record, import batch and source rights.
-4. **`attribute_definition`.**
-   - Key, label, data type, unit and allowed values.
-   - Scope: industry and/or category.
-   - Flags for variant axis and facetable.
+4. **`attribute_definition`** and **`category_attribute`** (G3,
+   proposed shape).
+   - The definition: key, label, data type, unit, allowed values or
+     normalization, industry.
+   - The category link, inherited by descendants and overridable: whether
+     the attribute is filterable, whether it is a variant axis, and its
+     facet priority.
    - Attributes stay jsonb, keyed by definition.
 5. **Source rights** (D4):
    - a per-connection/provider rights setting, defaulting to restricted;
@@ -296,6 +498,13 @@ tables hold no data and no application code reads them yet.
     warehouse.
 12. **`sourcing_plan` and `sourcing_plan_line`** (D7), immutable;
     working-order lines may reference the plan line they came from.
+    - Each line keeps unit cost and pack, cost per canonical unit,
+      allocated freight and estimated landed cost per canonical unit
+      separately (G2).
+    - The plan keeps each target order's subtotal, threshold gap and
+      estimated freight.
+    - A plan is stored when the retailer acts or the system proposes
+      orders; product-page previews are computed on demand (G5).
 13. **Pricing, when needed:** a price observation split from availability
     (see above), and a `freight_cost` term type beside the free-freight
     threshold.
@@ -336,6 +545,10 @@ These must be settled first:
    and to collapse Variants.
 3. **The catalog migration applied** (items 1–9). These are renames and
    new tables only, but they need your manual apply like every migration.
-4. **The search approach for V1.** Postgres full-text with a facet table
+4. **The pressure-test adjustments** (G1–G5 above) approved, so the
+   catalog migration includes recommendation scope, `category_attribute`
+   and category on the Product.
+5. **The search approach for V1.** Postgres full-text with a facet table
    is enough to start. The per-context index (global vs supplier-scoped,
-   rights-filtered) must be built before the UI.
+   rights-filtered) and the per-retailer signal overlay (G4) must be built
+   before the UI.
