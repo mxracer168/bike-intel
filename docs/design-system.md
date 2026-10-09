@@ -81,7 +81,7 @@ Make app itself is not copied into this repository.
 |---|---|
 | Tokens (color, type scale, spacing, radius, elevation, motion) | `src/design/tokens.css` |
 | Base element styles, focus ring, reduced motion | `src/design/base.css` |
-| Inter (self-hosted by `next/font`) | `src/design/fonts.ts` |
+| Inter (committed in `src/design/fonts/`, OFL; served by `next/font/local`, so builds need no network) | `src/design/fonts.ts` |
 | Foundational components (CSS Modules, tokens only) | `src/ui/` |
 | User-facing copy that is not screen-specific | `src/content/` |
 

@@ -29,7 +29,7 @@ for (const path of pages) {
       })
       expect(body.bg).toBe('rgb(248, 250, 252)')
       expect(body.color).toBe('rgb(15, 23, 42)')
-      expect(body.font).toMatch(/Inter/)
+      expect(body.font).toMatch(/\binter\b/i)
     })
   })
 }
