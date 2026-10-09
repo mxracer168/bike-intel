@@ -3,6 +3,9 @@ import type { ReactNode } from 'react'
 import { productName } from '@/content/product'
 import { AddContextButton, IntelligenceProvider } from '@/features/intelligence/IntelligencePanel'
 import type { ConversationEntry, IntelligenceQuestionView, SyncStatus } from '@/features/intelligence/types'
+import { NotificationsButton } from '@/features/notifications/NotificationsButton'
+import type { NotificationView } from '@/features/notifications/notifications'
+import { SearchButton, SearchProvider } from '@/features/search/SearchDialog'
 import { MobileNav } from './MobileNav'
 import { SidebarPanel, type ShellAccount, type ShellRetailer } from './SidebarPanel'
 import styles from './AppShell.module.css'
@@ -26,6 +29,8 @@ export type ShellExtras = {
     exampleConversation: ConversationEntry[]
   }
   sync?: SyncStatus
+  /** What changed or needs attention, and where this person's read state is kept. */
+  notifications: { items: NotificationView[]; storageKey: string }
 }
 
 /**
@@ -49,12 +54,20 @@ export function AppShell({ retailer, account, extras, children }: {
           <MobileNav>{panel(true)}</MobileNav>
           <Logo />
         </span>
-        <AddContextButton compact />
+        <span className={styles.barEnd}>
+          <SearchButton compact />
+          <NotificationsButton {...extras.notifications} />
+          <AddContextButton icon />
+        </span>
       </header>
       <div className={styles.main}>
-        <div className={styles.topBar}>
-          <AddContextButton />
-        </div>
+        <header className={styles.topBar}>
+          <SearchButton />
+          <span className={styles.barEnd}>
+            <NotificationsButton {...extras.notifications} />
+            <AddContextButton icon />
+          </span>
+        </header>
         <main id="main">{children}</main>
       </div>
     </div>
@@ -63,7 +76,7 @@ export function AppShell({ retailer, account, extras, children }: {
     <IntelligenceProvider retailerName={retailer.name} questions={extras.intelligence.questions}
       exampleQuestions={extras.intelligence.exampleQuestions}
       exampleConversation={extras.intelligence.exampleConversation}>
-      {frame}
+      <SearchProvider>{frame}</SearchProvider>
     </IntelligenceProvider>
   )
 }

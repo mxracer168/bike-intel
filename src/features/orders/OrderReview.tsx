@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useId, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { Fragment, useEffect, useId, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { average } from '@/domain/language/plain'
 import { WeeklySalesChart } from '@/features/recommendations/WeeklySalesChart'
 import { AnchoredQuestion } from '@/features/intelligence/AnchoredQuestion'
@@ -16,6 +16,8 @@ import { ActionBar, HandoffStatus, OrderHeader, SubmitDialog, type OrderProgress
 import { lineTotal, orderTotal, sortForReview } from './summarize'
 import type { NetworkListing, OrderLineView, ProposedOrderView } from './types'
 import { calculation, explanation, nextStep, oneDecimal, seasonView, supplierView, type SupplierView } from './why'
+import { SortHeader } from '@/ui/SortHeader'
+import { nextSort, sortRows, type SortState, type SortValue } from '@/ui/sorting'
 import styles from './OrderReview.module.css'
 
 const NARROW = '(max-width: 760px)'
@@ -281,6 +283,8 @@ function LineDetail({ line, quantity, setQuantity, order, weekStarts, locked }: 
   )
 }
 
+type LineSortKey = 'product' | 'onHand' | 'onOrder' | 'quantity' | 'cost'
+
 /** A quiet filter tab: the label, then a muted count; the current one is underlined. */
 function FilterTab({ current, onClick, label, count }: { current: boolean; onClick: () => void; label: string; count: number }) {
   return (
@@ -295,15 +299,21 @@ function FilterTab({ current, onClick, label, count }: { current: boolean; onCli
  * quantity, cost. Built to scan hundreds of lines; every reason lives behind a
  * click on the row. Quantities change locally only.
  */
-export function OrderReview({ order, eyebrow, weekStarts, example }: {
+export function OrderReview({ order, eyebrow, weekStarts, example, openLine }: {
   order: ProposedOrderView; eyebrow?: ReactNode; example?: boolean
+  /** A line to open on arrival (from search or a notification). */
+  openLine?: string
   /** Start dates of the complete weeks in each line's weekly sales, oldest first. */
   weekStarts?: string[]
 }) {
   const [quantities, setQuantities] = useState<Record<string, number>>({})
-  const [open, setOpen] = useState<string | null>(null)
+  const [open, setOpen] = useState<string | null>(() => (openLine && order.lines.some((l) => l.id === openLine) ? openLine : null))
   const [filter, setFilter] = useState<'all' | 'attention' | 'network'>('all')
   const [progress, setProgress] = useState<OrderProgress>({ status: 'draft' })
+  // Arriving with a line to open: bring it into view once.
+  useEffect(() => {
+    if (openLine) document.getElementById(`${openLine}-detail`)?.previousElementSibling?.scrollIntoView({ block: 'center' })
+  }, [openLine])
   const [reviewing, setReviewing] = useState(false)
   const locked = progress.status !== 'draft'
   const narrow = useNarrow()
@@ -313,7 +323,18 @@ export function OrderReview({ order, eyebrow, weekStarts, example }: {
   const qty = (l: OrderLineView) => quantities[l.id] ?? l.quantity
   // Compared against what we'd order now, so it follows quantity changes.
   const fromNetwork = sorted.filter((l) => networkMatch(l.network, qty(l)).kind !== 'none')
-  const shown = filter === 'all' ? sorted : filter === 'attention' ? attention : fromNetwork
+  const filtered = filter === 'all' ? sorted : filter === 'attention' ? attention : fromNetwork
+  // Review order (questions, then lines worth a look) until a column is chosen.
+  const [lineSort, setLineSort] = useState<SortState<LineSortKey> | null>(null)
+  const onSort = (key: LineSortKey) => setLineSort((s) => nextSort(s, key))
+  const lineValue: Record<LineSortKey, (l: OrderLineView) => SortValue> = {
+    product: (l) => [l.product, l.variant].filter(Boolean).join(' '),
+    onHand: (l) => l.onHand,
+    onOrder: (l) => l.onOrder,
+    quantity: (l) => qty(l),
+    cost: (l) => lineTotal(l, qty(l)),
+  }
+  const shown = lineSort ? sortRows(filtered, lineValue[lineSort.key], lineSort.dir) : filtered
   const total = orderTotal(order.lines, quantities)
   const ordering = order.lines.filter((l) => qty(l) > 0).length
   const toggle = (id: string) => setOpen((current) => (current === id ? null : id))
@@ -339,11 +360,11 @@ export function OrderReview({ order, eyebrow, weekStarts, example }: {
           <thead>
             <tr>
               <th scope="col" className={[styles.cGo, styles.wide].join(' ')}><span className="visually-hidden">Open</span></th>
-              <th scope="col">Product</th>
-              <th scope="col" className={[styles.num, styles.cStock].join(' ')}>On hand</th>
-              <th scope="col" className={[styles.num, styles.wide, styles.cStock].join(' ')}>On order</th>
-              <th scope="col" className={[styles.num, styles.cQty].join(' ')}>Order</th>
-              <th scope="col" className={[styles.num, styles.cCost].join(' ')}>Cost</th>
+              <SortHeader sortKey="product" sort={lineSort} onSort={onSort}>Product</SortHeader>
+              <SortHeader sortKey="onHand" sort={lineSort} onSort={onSort} numeric className={[styles.num, styles.cStock].join(' ')}>On hand</SortHeader>
+              <SortHeader sortKey="onOrder" sort={lineSort} onSort={onSort} numeric className={[styles.num, styles.wide, styles.cStock].join(' ')}>On order</SortHeader>
+              <SortHeader sortKey="quantity" sort={lineSort} onSort={onSort} numeric className={[styles.num, styles.cQty].join(' ')}>Order</SortHeader>
+              <SortHeader sortKey="cost" sort={lineSort} onSort={onSort} numeric className={[styles.num, styles.cCost].join(' ')}>Cost</SortHeader>
             </tr>
           </thead>
           <tbody>

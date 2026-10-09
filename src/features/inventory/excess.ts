@@ -1,3 +1,4 @@
+import { sortRows, type SortState, type SortValue } from '@/ui/sorting'
 import { compareToMarket, type PriceComparison } from '@/features/network/pricing'
 import type { InventoryItemView } from './types'
 
@@ -101,14 +102,6 @@ export function summarizeExcess(rows: ExcessRow[]): ExcessSummary {
   }), { skus: 0, units: 0, cost: 0, recovery: 0, shared: 0 })
 }
 
-export type ExcessSort = 'investment' | 'weeks' | 'gain' | 'loss'
-export const excessSortLabel: Record<ExcessSort, string> = {
-  investment: 'Most money tied up',
-  weeks: 'Most weeks of supply',
-  gain: 'Largest gain',
-  loss: 'Largest loss',
-}
-
 export type ExcessView = 'all' | 'shared' | 'excluded' | 'changed' | 'below' | 'above' | 'loss'
 export const excessViewLabel: Record<ExcessView, string> = {
   all: 'All excess',
@@ -132,16 +125,47 @@ export function matchesView(r: ExcessRow, view: ExcessView): boolean {
   }
 }
 
-const weeksKey = (r: ExcessRow) => r.weeksOfSupply ?? Number.POSITIVE_INFINITY
+/** Columns of the excess table that sort, plus two totals the table doesn't show as columns. */
+export type ExcessSortKey = 'product' | 'onHand' | 'excess' | 'weeks' | 'cost' | 'wmv' | 'price' | 'gainUnit' | 'tiedUp' | 'gainTotal'
 
-/** Gain and loss sort by the whole excess quantity, not per unit: what matters is the money. */
-export function sortExcess(rows: ExcessRow[], sort: ExcessSort): ExcessRow[] {
-  const total = (r: ExcessRow) => r.gainPerUnit * r.excessQty
-  const by: Record<ExcessSort, (a: ExcessRow, b: ExcessRow) => number> = {
-    investment: (a, b) => b.excessCost - a.excessCost,
-    weeks: (a, b) => weeksKey(b) - weeksKey(a) || b.excessCost - a.excessCost,
-    gain: (a, b) => total(b) - total(a),
-    loss: (a, b) => total(a) - total(b),
+/** Ready-made sorts, offered as "Sort" beside the filters. They share the table's sort. */
+export type ExcessSort = 'investment' | 'weeks' | 'gain' | 'loss'
+export const excessSortLabel: Record<ExcessSort, string> = {
+  investment: 'Most money tied up',
+  weeks: 'Most weeks of supply',
+  gain: 'Largest gain',
+  loss: 'Largest loss',
+}
+export const excessSortPreset: Record<ExcessSort, SortState<ExcessSortKey>> = {
+  investment: { key: 'tiedUp', dir: 'desc' },
+  weeks: { key: 'weeks', dir: 'desc' },
+  gain: { key: 'gainTotal', dir: 'desc' },
+  loss: { key: 'gainTotal', dir: 'asc' },
+}
+
+/** Which preset the current sort is, if any. */
+export function presetFor(sort: SortState<ExcessSortKey>): ExcessSort | null {
+  return (Object.keys(excessSortPreset) as ExcessSort[]).find((p) => excessSortPreset[p].key === sort.key && excessSortPreset[p].dir === sort.dir) ?? null
+}
+
+function excessValue(r: ExcessRow, key: ExcessSortKey): SortValue {
+  switch (key) {
+    case 'product': return [r.item.product, r.item.variant].filter(Boolean).join(' ')
+    case 'onHand': return r.item.onHand
+    case 'excess': return r.excessQty
+    // Not selling at all is the most weeks of supply.
+    case 'weeks': return r.weeksOfSupply ?? Number.POSITIVE_INFINITY
+    case 'cost': return r.item.unitCost
+    case 'wmv': return r.wholesaleMarketValue
+    case 'price': return r.networkPrice
+    case 'gainUnit': return r.gainPerUnit
+    case 'tiedUp': return r.excessCost
+    // Gain and loss by the whole excess quantity: what matters is the money.
+    case 'gainTotal': return r.gainPerUnit * r.excessQty
   }
-  return [...rows].sort(by[sort])
+}
+
+/** Ties go to the most money tied up. */
+export function sortExcess(rows: ExcessRow[], sort: SortState<ExcessSortKey>): ExcessRow[] {
+  return sortRows(rows, (r) => excessValue(r, sort.key), sort.dir, (a, b) => b.excessCost - a.excessCost)
 }

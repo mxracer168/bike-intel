@@ -14,19 +14,20 @@ export const metadata: Metadata = { title: 'Proposed order' }
 /** One supplier's proposed order. Example data only until orders are built. */
 export default async function OrderPage({ params, searchParams }: {
   params: Promise<{ orderId: string }>
-  searchParams: Promise<{ handoff?: string | string[] }>
+  searchParams: Promise<{ handoff?: string | string[]; line?: string | string[] }>
 }) {
   await requireOrganization()
   const { orderId } = await params
   const found = isDemoPreviewEnabled() ? findDemoOrder(orderId) : undefined
   if (!found) notFound()
   // Example review only: ?handoff=a|b|c|d shows each combination of supplier and POS connections.
-  const handoff = demoHandoff((await searchParams).handoff)
+  const { handoff: handoffParam, line } = await searchParams
+  const handoff = demoHandoff(handoffParam)
   const order = handoff ? { ...found, handoff } : found
 
   return (
     <Page>
-      <OrderReview order={order} example weekStarts={completeWeekStarts(12, new Date())} eyebrow={<><Link href="/orders">Orders</Link><ExampleMarker /></>} />
+      <OrderReview order={order} openLine={typeof line === 'string' ? line : undefined} example weekStarts={completeWeekStarts(12, new Date())} eyebrow={<><Link href="/orders">Orders</Link><ExampleMarker /></>} />
     </Page>
   )
 }

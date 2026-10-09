@@ -7,12 +7,14 @@ import { describeComparison, unitPrice, WMV_HELP, WMV_TERM } from '@/features/ne
 import { Icon } from '@/ui/Icon'
 import { InfoTip } from '@/ui/InfoTip'
 import {
-  EXCESS_RULE_OPTIONS, excessRows, excessSortLabel, excessViewLabel, matchesView, sortExcess, summarizeExcess,
-  type ExcessRow, type ExcessSort, type ExcessView as ExcessViewKey, type NetworkOffer,
+  EXCESS_RULE_OPTIONS, excessRows, excessSortLabel, excessSortPreset, excessViewLabel, matchesView, presetFor, sortExcess, summarizeExcess,
+  type ExcessRow, type ExcessSort, type ExcessSortKey, type ExcessView as ExcessViewKey, type NetworkOffer,
 } from './excess'
 import { matchesSearch } from './summarize'
 import type { InventoryItemView } from './types'
 import inv from './Inventory.module.css'
+import { SortHeader } from '@/ui/SortHeader'
+import { nextSort, type SortState } from '@/ui/sorting'
 import styles from './Excess.module.css'
 
 const PAGE = 60
@@ -139,7 +141,10 @@ export function ExcessView({ items, offers: initialOffers, initialRuleWeeks }: {
   const [query, setQuery] = useState('')
   const [view, setView] = useState<ExcessViewKey>('all')
   const [brand, setBrand] = useState('')
-  const [sort, setSort] = useState<ExcessSort>('investment')
+  // One sort for the table: set by a column header or by a ready-made sort.
+  const [sort, setSort] = useState<SortState<ExcessSortKey>>(excessSortPreset.investment)
+  const onSort = (key: ExcessSortKey) => setSort((s) => nextSort(s, key))
+  const preset = presetFor(sort)
   const [open, setOpen] = useState<string | null>(null)
   const [shown, setShown] = useState(PAGE)
   const ruleId = useId()
@@ -223,7 +228,8 @@ export function ExcessView({ items, offers: initialOffers, initialRuleWeeks }: {
               </label>
               <label className={inv.control}>
                 <span className={styles.controlLabel}>Sort</span>
-                <select value={sort} onChange={(e) => setSort(e.target.value as ExcessSort)}>
+                <select value={preset ?? ''} onChange={(e) => e.target.value && setSort(excessSortPreset[e.target.value as ExcessSort])}>
+                  {!preset && <option value="">By column</option>}
                   {(Object.keys(excessSortLabel) as ExcessSort[]).map((k) => <option key={k} value={k}>{excessSortLabel[k]}</option>)}
                 </select>
               </label>
@@ -235,16 +241,16 @@ export function ExcessView({ items, offers: initialOffers, initialRuleWeeks }: {
                 <thead>
                   <tr>
                     <th scope="col" className={[inv.cGo, styles.wide].join(' ')}><span className="visually-hidden">Open</span></th>
-                    <th scope="col">Product</th>
-                    <th scope="col" className={[inv.num, styles.cQty, styles.mid].join(' ')}>On hand</th>
-                    <th scope="col" className={[inv.num, styles.cQty].join(' ')}>Excess</th>
-                    <th scope="col" className={[inv.num, styles.cWeeks, styles.mid].join(' ')}><span className={styles.headWrap}>Weeks of supply</span></th>
-                    <th scope="col" className={[inv.num, styles.cMoney, styles.wide].join(' ')}>Avg. cost</th>
-                    <th scope="col" className={[inv.num, styles.cMoney, styles.wider].join(' ')}>
+                    <SortHeader sortKey="product" sort={sort} onSort={onSort}>Product</SortHeader>
+                    <SortHeader sortKey="onHand" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cQty, styles.mid].join(' ')}>On hand</SortHeader>
+                    <SortHeader sortKey="excess" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cQty].join(' ')}>Excess</SortHeader>
+                    <SortHeader sortKey="weeks" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cWeeks, styles.mid].join(' ')}><span className={styles.headWrap}>Weeks of supply</span></SortHeader>
+                    <SortHeader sortKey="cost" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cMoney, styles.wide].join(' ')}>Avg. cost</SortHeader>
+                    <SortHeader sortKey="wmv" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cMoney, styles.wider].join(' ')}>
                       <span className={styles.headWrap}>{WMV_TERM}</span>
-                    </th>
-                    <th scope="col" className={[inv.num, styles.cPrice].join(' ')}><span className={styles.headWrap}>Network price</span></th>
-                    <th scope="col" className={[inv.num, styles.cGain].join(' ')}>Gain / loss <span className={styles.perUnit}>per unit</span></th>
+                    </SortHeader>
+                    <SortHeader sortKey="price" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cPrice].join(' ')}><span className={styles.headWrap}>Network price</span></SortHeader>
+                    <SortHeader sortKey="gainUnit" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cGain].join(' ')}>Gain / loss <span className={styles.perUnit}>per unit</span></SortHeader>
                     <th scope="col" className={[styles.cStatus, styles.wide].join(' ')}>Network</th>
                   </tr>
                 </thead>

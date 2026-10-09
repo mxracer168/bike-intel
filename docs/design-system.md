@@ -9,6 +9,23 @@ is represented in code and the rules every screen follows.
 > results of giving the retailer clarity. ("Calm over impressive" remains a
 > supporting principle.)
 
+## The Figma design reference
+
+A Figma Make project is the visual reference for the application. The rule
+when the two disagree:
+
+- **The application decides what the product does**: functionality, useful
+  information, controls, data, terminology and product thinking.
+- **Figma decides how it looks**: color, typography, spacing, proportions,
+  hierarchy, surfaces, borders, shadows, icons, density and layout styling.
+- **Figma doesn't win on structure because it looks better.** Where the
+  application has useful functionality or information the prototype lacks
+  (Inventory's filters, Insights' conclusions), keep it and present it in the
+  Figma visual language. Don't keep an inferior visual treatment just
+  because it exists, and don't replace a control with a simpler one that
+  does less.
+- **A genuine conflict is flagged, not decided silently.**
+
 ## Where it lives in code
 
 | Piece | File |
@@ -181,6 +198,55 @@ status. Card actions are outlined, never filled blue; secondary actions are
 text. Only third-party brand logos carry their own color. Details open in
 the standard right-side panel (a full-screen sheet on phones). See
 `connections.md`.
+
+## Sortable tables (platform standard)
+
+**Data tables let people sort meaningful columns from the column header.**
+
+- **Interaction:** the first click on a column sorts descending; the next
+  ascending; then it keeps toggling. Choosing another column starts that one
+  descending.
+- **Visible state:** the sorted column's label is in ink with a small arrow
+  in the accent color (down for descending, up for ascending). Other
+  sortable headers show a faint arrow on hover or keyboard focus, so it's
+  clear they sort. Numeric columns keep their labels right-aligned with the
+  arrow before the label.
+- **Only meaningful columns sort.** Open or expand columns, actions,
+  controls, free-text explanations and status words don't.
+- **By data type:** numbers, quantities, money and percentages numerically;
+  dates chronologically; text alphabetically (numbers within text in
+  numeric order). Missing values go last in either direction; ties keep a
+  sensible secondary order.
+- **The whole dataset:** sort the full filtered set, then page or window it.
+  Sorting works alongside every filter and search.
+- **Default order:** a table may arrive in a meaningful order of its own
+  (priority, review order) with no column marked until one is chosen.
+- **Ready-made sorts stay** where they add something the columns can't
+  (Excess inventory's "Most money tied up", "Largest gain" by total). They
+  share one sort with the headers: choosing a column shows "By column".
+- **Accessible:** the header is a button (keyboard and screen reader), and
+  the sorted column carries `aria-sort` with its direction.
+- **In code:** `SortHeader` (`src/ui/SortHeader.tsx`) and `nextSort` /
+  `sortRows` (`src/ui/sorting.ts`). Every table uses them; don't write
+  another.
+
+## Top bar: search and notifications
+
+Utilities, not calls to action. Search sits on the left; notifications and
+the conversation on the right.
+
+- **Search** opens one dialog from the top bar or with ⌘K / Ctrl K: results
+  grouped by kind (pages, orders, suppliers, programs, inventory, products on
+  proposed orders, connections, locations), best match first, arrow keys and
+  Enter to open. It finds only what exists. Each result goes to where that
+  thing lives (an inventory product opens Inventory already searched for
+  it; a product on an order opens the order with that line open).
+- **Notifications** answer "what changed or needs my attention?", not "what
+  should I work on?" (that's the Dashboard). A dot on the bell only while
+  something is unread; problems first (a connection that stopped working,
+  items a supplier can't ship), then programs closing within 30 days, then
+  new questions. Each goes to where to act; questions open the
+  conversation. Closing the panel marks what was shown as read.
 
 ## Rules (enforced where possible)
 

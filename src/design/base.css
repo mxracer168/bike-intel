@@ -2,6 +2,9 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 html { -webkit-text-size-adjust: 100%; }
+/* Content scrolled into view clears the sticky top bar (72px on wide screens, 56px on phones). */
+html { scroll-padding-top: 88px; }
+@media (max-width: 900px) { html { scroll-padding-top: 72px; } }
 
 body {
   margin: 0;

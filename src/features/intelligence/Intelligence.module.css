@@ -5,6 +5,11 @@
 }
 .entry:hover { background: var(--accent-soft); }
 .compact { padding: 8px 6px; }
+.entryIcon {
+  width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: var(--r-md);
+  background: var(--accent-soft); color: var(--accent); cursor: pointer;
+}
+.entryIcon:hover { background: var(--accent-muted); color: var(--accent-pressed); }
 
 /* ---------- Panel ---------- */
 .panel {

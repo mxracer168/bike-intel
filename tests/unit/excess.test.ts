@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { excessQuantity, excessRows, matchesView, sortExcess, summarizeExcess, type NetworkOffer } from '@/features/inventory/excess'
+import { excessQuantity, excessRows, excessSortPreset, matchesView, presetFor, sortExcess, summarizeExcess, type NetworkOffer } from '@/features/inventory/excess'
 import type { InventoryItemView } from '@/features/inventory/types'
 import { compareToMarket, describeComparison } from '@/features/network/pricing'
 import { describeReputation } from '@/features/network/reputation'
@@ -56,8 +56,10 @@ describe('network price', () => {
     expect(rows.filter((r) => matchesView(r, 'changed')).map((r) => r.item.id)).toEqual(['b', 'c'])
     expect(rows.filter((r) => matchesView(r, 'excluded')).map((r) => r.item.id)).toEqual(['c'])
     expect(rows.filter((r) => matchesView(r, 'loss')).map((r) => r.item.id)).toEqual(['b'])
-    expect(sortExcess(rows, 'gain').map((r) => r.item.id)).toEqual(['a', 'c', 'b'])
-    expect(sortExcess(rows, 'loss')[0]?.item.id).toBe('b')
+    expect(sortExcess(rows, excessSortPreset.gain).map((r) => r.item.id)).toEqual(['a', 'c', 'b'])
+    expect(sortExcess(rows, excessSortPreset.loss)[0]?.item.id).toBe('b')
+    expect(presetFor({ key: 'gainTotal', dir: 'asc' })).toBe('loss')
+    expect(presetFor({ key: 'price', dir: 'desc' })).toBeNull()
   })
   it('leaves an override in place when Wholesale Market Value changes', () => {
     const moved = excessRows(items, 26, { ...offers, b: { ...offers.b, wholesaleMarketValue: 110 } })

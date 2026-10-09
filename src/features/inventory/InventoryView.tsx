@@ -12,6 +12,8 @@ import {
   type Group, type Sort, type SortKey,
 } from './summarize'
 import type { Condition, CoverageUnit, InventoryItemView, InventoryLocation, Measure } from './types'
+import { SortHeader } from '@/ui/SortHeader'
+import { nextSort } from '@/ui/sorting'
 import styles from './Inventory.module.css'
 
 const NARROW = '(max-width: 640px)'
@@ -29,8 +31,6 @@ const NONE: Filters = { brand: [], category: [], supplier: null, condition: null
 const money = (n: number) => formatMoney(Math.round(n))
 const dateText = (iso: string | null) => (iso ? new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' }) : '–')
 const sortLabel: Record<SortKey, string> = { product: 'Product', onHand: 'On hand', value: 'Value', coverage: 'Coverage' }
-/** The first press of a numeric column shows the largest first; Product and Coverage start from the top of the alphabet / soonest to run out. */
-const firstDir: Record<SortKey, Sort['dir']> = { product: 'asc', onHand: 'desc', value: 'desc', coverage: 'asc' }
 
 /** An opened item: its sales, the few facts not already in the row, and where it sits. */
 function ItemDetail({ item, locationId, locations, coverageUnit }: {
@@ -85,17 +85,19 @@ function ItemDetail({ item, locationId, locations, coverageUnit }: {
  * brand and by category), and the item table the charts filter. All local
  * state over example data; no forecasting or real calculations.
  */
-export function InventoryView({ items, locations, trends }: {
+export function InventoryView({ items, locations, trends, initialQuery = '' }: {
   items: InventoryItemView[]
   locations: InventoryLocation[]
   trends: { weeksOfSupply: HealthTrend; turn: { value: string; trend: HealthTrend } }
+  /** Search to start with, e.g. from global search. */
+  initialQuery?: string
 }) {
   const [locationId, setLocationId] = useState<string | null>(null)
   const [measure, setMeasure] = useState<{ brand: Measure; category: Measure }>({ brand: 'dollars', category: 'dollars' })
   const [expanded, setExpanded] = useState<'brand' | 'category' | null>(null)
   const [filters, setFilters] = useState<Filters>(NONE)
   const [showFilters, setShowFilters] = useState(false)
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState(initialQuery)
   const [sort, setSort] = useState<Sort>({ key: 'value', dir: 'desc' })
   const [coverageUnit, setCoverageUnit] = useState<CoverageUnit>('weeks')
   const [open, setOpen] = useState<string | null>(null)
@@ -139,9 +141,8 @@ export function InventoryView({ items, locations, trends }: {
     }
   }
 
-  function toggleSort(key: SortKey) {
-    setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: firstDir[key] }))
-  }
+  // The platform standard: descending first, then toggle.
+  const toggleSort = (key: SortKey) => setSort((s) => nextSort(s, key))
 
   const chips: { label: string; clear: () => void }[] = [
     ...(filters.brand.length > 0 ? [{ label: filters.brand.length === 1 ? `Brand: ${filters.brand[0]}` : `Brand: Other (${filters.brand.length})`, clear: () => setFilters((f) => ({ ...f, brand: [] })) }] : []),
@@ -254,13 +255,10 @@ export function InventoryView({ items, locations, trends }: {
               <tr>
                 <th scope="col" className={[styles.cGo, styles.wide].join(' ')}><span className="visually-hidden">Open</span></th>
                 {(['product', 'onHand', 'value', 'coverage'] as SortKey[]).map((k) => (
-                  <th key={k} scope="col" className={k === 'product' ? undefined : [styles.num, styles[`c_${k}`]].join(' ')}
-                    aria-sort={sort.key === k ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}>
-                    <button type="button" className={styles.sortButton} onClick={() => toggleSort(k)}>
-                      {sortLabel[k]}
-                      <span className={styles.sortMark} aria-hidden="true">{sort.key === k ? (sort.dir === 'asc' ? '↑' : '↓') : ''}</span>
-                    </button>
-                  </th>
+                  <SortHeader key={k} sortKey={k} sort={sort} onSort={toggleSort} numeric={k !== 'product'}
+                    className={k === 'product' ? undefined : [styles.num, styles[`c_${k}`]].join(' ')}>
+                    {sortLabel[k]}
+                  </SortHeader>
                 ))}
               </tr>
             </thead>

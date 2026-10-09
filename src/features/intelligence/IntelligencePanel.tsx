@@ -245,9 +245,18 @@ export function IntelligenceProvider({ retailerName, questions: initialQuestions
 }
 
 /** The global entry point: small, quiet, always in the same place. */
-export function AddContextButton({ compact = false }: { compact?: boolean }) {
+export function AddContextButton({ compact = false, icon = false }: { compact?: boolean; icon?: boolean }) {
   const api = useIntelligence()
   if (!api) return null
+  // In the top bar: a quiet conversation button, named "Add context" for everyone.
+  if (icon) {
+    return (
+      <button type="button" className={styles.entryIcon} aria-label="Add context" title="Add context"
+        aria-haspopup="dialog" onClick={() => api.open()}>
+        <Icon name="chat" size={20} />
+      </button>
+    )
+  }
   return (
     <button type="button" className={[styles.entry, compact && styles.compact].filter(Boolean).join(' ')}
       aria-haspopup="dialog" onClick={() => api.open()}>

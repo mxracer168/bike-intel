@@ -18,6 +18,15 @@ work against.
 
 ## Core principles
 
+- **Sortable tables.** Data tables should allow users to sort meaningful
+  columns directly from the column header. The first selection sorts
+  descending and the second ascending, with the active sort and direction
+  always visible. Sorting should respect data type, work alongside
+  filtering, and remain keyboard and screen-reader accessible.
+- **The application defines the product; the design reference defines its
+  look.** Useful functionality and information are kept and restyled, never
+  dropped because a visual reference omits them; real conflicts are flagged
+  (`design-system.md`, "The Figma design reference").
 - **Preserve truth in the data; interpret in the analysis.** Sales stay on the
   retailer item that produced them. Matches and lineage are separate,
   correctable links, never merges.
@@ -408,6 +417,34 @@ reuse (`features/meeting`).
 
 Today this exists only as a scripted example (`/demo/onboarding`, demo
 preview only): no video, voice, speech, extraction, scheduling or writes.
+
+## Search and notifications
+
+**Search** is one shape (title, one line of context, where it lives, and
+the group it belongs to) filled by sources: pages, suppliers, locations and,
+where example data is on, orders, products on orders, inventory, programs
+and connections. Adding something searchable means adding a source. Today it
+runs on the server per request, as the signed-in user, so row-level security
+and tenant boundaries apply; there is no index. When real data grows, a
+stored per-retailer index (Postgres full-text first) can replace the
+sources without changing the experience. Search never returns anything the
+retailer can't already open.
+
+**Notifications** are derived from current state, not stored events: a
+connection needing attention, items a supplier can't ship on a proposed
+order, a supplier program closing within 30 days, a new intelligence
+question. Each carries a fingerprint of the state it describes, so a changed
+state reads as new again. Nothing is invented to fill the panel.
+
+- **Read state is per browser today** (the same approach as the retailer's
+  priority order): the fingerprints a person has seen, kept locally. It
+  doesn't follow them to another device. Durable read state, or true
+  "what changed since you last looked" history, needs a decision about a
+  per-person notification record and when events are generated (on sync, on
+  a schedule, on change). Not decided; not built.
+- **Real sources are thin today:** orders, connections and programs aren't
+  stored yet, so outside example data only new questions can appear. Each
+  source turns on as its data becomes real.
 
 ## Recorded for later (no schema change yet)
 

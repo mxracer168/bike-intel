@@ -12,11 +12,15 @@
   background: var(--surface); border-right: 1px solid var(--line);
 }
 .main { min-width: 0; }
+/* The top bar: search on the left, notifications and the conversation on the right. Utilities, not calls to action. */
 .topBar {
-  display: flex; justify-content: flex-end; align-items: center;
-  max-width: calc(var(--page-width) + 2 * var(--gutter)); margin: 0 auto; padding: var(--sp-4) var(--gutter) 0;
+  position: sticky; top: 0; z-index: 20; height: 72px;
+  display: flex; justify-content: space-between; align-items: center; gap: var(--sp-4);
+  padding: 0 var(--sp-6) 0 calc(var(--sp-6) - var(--sp-2));
+  background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
 }
-.topBar + main > * { padding-top: var(--sp-3); }
+.barEnd { display: inline-flex; align-items: center; gap: var(--sp-2); }
 
 .mobileBar { display: none; }
 
@@ -94,7 +98,7 @@
   .shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; background: var(--canvas); }
   .sidebar { display: none; }
   .topBar { display: none; }
-  .topBar + main > * { padding-top: var(--sp-6); }
+  .mobileBar .barEnd { gap: 2px; }
   .mobileBar {
     display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3);
     position: sticky; top: 0; z-index: 10; min-height: 56px; padding: 0 var(--gutter);

@@ -1,6 +1,11 @@
+'use client'
+
 import Link from 'next/link'
+import { useState } from 'react'
 import { formatMoney, plural } from '@/domain/language/plain'
 import { Icon } from '@/ui/Icon'
+import { SortHeader } from '@/ui/SortHeader'
+import { nextSort, sortRows, type SortState, type SortValue } from '@/ui/sorting'
 import type { OrderSummary } from './types'
 import styles from './Orders.module.css'
 
@@ -25,26 +30,40 @@ function attention(o: OrderSummary): string {
   return parts.length ? parts.join(' · ') : 'Nothing to check'
 }
 
+type OrderSortKey = 'supplier' | 'lines' | 'confident' | 'review' | 'questions' | 'total'
+const orderValue: Record<OrderSortKey, (o: OrderSummary) => SortValue> = {
+  supplier: (o) => o.supplier,
+  lines: (o) => o.lineCount,
+  confident: (o) => o.confident,
+  review: (o) => o.review,
+  questions: (o) => o.questions,
+  total: (o) => o.total,
+}
+
 /**
  * Proposed orders at supplier level: comparable numbers, one row each.
- * No line detail here; that lives on the order.
+ * No line detail here; that lives on the order. Arrives in priority order;
+ * any column re-sorts it.
  */
 export function OrderList({ orders, label }: { orders: OrderSummary[]; label: string }) {
+  const [sort, setSort] = useState<SortState<OrderSortKey> | null>(null)
+  const onSort = (key: OrderSortKey) => setSort((s) => nextSort(s, key))
+  const rows = sort ? sortRows(orders, orderValue[sort.key], sort.dir) : orders
   return (
     <table className={styles.list} aria-label={label}>
       <thead>
         <tr>
-          <th scope="col">Supplier</th>
-          <th scope="col" className={styles.num}>Lines</th>
-          <th scope="col" className={styles.num}>Confident</th>
-          <th scope="col" className={styles.num}>To review</th>
-          <th scope="col" className={styles.num}>Questions</th>
-          <th scope="col" className={styles.num}>Estimate</th>
+          <SortHeader sortKey="supplier" sort={sort} onSort={onSort}>Supplier</SortHeader>
+          <SortHeader sortKey="lines" sort={sort} onSort={onSort} numeric className={styles.num}>Lines</SortHeader>
+          <SortHeader sortKey="confident" sort={sort} onSort={onSort} numeric className={styles.num}>Confident</SortHeader>
+          <SortHeader sortKey="review" sort={sort} onSort={onSort} numeric className={styles.num}>To review</SortHeader>
+          <SortHeader sortKey="questions" sort={sort} onSort={onSort} numeric className={styles.num}>Questions</SortHeader>
+          <SortHeader sortKey="total" sort={sort} onSort={onSort} numeric className={styles.num}>Estimate</SortHeader>
           <th scope="col"><span className="visually-hidden">Open</span></th>
         </tr>
       </thead>
       <tbody>
-        {orders.map((o) => {
+        {rows.map((o) => {
           const note = orderNote(o)
           return (
             <tr key={o.id}>

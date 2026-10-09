@@ -1,0 +1,55 @@
+/* Search: a quiet utility in the top bar, and one command-style dialog. */
+.trigger {
+  display: inline-flex; align-items: center; gap: var(--sp-2); min-height: 40px; padding: 0 var(--sp-2);
+  border: 0; border-radius: var(--r-md); background: none; color: var(--ink-2); font: inherit; font-size: 14px; cursor: pointer;
+}
+.trigger:hover { color: var(--ink); }
+.trigger .kbd { margin-left: var(--sp-2); }
+.iconButton {
+  width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: var(--r-md);
+  background: none; color: var(--ink-2); cursor: pointer;
+}
+.iconButton:hover { background: var(--subtle); color: var(--ink); }
+.kbd {
+  display: inline-block; min-width: 20px; padding: 1px 6px; border: 1px solid var(--line); border-radius: var(--r-sm);
+  background: var(--surface); font-family: inherit; font-size: 12px; line-height: 18px; color: var(--ink-3); text-align: center;
+}
+
+.dialog {
+  margin: 12vh auto auto; padding: 0; border: 1px solid var(--line); border-radius: var(--r-lg);
+  width: min(640px, calc(100vw - 32px)); max-height: min(560px, 76vh);
+  background: var(--surface); color: var(--ink); box-shadow: var(--sh-3);
+}
+.dialog[open] { display: flex; flex-direction: column; }
+.dialog::backdrop { background: var(--scrim); }
+.field { display: flex; align-items: center; gap: var(--sp-3); padding: 0 var(--sp-4); border-bottom: 1px solid var(--line); color: var(--ink-3); }
+.input {
+  flex: 1; min-width: 0; height: 56px; border: 0; background: none; outline: none;
+  font: inherit; font-size: 16px; color: var(--ink);
+}
+.input::placeholder { color: var(--ink-3); }
+.results { flex: 1; min-height: 0; overflow-y: auto; padding: var(--sp-2); }
+.group + .group { margin-top: var(--sp-2); }
+.groupLabel { padding: var(--sp-2) var(--sp-3) 4px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink-3); }
+.result {
+  display: flex; align-items: center; gap: var(--sp-3); padding: 8px var(--sp-3); border-radius: var(--r-md);
+  color: var(--ink-3); cursor: pointer;
+}
+.result svg { flex: none; opacity: 0; }
+.active { background: var(--accent-wash); }
+.active svg { opacity: 1; color: var(--accent); }
+.resultText { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.resultTitle { font-size: 15px; line-height: 22px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.resultDetail { font-size: 13px; line-height: 18px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.empty { padding: var(--sp-5) var(--sp-3); font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.foot {
+  display: flex; align-items: center; gap: 4px; padding: var(--sp-2) var(--sp-4); border-top: 1px solid var(--line);
+  font-size: 12px; line-height: 18px; color: var(--ink-3);
+}
+
+@media (max-width: 640px) {
+  .dialog { margin-top: var(--sp-3); max-height: calc(100dvh - 24px); }
+  .foot { display: none; }
+}
+/* The dialog itself shows where focus is; the field needs no extra ring. */
+.input:focus, .input:focus-visible { outline: none; box-shadow: none; }

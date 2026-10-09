@@ -1,3 +1,4 @@
+import { sortRows, type SortState } from '@/ui/sorting'
 import { EXAMPLE_EXCESS_WEEKS } from './excess'
 import type { Condition, CoverageUnit, InventoryItemView, Measure } from './types'
 
@@ -104,7 +105,7 @@ export function topWithOther(groups: Group[], n: number): Group[] {
 }
 
 export type SortKey = 'product' | 'onHand' | 'value' | 'coverage'
-export type Sort = { key: SortKey; dir: 'asc' | 'desc' }
+export type Sort = SortState<SortKey>
 
 /** Sort rows; items that aren't selling have the longest coverage. */
 export function sortItems(items: InventoryItemView[], sort: Sort, locationId: string | null): InventoryItemView[] {
@@ -116,12 +117,7 @@ export function sortItems(items: InventoryItemView[], sort: Sort, locationId: st
       case 'coverage': return coverWeeks(onHandAt(i, locationId), perWeekAt(i, locationId)) ?? Number.POSITIVE_INFINITY
     }
   }
-  const dir = sort.dir === 'asc' ? 1 : -1
-  return [...items].sort((a, b) => {
-    const x = k(a), y = k(b)
-    const c = typeof x === 'string' ? x.localeCompare(y as string) : x === y ? 0 : x < (y as number) ? -1 : 1
-    return c * dir || a.product.localeCompare(b.product)
-  })
+  return sortRows(items, k, sort.dir, (a, b) => a.product.localeCompare(b.product))
 }
 
 /** Matches the product description, brand, and the hidden part numbers and UPCs. */

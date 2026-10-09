@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: 'Inventory' }
  * brand and category) and the items behind it. Example data only for now,
  * spread across the retailer's own stocking locations.
  */
-export default async function InventoryPage() {
+export default async function InventoryPage({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
   if (!isDemoPreviewEnabled()) {
     return (
       <Placeholder
@@ -24,12 +24,15 @@ export default async function InventoryPage() {
     )
   }
   const { db, organization } = await requireOrganization()
+  // From global search: open already searched for one product.
+  const { q } = await searchParams
   const locations = (await listLocations(db, organization.id))
     .filter((l) => l.status === 'active' && l.stocks)
     .map((l) => ({ id: l.id, name: l.name }))
   return (
     <InventoryFrame>
-      <InventoryView items={demoInventory(locations)} locations={locations} trends={demoInventoryTrends} />
+      <InventoryView items={demoInventory(locations)} locations={locations} trends={demoInventoryTrends}
+        initialQuery={typeof q === 'string' ? q.slice(0, 100) : ''} />
     </InventoryFrame>
   )
 }
