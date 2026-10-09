@@ -449,6 +449,33 @@ state reads as new again. Nothing is invented to fill the panel.
   stored yet, so outside example data only new questions can appear. Each
   source turns on as its data becomes real.
 
+## Catalog, sourcing and order creation (proposed, not approved)
+
+The shared Catalog, product identity and provenance, catalog matching,
+product lineage, order creation from several entry points, and sourcing
+optimization ("what to buy" vs "how to buy") are reviewed against this
+schema in [`catalog.md`](catalog.md). The foundation already separates
+identity (`product`), a supplier's offer (`supplier_item`) and observed price
+and warehouse availability (`supplier_offer_observation`). The review finds
+these conflicts with the new requirements, each awaiting a decision:
+
+- **Names**: the schema's `product_group` is the Product (model) and
+  `product` is the Variant.
+- **The model grouping is optional**: a Variant need not belong to a
+  Product today.
+- **POS draft orders can't be imported**: a POS-origin `purchase_order`
+  must already be submitted.
+- **Supplier content may be shared too widely**: catalog content received
+  through one retailer's connection is global today.
+- **No home for sourcing decisions**: nothing records a "how to buy"
+  decision.
+- **Lineage types**: they overlap (`replaced_by` is the inverse of
+  `successor`), and lineage exists between Variants only.
+
+Identifier types are also closed by a CHECK constraint, attributes have no
+definitions, and canonical product fields don't record their source. Nothing
+here is built or migrated until approved.
+
 ## Recorded for later (no schema change yet)
 
 - **Recommendation confidence** becomes structured data in an additive
@@ -480,7 +507,8 @@ state reads as new again. Nothing is invented to fill the panel.
 
 Supplier logins and supplier-side access, retailer→supplier data-sharing
 grants, program audience lists, industry-intelligence aggregate tables,
-outcome/metrics tables, supplier account numbers per location, lost-sales
+outcome/metrics tables, supplier account numbers per location, the
+retailer-facing Catalog and sourcing optimization (see `catalog.md`), lost-sales
 capture, order transmission to suppliers/POS (the order page shows what it
 will do; see "Supplier orders"), freight calculation, payments, invoicing
 and receiving. Each can be added without
