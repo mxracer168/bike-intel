@@ -23,7 +23,6 @@ export function FitScore({ fit }: { fit: ProgramFitView }) {
 export function ProgramFit({ fit, retailerName, programName }: { fit: ProgramFitView; retailerName: string; programName: string }) {
   const [open, setOpen] = useState(false)
   const id = useId()
-  const score = formatFit(fit.score)
   return (
     <>
       <button type="button" className={styles.fitWhy} aria-expanded={open} aria-controls={id}
@@ -31,19 +30,28 @@ export function ProgramFit({ fit, retailerName, programName }: { fit: ProgramFit
         {open ? 'Hide why' : 'Why this fit?'}
       </button>
       <section id={id} hidden={!open} className={[styles.fitDetail, motion.reveal, motion.surface].join(' ')} aria-label={`Why ${programName} fits`}>
-        <p className={styles.fitTitle}>Why this is a {score} fit for {retailerName}</p>
-        <dl className={styles.fitFactors}>
-          {fit.factors.map((f) => (
-            <div key={f.title}><dt>{f.title}</dt><dd>{f.detail}</dd></div>
-          ))}
-        </dl>
-        {fit.summary && <p className={styles.fitSummary}>{fit.summary}</p>}
-        <p className={styles.fitTrust}>
-          Program fit is personalized to your business using your sales history, inventory, supplier terms,
-          seasonality and business context. Another retailer may see a different fit for the same program.
-          Supplier payments or sponsorship never affect the score.
-        </p>
+        <FitExplanation fit={fit} retailerName={retailerName} />
       </section>
+    </>
+  )
+}
+
+/** The reasons behind a fit and the trust statement; shared by supplier pages and the program page. */
+export function FitExplanation({ fit, retailerName }: { fit: ProgramFitView; retailerName: string }) {
+  return (
+    <>
+      <p className={styles.fitTitle}>Why this is a {formatFit(fit.score)} fit for {retailerName}</p>
+      <dl className={styles.fitFactors}>
+        {fit.factors.map((f) => (
+          <div key={f.title}><dt>{f.title}</dt><dd>{f.detail}</dd></div>
+        ))}
+      </dl>
+      {fit.summary && <p className={styles.fitSummary}>{fit.summary}</p>}
+      <p className={styles.fitTrust}>
+        Program fit is personalized to your business using your sales history, inventory, supplier terms,
+        seasonality and business context. Another retailer may see a different fit for the same program.
+        Supplier payments or sponsorship never affect the score.
+      </p>
     </>
   )
 }

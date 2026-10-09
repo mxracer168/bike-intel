@@ -14,6 +14,8 @@ const ALLOWED = new Set([
   'src/app/(app)/insights/page.tsx',
   'src/app/(app)/orders/page.tsx',
   'src/app/(app)/orders/[orderId]/page.tsx',
+  'src/app/(app)/programs/page.tsx',
+  'src/app/(app)/programs/[programId]/page.tsx',
   'src/app/(app)/suppliers/page.tsx',
   'src/app/(app)/suppliers/[supplierId]/page.tsx',
   'src/app/(app)/connections/page.tsx',

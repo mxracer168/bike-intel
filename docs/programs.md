@@ -49,12 +49,34 @@ demo suppliers. Northline shows the full range on one page: 4.6, 4.2 and a
 for this retailer (large, early commitment against current stock). Real supplier pages show no fit yet. Nothing is computed or
 stored.
 
-## Later (not built)
+## The Programs pages
 
-- **Programs page ordering.** The Programs page may sort or prioritize the
-  programs a retailer is eligible for by their Program fit, e.g.
-  Winter service parts 4.8, Tire pre-season 4.4, Spring booking 3.2. The
-  supplier page shows the score, not the rank.
+- **Programs** (`/programs`): every program the retailer can see, best
+  Program fit first (programs without a fit after, by name). One card each:
+  supplier and name, the fit, the estimated benefit, then commitment and
+  closing date. The supplier page shows the score, never the rank.
+- **A program** (`/programs/{id}`): supplier and closing date, the name,
+  season and delivery; the assessment (fit, a one-line verdict, the
+  estimated benefit, commitment, payment terms and cash impact, with
+  "Why this fit?" opening the same reasons and trust statement as the
+  supplier page); the decision brief (the strongest reasons for and
+  against); and negotiating points.
+- **Negotiating points**: the retailer picks the changes that matter and adds
+  a note; "Prepare feedback" writes a plain message to their rep, which
+  they copy or open in their own email (`mailto:`, addressed to the rep
+  when the supplier page lists one). Nothing is stored or sent for them.
+- **Real data** (`src/domain/programs`): the retailer's own programs and the
+  ones suppliers publish, as row-level security allows. A published program
+  the retailer has confirmed as the same as their own copy shows once, as
+  their copy. The terms come from the newest confirmed version, else the
+  newest draft (marked as not yet checked). Real programs have no fit or
+  analysis yet, so their page shows the stored terms and says fit isn't
+  available. Example programs (`src/demo/programs.ts`) carry the demo
+  suppliers' fit and a hand-written analysis.
+- Not built: building a program order from the page (the Figma design's
+  "Build program order"), which waits on program orders.
+
+## Later (not built)
 - **Scoring.** A fit comes from factors such as demand for the program's
   categories, timing against the retailer's seasonality, the economics
   against their normal terms, the size of the commitment against their
