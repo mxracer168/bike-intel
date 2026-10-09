@@ -78,8 +78,10 @@ email + password and email confirmation.
 
 - **Three database access paths.** Server code acting as the signed-in user
   (`lib/supabase/server.ts`, RLS applies); a server-only admin client
-  (`lib/supabase/admin.ts`, marked `server-only`) used solely for
-  organization bootstrap; and no database access from browser code at all.
+  (`lib/supabase/admin.ts`, marked `server-only`) used for organization
+  bootstrap and, once built, inside the catalog ingestion boundary only
+  (approved 2026-10-09, see `catalog.md`); and no database access from
+  browser code at all.
 - **Organization bootstrap** is one transaction in the database function
   `bootstrap_retailer_organization`, callable only with the service role.
   Duplicate submissions are prevented by a per-request key
@@ -474,6 +476,13 @@ prepared migration and the proposed first implementation slice are in
 - No application code reads the catalog tables yet, so the app works
   before and after they are applied.
 - `database.types.ts` is regenerated after the apply.
+- The migrations are applied only after a real supplier file has been
+  profiled against them.
+- Catalog import (approved): a server-only ingestion boundary may use the
+  privileged server credential, after normal authentication and an owner
+  or admin check. Every tenant boundary is resolved server-side, never
+  taken from the client. This is the credential's only use besides
+  organization bootstrap.
 
 In short:
 

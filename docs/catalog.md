@@ -885,22 +885,60 @@ written to the database:
 - Sourcing plans.
 - Supplier APIs.
 
-### Decisions needed before the slice starts
+### Decisions for the slice (approved 2026-10-09)
 
-1. **The supplier and a real sample file** (blocking), with confirmation
-   that our terms cover storing and processing it for that retailer.
-2. **The server write path for catalog data.** Catalog tables are written
-   server-side only, and today the admin client is used only for
-   organization bootstrap. Recommended: a server-only ingestion module
-   that uses the admin client.
-   - It runs only after verifying the user is an owner or admin of the
-     organization.
-   - Every row it writes is scoped to that organization and its
-     connection.
-   - Tests cover the scoping, and the existing secret-leak check keeps
-     the module out of browser bundles.
-   - This is the second approved use of the admin client, so it needs
-     your approval.
-3. **Who may import:** owners and admins (recommended).
-4. **Uncategorized items:** allowed, searchable, and shown under "Other"
-   in navigation until mapped (recommended).
+1. **The supplier and a real sample file.** Still to come. The prepared
+   migrations stay unapplied until that file has been profiled against the
+   model (next step below).
+2. **Server-side catalog import (approved).** A server-only ingestion
+   module may use the existing privileged server credential, narrowly
+   encapsulated in that boundary:
+   - The credential is never exposed to the client. The existing
+     secret-leak checks stay in place.
+   - The requesting user is authenticated normally first.
+   - Organization membership and an owner or admin role are verified
+     before any privileged catalog write.
+   - Every imported record is scoped explicitly to the authorized
+     organization, and its supplier relationship and connection, as the
+     rights model requires.
+   - Organization, supplier, connection and other tenant boundaries are
+     never trusted because the client submitted them. They are resolved
+     server-side from the authenticated user's own memberships and
+     records.
+   - Tests cover cross-tenant and role-escalation attempts through the
+     import path.
+3. **Who may import (approved):** owners and admins only in V1.
+4. **Uncategorized products (approved).**
+   - Products that can't yet be mapped into the taxonomy still import and
+     stay searchable.
+   - "Uncategorized" is a data state (`product.category_id` is null), not
+     a category.
+   - The UI may group them as "Other", but no catch-all "Other" category
+     is created in the taxonomy.
+
+### Next step: pressure-test against a real supplier file
+
+Before the migrations are applied, a representative real supplier export
+or feed will be profiled. It is not imported.
+
+The review covers:
+- the source's actual structure, mapped onto Product → Variant → Supplier
+  offer → Observation;
+- identifiers and how complete they are;
+- how brand or manufacturer is represented;
+- how Products and Variants appear;
+- category structure, attributes, and pack/UOM behavior;
+- pricing, and availability or warehouse data;
+- descriptions and other content;
+- the source identifiers we must keep;
+- what is missing or ambiguous.
+
+Unfamiliar fields are reported, not silently normalized or dropped. The
+review then states:
+- which schema assumptions the data disproves or makes questionable;
+- the smallest schema changes needed, if any;
+- what can be imported confidently, what needs mapping, and what should
+  stay raw source data at first.
+
+If the file exposes no problem with the prepared schema, the review says
+so. The file itself is never committed to the repository.
