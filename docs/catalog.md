@@ -1,8 +1,8 @@
 # Catalog, sourcing and order creation
 
-**Status: architecture approved (decisions D1–D8, 2026-10-09). Adjustments
-G1–G5 from the first Catalog exploration are proposed and await approval.
-Not built, not migrated.**
+**Status: architecture approved (decisions D1–D8 and pressure-test
+adjustments G1–G5, 2026-10-09). The first catalog source and the V1
+taxonomy seed are proposed below. Not built, not migrated.**
 
 This file is the reference for the shared Catalog, product identity and
 provenance, catalog matching, product lineage, order creation and
@@ -208,14 +208,14 @@ those layers, with progressive disclosure, never as a hero or a work queue.
   now, on hand). Nothing ships as a vague "Recommended"; any intelligent
   ranking later must be explainable. No ranking algorithm is locked in.
 
-### Gaps exposed, and the smallest durable change for each
+### Gaps exposed, and the approved change for each (G1–G5, approved 2026-10-09)
 
-**G1. Product-level vs Variant-level recommendations (needs a change).**
+**G1. Product-level vs Variant-level recommendations (approved).**
 Today `recommendation_line` has one product reference, which after D1 means
 a Variant. It can say "18 of the 29 × 2.4 Black", and "allocate across
 Variants" only as unconnected lines. It cannot say "18 across this tire"
 without naming a Variant, and it can't tie an allocation back to the
-family need it splits. Proposed, folded into the D1 renames:
+family need it splits. Approved, folded into the D1 renames:
 - `recommendation_line.product_id`: the Product, always set.
 - `recommendation_line.variant_id`: nullable.
 - `recommendation_line.parent_line_id`: nullable, so a Variant line can
@@ -238,9 +238,24 @@ show, e.g. "18 across this tire" beside a Variant picker, never "18" alone.
 Converting to ordering units belongs to the sourcing plan line, because
 packs differ by offer.
 
+**History is never rewritten.** The retailer's final quantities don't
+have to match the recommendation, and nothing changes the recommendation
+to make them match. Buying Intelligence may recommend 18 across a Product,
+and the retailer may order 16 or 20. Three records stay comparable:
+- **The recommendation**: the Product-level line, immutable.
+- **The system's proposed allocation, if any**: its Variant child lines,
+  also immutable. Nothing requires them to sum to the parent's quantity.
+- **The retailer's decision and outcome**: order lines for Variants, with
+  working, approved and submitted quantities.
+  - Each order line references the recommendation line it came from. That
+    is either the system's Variant allocation line, or the Product-level
+    line when the retailer chose the Variants themselves.
+  - Agreement is measured at both levels: per Variant where an allocation
+    existed, and summed across the Product.
+
 No size-run or allocation engine is designed here.
 
-**G2. Unit cost vs landed economics (needs a rule, small change later).**
+**G2. Unit cost vs landed economics (approved).**
 These are three different things, kept apart:
 - **Supplier unit cost** is an observation of one offer: per ordering
   unit, per relationship, with a price type and a time. It's already
@@ -256,7 +271,7 @@ option $81.20" is a sourcing result for this retailer's current basket and
 working orders. When freight is free, landed unit cost equals unit cost,
 but the plan records both.
 
-Proposed for the sourcing migration, on each `sourcing_plan_line`:
+For the sourcing migration, on each `sourcing_plan_line`:
 - the observed unit cost and pack;
 - cost per canonical unit;
 - allocated freight;
@@ -265,15 +280,18 @@ Proposed for the sourcing migration, on each `sourcing_plan_line`:
 On the plan and per target order: order subtotal, threshold gap, and
 estimated freight.
 
-Offers in different packs (a box of 10 tubes vs single tubes) are compared
-per canonical unit.
+**Normalization comes first.** Pack and UOM are normalized to a
+comparable canonical unit before any supplier economics are compared. A
+box of 10 tubes and a single tube are compared per tube. An offer whose
+pack can't be normalized (`uom_normalization = 'needs_review'`) is shown
+but never ranked against the others.
 
 The landed-cost engine itself is not designed here.
 
-**G3. Category-specific, inherited facets (needs a small change).** A
+**G3. Category-specific, inherited facets (approved).** A
 single `attribute_definition.scope` can't express "applies to Tires and
 everything under it, filterable, third in the rail, and a variant axis
-here but not there". Proposed for the catalog migration:
+here but not there". For the catalog migration:
 - **`attribute_definition`** describes the attribute itself:
   - key, label, data type, unit;
   - allowed values or value normalization;
@@ -287,6 +305,10 @@ here but not there". Proposed for the catalog migration:
   - A child category may override what it inherits (e.g. hide or
     re-order a facet).
 
+**`facet_priority` is guidance, not a fixed order.** Discovery may
+reorder or emphasize facets for the current query, result set or context.
+Nothing in the schema fixes the filter rail.
+
 Necessary now: the two tables, inheritance down the tree, and the
 filterable, variant-axis and priority flags. Flexible: value
 normalization depth, "required" attributes, multi-category listing,
@@ -296,13 +318,14 @@ collections.
 **Category belongs to the Product.** After D1, `product_variant` drops its
 own `category_id`, so the two can't disagree.
 
-**G4. Dynamic facets and retailer context in discovery (an index
-requirement, not schema).**
+**G4. Dynamic facets and retailer context in discovery (approved; an
+index requirement, not schema).**
 - **Dynamic facets.** Counts that change with the result set, values that
   disappear, and more specific facets as the retailer narrows are search
   behaviors.
   - Facets are chosen from the `category_attribute` rows that apply to the
-    categories present in the current results, ordered by priority.
+    categories present in the current results. Priority is a starting
+    point the search layer may override.
   - Counts come from the index.
   - Counts are per collapsed result (a Product), unless the retailer is
     filtering on a variant axis.
@@ -316,11 +339,16 @@ requirement, not schema).**
   - open recommendation lines.
 
   They are joined at the Product and Variant through `product_match`.
-  Proposed: a **derived, rebuildable per-retailer signal overlay**, keyed
+  - The shared Catalog answers what a product is, which Variants exist,
+    who legitimately offers it, and what describes it.
+  - The overlay answers what it means to this retailer right now.
+
+  A **derived, rebuildable per-retailer signal overlay**, keyed
   by organization and Product/Variant. It is refreshed on sync, protected
   by RLS and never a source of truth. Discovery combines it with the
   canonical index at query time, so canonical documents stay shared and
-  nothing leaks across retailers.
+  nothing leaks across retailers. Source rights and retailer-data
+  boundaries apply to the overlay as to everything else.
   - Belongs to the first implementation slice, not the catalog migration.
 - **Engine.** Postgres (full-text plus jsonb attribute indexes plus facet
   counting queries) is enough for the first catalog sizes. Choosing a
@@ -329,15 +357,16 @@ requirement, not schema).**
   - It must support per-tenant filtering, faceted counts and result
     collapsing (grouping Variants under their Product).
 
-**G5. A sourcing recommendation on a product page is a preview (needs a
-rule).** The product page computes the best option for this item against
-the retailer's current working orders. Proposed:
+**G5. A sourcing recommendation on a product page is a preview
+(approved).** The product page computes the best option for this item
+against the retailer's current working orders. A preview is a
+computation, not a durable record:
 - That preview is computed on demand.
 - It is persisted as a `sourcing_plan` only when the retailer acts on it
   (adds to an order), or when the system proposes orders.
 
-The explanation behind an action is then always kept, without storing
-every page view.
+Viewing a product page never creates a sourcing plan. The explanation
+behind an action is always kept.
 
 ### The model after the pressure test
 
@@ -448,15 +477,15 @@ tables hold no data and no application code reads them yet.
 2. **Required Product** (D2): `product_variant.product_id not null`.
    Category lives on the Product only (`product_variant.category_id`
    dropped, G3).
-2a. **Recommendation scope** (G1, proposed): `recommendation_line` gets
+2a. **Recommendation scope** (G1): `recommendation_line` gets
    `product_id` (required), `variant_id` (nullable) and `parent_line_id`
-   (nullable). A line without a supplier is in canonical units.
+   (nullable). A line without a supplier is in canonical units. There is
+   no sum constraint between parent and children.
 3. **Identifiers.**
    - The closed CHECK becomes an `identifier_type` reference table.
    - An identifier attaches to a Product or a Variant.
    - It records the source record, import batch and source rights.
-4. **`attribute_definition`** and **`category_attribute`** (G3,
-   proposed shape).
+4. **`attribute_definition`** and **`category_attribute`** (G3).
    - The definition: key, label, data type, unit, allowed values or
      normalization, industry.
    - The category link, inherited by descendants and overridable: whether
@@ -533,22 +562,157 @@ tables hold no data and no application code reads them yet.
 
 ## Before building the retailer-facing Catalog
 
-These must be settled first:
+Two things remain before the first implementation slice is authorized.
 
-1. **The first catalog source and its rights.** Which supplier feeds or
-   licensed data will populate the shared catalog, and are we allowed to
-   use them platform-wide? Until a platform-usable source exists, every
-   retailer's Catalog is only what their own connections provide, and
-   "Also sold by" has nothing it may show.
-2. **The first industry taxonomy and attribute definitions.** Categories
-   and variant axes for bicycles, parts and accessories, enough to facet
-   and to collapse Variants.
-3. **The catalog migration applied** (items 1–9). These are renames and
-   new tables only, but they need your manual apply like every migration.
-4. **The pressure-test adjustments** (G1–G5 above) approved, so the
-   catalog migration includes recommendation scope, `category_attribute`
-   and category on the Product.
-5. **The search approach for V1.** Postgres full-text with a facet table
-   is enough to start. The per-context index (global vs supplier-scoped,
-   rights-filtered) and the per-retailer signal overlay (G4) must be built
-   before the UI.
+### 1. The first catalog source and our rights to it (proposed)
+
+Because the default rights setting is **restricted**, building the Catalog
+does not have to wait for the commercial and legal policy. A first source
+that arrives through one retailer's own connection is restricted to that
+retailer, which the architecture already enforces. What that retailer sees
+is then accurate and theirs alone.
+
+**Needed before implementation:**
+- **One real supplier catalog to build against.** A distributor's dealer
+  feed or export, in the form it really arrives (API, CSV or Excel), with
+  a representative sample. It should include UPC/EAN, MPN, brand, variant
+  attributes and pack quantities. Real files are messy in ways invented
+  ones aren't.
+- **Confirmation that our terms let us store and process it for that
+  retailer**, and for how long. This sets the connection's retention and
+  marks it restricted. No platform-wide right is needed for V1.
+- **A second supplier for the same retailer**, as soon as possible.
+  Supplier comparison, matching across suppliers and "best landed option"
+  only mean something when two offers of one Variant are visible to the
+  same retailer. Until a second real source exists, comparison is shown
+  with example data.
+- **Example data for previews stays in `src/demo`.** A fictional catalog
+  with three suppliers and overlapping offers exercises every screen, and
+  is never written to the database (unchanged rule).
+
+**Can develop incrementally after the Catalog exists:**
+- platform-usable sources: supplier partnerships, licensed or manufacturer
+  data, GS1-style identifier data;
+- the legal review of each source;
+- "Also sold by · Not connected", which has nothing to show until a
+  platform-usable source exists;
+- more suppliers and matching quality;
+- the steward review tool;
+- images, where source rights for media are often different from text.
+
+### 2. The V1 taxonomy and attribute seed (proposed)
+
+Categories and attribute definitions are **platform reference data**, not
+example data. They are seeded by a migration or seed script and grow over
+time. Products are never seeded; they come from sources, or from
+`src/demo` for previews.
+
+The seed is deliberately small, but covers every case the architecture
+must handle: depth, single-Variant and multi-Variant Products, sparse
+variant matrices, pack-size offers, attributes reused across categories,
+inherited and overridden facets, a variant axis that isn't size or color,
+items many distributors sell, and items one brand sells direct.
+
+**Categories (industry `bicycle`)**
+
+```
+Components
+  Tires
+  Tubes
+  Drivetrain
+    Chains
+    Cassettes
+  Brakes
+    Brake pads
+Apparel & Protection
+  Helmets
+  Shoes
+Bikes
+  Mountain
+  Gravel
+Maintenance
+  Lubricants
+```
+
+That is 15 categories, three levels deep at most. Bikes > Mountain and
+Bikes > Gravel are siblings that share most facets.
+
+**Attribute definitions (18)**
+
+| Key | Type | Notes |
+|---|---|---|
+| `wheel_size` | enum | Stored as the ISO bead-seat diameter (622, 584, 559, 406), shown as "29″ / 700c", "27.5″", "26″", "20″". The one normalization worth locking in early. |
+| `tire_width_mm` | number | Stored in mm, shown as the source wrote it (2.4″ or 40 mm) |
+| `tire_type` | enum | Clincher, tubeless-ready, tubular |
+| `tubeless_compatible` | boolean | |
+| `valve_type` | enum | Presta, Schrader, Dunlop |
+| `valve_length_mm` | number | |
+| `drivetrain_speed` | integer | 9–13 |
+| `cassette_range` | text | e.g. "10–51t" |
+| `pad_compound` | enum | Resin, metallic, semi-metallic |
+| `color` | enum + source name | Normalized color family, with the supplier's color name kept |
+| `helmet_size` | enum | S, M, L, XL (each with a cm range) |
+| `shoe_size_eu` | number | 36–48, half sizes allowed |
+| `frame_size` | enum | XS–XL, plus source size labels |
+| `discipline` | enum | Road, mountain, gravel, urban. Reused by helmets, shoes and bikes |
+| `closure_type` | enum | Dial, laces, straps |
+| `rotational_protection` | boolean | Helmets |
+| `frame_material` | enum | Aluminum, carbon, steel, titanium |
+| `volume_ml` | number | Lubricants |
+
+**Applied to categories** (✱ = variant-defining; others filterable).
+Brand, supplier, availability and the retailer overlay states are system
+facets everywhere, not attributes.
+
+| Category | Attributes |
+|---|---|
+| Tires | `wheel_size` ✱, `tire_width_mm` ✱, `color` ✱ (sidewall), `tire_type`, `tubeless_compatible`, `discipline` |
+| Tubes | `wheel_size` ✱, `tire_width_mm` ✱ (range), `valve_type` ✱, `valve_length_mm` ✱ |
+| Drivetrain (inherited by Chains, Cassettes) | `drivetrain_speed` |
+| Cassettes | `cassette_range` ✱ |
+| Brake pads | `pad_compound` (single-Variant products) |
+| Apparel & Protection (inherited) | `discipline`, `color` ✱ |
+| Helmets | `helmet_size` ✱, `rotational_protection` |
+| Shoes | `shoe_size_eu` ✱, `closure_type` |
+| Bikes (inherited by Mountain, Gravel) | `frame_size` ✱, `color` ✱, `wheel_size`, `frame_material`, `discipline` |
+| Gravel | overrides: `discipline` hidden (always gravel) |
+| Lubricants | `volume_ml` ✱ |
+
+**What each part exercises**
+
+- **Single-Variant Products:** chains (one per speed) and brake pads.
+- **Sparse multi-Variant Products:** a tire family where not every wheel
+  size × width × color combination exists.
+- **Pack sizes and offers:** chains sold singly and in a workshop
+  25-pack, and tubes singly and in a box of 10. These are the same Variant
+  in different offers, compared per canonical unit (G2).
+- **A variant axis that isn't size or color:** lubricant volume, which is
+  also a non-"each" unit.
+- **Inheritance and override:** Drivetrain → Chains/Cassettes,
+  Apparel & Protection → Helmets/Shoes, and the Gravel override.
+- **Supplier comparison:** tires, tubes, chains, pads and lube are carried
+  by several distributors. Bikes and helmets are sold by one brand direct.
+- **The example dataset in `src/demo`:** about 40 Products and 200
+  Variants across three suppliers, including the free-freight case from
+  the exploration.
+
+**Needed before implementation:**
+- your approval of this seed: the categories, the 18 definitions, and
+  which attributes define variants;
+- one decision, to store wheel size as ISO bead-seat diameter and widths in
+  mm (recommended). Everything else can change later without migrations,
+  because definitions are data.
+
+**Can grow incrementally:**
+- more categories (e-bikes, wheels, lights, nutrition, service parts);
+- value normalization depth;
+- compatibility (which pads fit which brakes), a separate concept, not
+  an attribute, and deferred;
+- mapping supplier category text to our taxonomy;
+- multi-category listing and merchandising collections;
+- localized labels.
+
+### Then
+
+Once both are settled, the catalog migration (items 1–9, 2a) can be
+written for your manual apply, and the first implementation slice planned.

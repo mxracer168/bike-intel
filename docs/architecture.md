@@ -490,14 +490,19 @@ migrated yet. In short:
 - **What vs how.** A recommendation is the need. A new immutable sourcing
   plan is the decision about how to fill it, across suppliers, orders,
   freight and programs, with alternatives and a plain explanation.
-- **Pressure-tested against the first Catalog exploration** (proposed
-  adjustments G1–G5 in `catalog.md`, awaiting approval):
+- **Pressure-tested against the first Catalog exploration** (adjustments
+  G1–G5 in `catalog.md`, approved 2026-10-09):
   - Catalog becomes a top-level destination between Orders and Inventory.
     It answers "What can I buy?"; Today keeps "What deserves my
     attention?".
   - Recommendations name their scope: a Product across Variants, one
     Variant, or an allocation of a Product-level need.
+  - The recommendation, the proposed allocation and the retailer's final
+    quantities are kept and compared, never rewritten to match.
   - Landed cost exists only inside a sourcing decision, never on an offer.
+    Packs are normalized to a comparable unit before offers are compared.
+  - A product page's sourcing preview is computed, and becomes a sourcing
+    plan only when acted on.
   - Attributes apply to categories through an inherited
     `category_attribute` link, which makes facets category-specific and
     hierarchical.
