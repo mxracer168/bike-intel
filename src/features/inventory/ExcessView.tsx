@@ -6,7 +6,9 @@ import { PriceVsMarket } from '@/features/network/NetworkBits'
 import { describeComparison, unitPrice, WMV_HELP, WMV_TERM } from '@/features/network/pricing'
 import { HealthSnapshot } from '@/features/today/HealthSnapshot'
 import type { HealthMetric } from '@/features/today/types'
+import { Changed } from '@/ui/Changed'
 import { Icon } from '@/ui/Icon'
+import motion from '@/ui/Motion.module.css'
 import { InfoTip } from '@/ui/InfoTip'
 import {
   EXCESS_RULE_OPTIONS, excessRows, excessSortLabel, excessSortPreset, excessViewLabel, matchesView, presetFor, sortExcess, summarizeExcess,
@@ -65,7 +67,7 @@ function ExcessDetail({ row, ruleWeeks, onPrice, onExclude }: {
   }
 
   return (
-    <div className={styles.detail}>
+    <div className={[styles.detail, motion.reveal, motion.surface].join(' ')}>
       <section className={styles.card} aria-labelledby={`${inputId}-why`}>
         <div>
           <h3 id={`${inputId}-why`} className={styles.cardTitle}>Why this inventory is excess</h3>
@@ -109,13 +111,13 @@ function ExcessDetail({ row, ruleWeeks, onPrice, onExclude }: {
           <div>
             <dt>Gain / loss per unit</dt>
             <dd className={loss ? styles.loss : styles.gainText}>
-              {signed(row.gainPerUnit, unitPrice(Math.abs(row.gainPerUnit)))}
+              <Changed value={row.networkPrice}>{signed(row.gainPerUnit, unitPrice(Math.abs(row.gainPerUnit)))}</Changed>
               <span className={styles.pct}>{signed(Math.round(row.gainPercent), `${Math.abs(Math.round(row.gainPercent))}%`)}</span>
             </dd>
           </div>
           <div>
             <dt>Total if all sell</dt>
-            <dd className={total < -0.005 ? styles.loss : styles.gainText}>{signed(total, unitPrice(Math.abs(total)))}</dd>
+            <dd className={total < -0.005 ? styles.loss : styles.gainText}><Changed value={row.networkPrice}>{signed(total, unitPrice(Math.abs(total)))}</Changed></dd>
           </div>
         </dl>
 

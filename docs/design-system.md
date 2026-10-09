@@ -69,6 +69,30 @@ Make app itself is not copied into this repository.
   bands are uppercase metadata on the canvas color. Focused screens
   (sign-in, onboarding) use a 72px bar with the product tile and an
   optional line under the product name.
+- **The quiet intelligence layer (motion).** Motion follows causality:
+  an effect plays once, after something the retailer did (navigating,
+  choosing, opening, changing a number, saving), and moves at most a few
+  pixels. Resting screens stay still; the sidebar network is the only
+  continuous motion. One set of timings (`--motion-instant` 120ms press,
+  `--motion-fast` 180ms toggles and active states, `--motion-standard`
+  240ms disclosures and page entry, `--motion-emphasis` 360ms changed
+  numbers and confirmations; `--ease-intelligence`, `--ease-standard`) and
+  a few shared effects in `src/ui/Motion.module.css`:
+  - page entry (content settles 3px; the shell stays put; `RouteEnter`),
+  - the sidebar's current page: a slim lit rail and the icon settling once,
+  - reveal (opened disclosures, a newly chosen list),
+  - the analytical surface: a fine blue edge along the top of the one
+    analytical surface on a screen (an opened recommendation, an opened
+    inventory or excess item, Why this fit?, the chosen Insights lesson),
+  - changed numbers: a brief blue tint on the values a change affects
+    (`Changed`: order and line totals, the freight gap, gain/loss after a
+    price change), never on first render,
+  - press: 1px down on primary actions and high-value selectors,
+  - confirm: one soft green ring when something is saved (for later use).
+  Opened weekly sales bars rise once (within 250ms). Not used: looping
+  glows, particles, parallax, typewriter text, fake "thinking" delays or
+  animated charts on page load. Reduced motion turns all of it off and keeps
+  the same states.
 - **All-caps metadata.** Allowed only for small metadata and eyebrow labels
   (12px, 600, tracked .15em): the date eyebrow, a status like "Ready for
   review", small section labels like "Questions for you". Never for titles,

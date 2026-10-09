@@ -56,7 +56,7 @@
 .valueMid { font-size: var(--fs-heading); line-height: var(--lh-heading); font-weight: 600; letter-spacing: -0.015em; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
 .gap { color: var(--con); }
 .track { display: block; width: 112px; height: 4px; margin-top: 6px; border-radius: 999px; overflow: hidden; background: var(--sunken); }
-.track > span { display: block; height: 100%; border-radius: inherit; background: var(--dot-info); }
+.track > span { display: block; height: 100%; border-radius: inherit; background: var(--dot-info); transition: width var(--motion-standard) var(--ease-intelligence); }
 .done { color: var(--pos); font-weight: 600; }
 .prices { display: inline-flex; align-items: center; gap: 4px; color: var(--con); }
 .up, .down, .flat { font-weight: 600; font-variant-numeric: tabular-nums; }

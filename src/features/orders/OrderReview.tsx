@@ -10,6 +10,8 @@ import { compareToMarket, unitPrice, WMV_HELP, WMV_TERM } from '@/features/netwo
 import { ConfidenceMark } from '@/ui/Confidence'
 import { Icon } from '@/ui/Icon'
 import { InfoTip } from '@/ui/InfoTip'
+import { Changed } from '@/ui/Changed'
+import motion from '@/ui/Motion.module.css'
 import { QuantityStepper } from '@/ui/QuantityStepper'
 import { networkMatch, networkSignal, retailerLabel, supplierShort, type NetworkMatch } from './network'
 import { ActionBar, HandoffStatus, OrderGlance, OrderHeader, SubmitDialog, type OrderProgress } from './OrderHeader'
@@ -70,7 +72,7 @@ function Evidence({ title, sub, value, graphic, children }: {
       <button type="button" className={styles.evidenceHead} aria-expanded={open} aria-controls={id} onClick={() => setOpen((v) => !v)}>
         {head}<span className={styles.evidenceCaret}><Icon name="chevron-down" size={14} /></span>
       </button>
-      {open && <div id={id} className={styles.evidenceBody}>{children}</div>}
+      {open && <div id={id} className={[styles.evidenceBody, motion.reveal].join(' ')}>{children}</div>}
     </div>
   )
 }
@@ -106,7 +108,7 @@ function Recommendation({ line, quantity, setQuantity, order, weekStarts, locked
   const match = networkMatch(line.network, quantity)
   const share = (n: number) => `${calc.expectedDemand > 0 ? (n / calc.expectedDemand) * 100 : 0}%`
   return (
-    <section className={styles.rec} aria-labelledby={`${line.id}-why`}>
+    <section className={[styles.rec, motion.reveal, motion.surface].join(' ')} aria-labelledby={`${line.id}-why`}>
       <div className={styles.recMain}>
         <div className={styles.recHead}>
           <div>
@@ -116,7 +118,7 @@ function Recommendation({ line, quantity, setQuantity, order, weekStarts, locked
           <div className={styles.recMeta}>
             <ConfidenceMark level={line.confidence} />
             <span className={styles.recDot} aria-hidden="true">·</span>
-            <span>{cost(lineTotal(line, quantity), order.currency)} at {quantity}</span>
+            <span><Changed value={quantity}>{cost(lineTotal(line, quantity), order.currency)}</Changed> at {quantity}</span>
             {intelligence && (
               <button type="button" className={styles.addContext} aria-haspopup="dialog"
                 onClick={() => intelligence.open({ about: { label, productId: line.productId } })}>
@@ -200,7 +202,7 @@ function Recommendation({ line, quantity, setQuantity, order, weekStarts, locked
             </p>
           )}
         </div>
-        <p className={styles.recFootTotal}>{cost(lineTotal(line, quantity), order.currency)}</p>
+        <p className={styles.recFootTotal}><Changed value={quantity}>{cost(lineTotal(line, quantity), order.currency)}</Changed></p>
       </footer>
     </section>
   )
@@ -421,7 +423,7 @@ export function OrderReview({ order, backHref, weekStarts, example, openLine }: 
                         {q !== line.quantity && <span className={styles.was}>was {line.quantity}</span>}
                       </td>
                       <td className={[styles.num, styles.muted, styles.wide, styles.mid].join(' ')}>{line.unitCost > 0 ? cost(line.unitCost, order.currency) : <span className={styles.none}>–</span>}</td>
-                      <td className={[styles.num, styles.lineTotal].join(' ')}>{cost(lineTotal(line, q), order.currency)}</td>
+                      <td className={[styles.num, styles.lineTotal].join(' ')}><Changed value={q}>{cost(lineTotal(line, q), order.currency)}</Changed></td>
                     </tr>
                     {isOpen && (
                       <tr className={styles.detailRow} id={`${line.id}-detail`}>
@@ -438,7 +440,7 @@ export function OrderReview({ order, backHref, weekStarts, example, openLine }: 
             <tfoot>
               <tr>
                 <th scope="row" colSpan={columns - 1}>Total</th>
-                <td className={styles.num}>{cost(total, order.currency)}</td>
+                <td className={styles.num}><Changed value={total}>{cost(total, order.currency)}</Changed></td>
               </tr>
             </tfoot>
           </table>

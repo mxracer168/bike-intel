@@ -8,6 +8,9 @@
 .refLabel { position: absolute; left: 4px; font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); background: var(--surface); padding-right: 6px; pointer-events: none; }
 .axis { display: flex; justify-content: space-between; font-size: var(--fs-label); line-height: var(--lh-label); color: var(--ink-2); }
 .bar { fill: var(--accent-muted); transition: fill var(--t-fast); }
+/* The bars rise into place once, as the item opens (staggered, all within 250ms), then stay still. */
+.bar { transform-box: fill-box; transform-origin: bottom; animation: rise var(--motion-standard) var(--ease-intelligence) backwards; }
+@keyframes rise { from { opacity: .45; transform: scaleY(.2); } }
 .current { fill: var(--accent); }
 .hit { fill: transparent; cursor: default; }
 .mark { outline: none; }

@@ -7,6 +7,7 @@ import { EvidenceChart } from '@/features/recommendations/EvidenceChart'
 import { HealthSnapshot } from '@/features/today/HealthSnapshot'
 import type { HealthMetric, HealthTrend } from '@/features/today/types'
 import { Icon } from '@/ui/Icon'
+import motion from '@/ui/Motion.module.css'
 import { CompositionChart } from './CompositionChart'
 import {
   condition, conditionLabel, coverWeeks, demandLabel, demandTrend, formatCoverage, groupBy, inventoryStatus, matchesSearch,
@@ -56,9 +57,9 @@ function ItemDetail({ item, locationId, locations, coverageUnit }: {
   const multi = locations.length > 1
   const avg = average(item.weeklySales)
   return (
-    <div className={styles.detail}>
+    <div className={[styles.detail, motion.reveal].join(' ')}>
       <div className={styles.detailGrid}>
-        <section className={styles.whitePanel} aria-label="Weekly sales">
+        <section className={[styles.whitePanel, motion.surface].join(' ')} aria-label="Weekly sales">
           <EvidenceChart weeklySales={item.weeklySales} />
         </section>
         <section className={[styles.whitePanel, styles.factsPanel].join(' ')} aria-label="Details">

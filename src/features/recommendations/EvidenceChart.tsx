@@ -68,6 +68,7 @@ export function EvidenceChart({ weeklySales }: { weeklySales: number[] }) {
               >
                 <rect className={styles.hit} x={cx - slot / 2 + 1} y={M.top} width={slot - 2} height={innerH} rx={4} />
                 <path className={[styles.bar, weeksAgo === 0 && styles.current].filter(Boolean).join(' ')}
+                  style={{ animationDelay: `${Math.round((i / Math.max(1, n - 1)) * 120)}ms` }}
                   d={columnPath(cx - barW / 2, top, barW, M.top + innerH - top)} />
               </g>
             )

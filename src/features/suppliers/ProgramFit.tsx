@@ -2,6 +2,7 @@
 
 import { useId, useState } from 'react'
 import { formatFit, type ProgramFitView } from './programFit'
+import motion from '@/ui/Motion.module.css'
 import styles from './Suppliers.module.css'
 
 /** The retailer's Program fit, compact: "4.6 / 5 · Program fit". Not a review: no stars, no color. */
@@ -29,7 +30,7 @@ export function ProgramFit({ fit, retailerName, programName }: { fit: ProgramFit
         aria-label={`Why this fit? ${programName}`} onClick={() => setOpen((o) => !o)}>
         {open ? 'Hide why' : 'Why this fit?'}
       </button>
-      <section id={id} hidden={!open} className={styles.fitDetail} aria-label={`Why ${programName} fits`}>
+      <section id={id} hidden={!open} className={[styles.fitDetail, motion.reveal, motion.surface].join(' ')} aria-label={`Why ${programName} fits`}>
         <p className={styles.fitTitle}>Why this is a {score} fit for {retailerName}</p>
         <dl className={styles.fitFactors}>
           {fit.factors.map((f) => (

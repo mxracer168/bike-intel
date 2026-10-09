@@ -3,6 +3,7 @@
 import { useId, useState } from 'react'
 import { useIntelligence } from '@/features/intelligence/IntelligencePanel'
 import { Icon } from '@/ui/Icon'
+import motion from '@/ui/Motion.module.css'
 import { closer } from './outcomes'
 import type { DecisionOutcome } from './types'
 import styles from './Insights.module.css'
@@ -55,7 +56,8 @@ export function DecisionOutcomes({ decisions }: { decisions: DecisionOutcome[] }
         ))}
       </div>
 
-      <section id={listId} className={styles.outcomes} aria-labelledby={`${listId}-t`}>
+      {/* Keyed by lesson: choosing another one brings its decisions in as one unit. */}
+      <section key={group} id={listId} className={[styles.outcomes, motion.reveal, motion.surface].join(' ')} aria-labelledby={`${listId}-t`}>
         <header className={styles.outcomesHead}>
           <h3 id={`${listId}-t`} className={styles.outcomesTitle}>{lesson.title}</h3>
           <p className={styles.outcomesCount}>Showing {shown.length} of {items.length}</p>

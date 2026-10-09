@@ -42,10 +42,11 @@
 .card {
   display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0;
   padding: 20px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--sh-1);
-  transition: background var(--t-base) var(--ease), opacity var(--t-base) var(--ease);
+  transition: background-color var(--motion-fast) var(--ease-standard);
 }
 /* Not shared: the network card steps back, but its controls still work. */
 .cardOff { background: var(--subtle); }
+.money3, .priceForm { transition: opacity var(--motion-fast) var(--ease-standard); }
 .cardOff .money3, .cardOff .priceForm { opacity: .6; }
 .cardHead { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4); }
 .cardTitle { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink-strong); }
@@ -67,12 +68,12 @@
 /* On / off for other retailers. */
 .switch {
   position: relative; flex: none; width: 44px; height: 24px; border: 0; border-radius: 999px; padding: 0;
-  background: var(--line-strong); cursor: pointer; transition: background var(--t-fast) var(--ease);
+  background: var(--line-strong); cursor: pointer; transition: background-color var(--motion-fast) var(--ease-standard);
 }
 .switch[aria-checked='true'] { background: var(--accent); }
 .switch span {
   position: absolute; top: 4px; left: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); box-shadow: var(--sh-1);
-  transition: left var(--t-fast) var(--ease);
+  transition: left var(--motion-fast) var(--ease-standard);
 }
 .switch[aria-checked='true'] span { left: 24px; }
 .switch:focus-visible { box-shadow: var(--focus-ring); }

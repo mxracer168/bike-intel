@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 import { formatMoney, plural } from '@/domain/language/plain'
 import { Button } from '@/ui/Button'
+import { Changed } from '@/ui/Changed'
 import { Icon } from '@/ui/Icon'
 import { exactMoney, orderGlance, priceNote, type Comparison } from './context'
 import { handoffPlan, orderFile, submissionMethodLabel, type HandoffPlan, type HandoffSide } from './handoff'
@@ -65,7 +66,7 @@ export function OrderHeader({ order, backHref, total, lineCount, progress, onPro
       <div className={styles.end}>
         <p className={styles.total}>
           <span className={styles.totalLabel}>Order total</span>
-          <span className={styles.totalValue}>{exactMoney(total, order.currency)}</span>
+          <span className={styles.totalValue}><Changed value={total}>{exactMoney(total, order.currency)}</Changed></span>
         </p>
         {action && <Button variant="primary" onClick={action.run}>{action.label}</Button>}
       </div>
@@ -91,7 +92,7 @@ export function OrderGlance({ order, total, lineCount, progress }: {
         <div className={[styles.metric, styles.lead].join(' ')}>
           <dt>Order total</dt>
           <dd>
-            <b className={styles.value}>{exactMoney(total, order.currency)}</b>
+            <b className={styles.value}><Changed value={total}>{exactMoney(total, order.currency)}</Changed></b>
             <span>
               {plural(lineCount, 'line')} · <span className={progress.status === 'draft' ? undefined : styles.done}>{statusLabel[progress.status]}</span>
               {glance.typical && <> · <Trend c={glance.typical.comparison} /></>}
@@ -103,7 +104,7 @@ export function OrderGlance({ order, total, lineCount, progress }: {
           <div className={styles.metric}>
             <dt>Freight</dt>
             <dd>
-              <b className={[styles.valueMid, styles.gap].join(' ')}>{money(glance.freight.gap)} away</b>
+              <b className={[styles.valueMid, styles.gap].join(' ')}><Changed value={glance.freight.gap}>{money(glance.freight.gap)} away</Changed></b>
               <span>Free over {money(glance.freight.threshold)}</span>
               <span className={styles.track} aria-hidden="true">
                 <span style={{ width: `${Math.min(100, Math.round((total / glance.freight.threshold) * 100))}%` }} />
@@ -148,7 +149,7 @@ export function ActionBar({ order, total, lineCount, progress, onProgress, onRev
     <div className={styles.bar}>
       <div className={styles.barTotal}>
         <span className={styles.barLabel}>{plural(lineCount, 'line')} · {statusLabel[progress.status]}</span>
-        <span className={styles.barMoney}>{exactMoney(total, order.currency)}</span>
+        <span className={styles.barMoney}><Changed value={total}>{exactMoney(total, order.currency)}</Changed></span>
       </div>
       <Button variant="primary" onClick={action.run}>{action.label}</Button>
     </div>

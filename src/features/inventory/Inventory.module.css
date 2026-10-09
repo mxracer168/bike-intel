@@ -57,6 +57,8 @@
   color: var(--ink-3); border-radius: 6px; cursor: pointer;
 }
 .segmented button:hover { color: var(--ink); }
+.segmented button { transition: background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard), transform var(--motion-instant) var(--ease-standard); }
+.segmented button:active { transform: translateY(1px) scale(.99); }
 .segmented button[aria-pressed='true'] { background: var(--surface); color: var(--ink-strong); box-shadow: var(--sh-1); }
 
 .composition { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-2); }
@@ -67,12 +69,12 @@
   width: 100%; display: grid; grid-template-columns: 150px minmax(180px, 1fr) 100px 48px; gap: var(--sp-3);
   align-items: center; padding: var(--sp-3); border: 0; background: none; border-radius: var(--r-md);
   font-size: 14px; line-height: 20px; color: var(--ink); text-align: left; cursor: pointer;
-  transition: background var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease);
+  transition: background var(--motion-fast) var(--ease-standard), opacity var(--motion-fast) var(--ease-standard);
 }
 .barButton:hover, .barButton:focus-visible { background: var(--band-bg); }
 .barName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; color: var(--ink-2); }
 .barTrack { display: block; height: 8px; border-radius: 999px; overflow: hidden; background: var(--subtle); }
-.bar { display: block; height: 100%; border-radius: 999px; background: var(--accent-muted); transition: background var(--t-fast), width var(--t-slow) var(--ease); }
+.bar { display: block; height: 100%; border-radius: 999px; background: var(--accent-muted); transition: background var(--motion-fast) var(--ease-standard), width var(--motion-standard) var(--ease-intelligence); }
 .barButton:hover .bar, .barButton:focus-visible .bar { background: var(--inverse-fill); }
 .barValue { text-align: right; font-weight: 500; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .barShare { text-align: right; font-size: var(--fs-meta); color: var(--ink-3); font-variant-numeric: tabular-nums; }

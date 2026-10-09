@@ -63,7 +63,16 @@
 }
 .navLink svg { flex: none; }
 .navLink:hover { color: var(--nav-ink-strong); background: var(--nav-hover); }
-.navLink[aria-current='page'] { color: var(--nav-current-ink); background: var(--nav-current); box-shadow: inset 0 0 0 1px var(--nav-current-ring); }
+.navLink[aria-current='page'] { position: relative; color: var(--nav-current-ink); background: var(--nav-current); box-shadow: inset 0 0 0 1px var(--nav-current-ring); }
+/* The current page: a slim lit rail at the left edge, and the icon settling once, as it becomes current. */
+.navLink[aria-current='page']::before {
+  content: ''; position: absolute; top: 10px; bottom: 10px; left: 0; width: 2px; border-radius: 999px;
+  background: linear-gradient(180deg, var(--inverse-eyebrow), var(--brand)); box-shadow: 0 0 10px var(--signal-rail-glow);
+  animation: rail-in var(--motion-fast) var(--ease-intelligence) backwards;
+}
+.navLink[aria-current='page'] svg { animation: icon-in var(--motion-fast) var(--ease-intelligence) backwards; }
+@keyframes rail-in { from { opacity: 0; transform: scaleY(.35); } }
+@keyframes icon-in { from { opacity: .65; transform: scale(.92); } }
 .navLink:focus-visible, .brand:focus-visible, .account summary:focus-visible { box-shadow: 0 0 0 2px var(--nav-network); }
 
 /* Footer: the business's status, then the person's own account, kept distinct */

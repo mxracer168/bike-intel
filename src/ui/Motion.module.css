@@ -1,0 +1,58 @@
+/*
+ * The quiet intelligence layer: a few reusable effects, composed into
+ * components with `composes` or by class. Each plays once, after something
+ * the retailer did, and moves at most a few pixels. Resting screens stay
+ * still; the sidebar network is the only continuous motion. Reduced motion
+ * turns all of it off (src/design/base.css), leaving the same states.
+ *
+ * Fill mode is `backwards` so nothing keeps a transform once settled (a
+ * lasting transform would trap fixed or sticky descendants).
+ */
+
+/* New page content: settles 3px into place. */
+.pageEnter { animation: page-enter var(--motion-standard) var(--ease-intelligence) backwards; }
+
+/* An opened disclosure or a newly chosen list. */
+.reveal { animation: reveal var(--motion-standard) var(--ease-intelligence) backwards; }
+
+/*
+ * The one analytical surface on a screen (an opened recommendation, an
+ * opened item, the chosen lesson): a fine blue edge along the top that
+ * brightens once and settles, and a small signal point where it starts.
+ */
+.surface { position: relative; isolation: isolate; }
+.surface::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; z-index: 2; height: 1px; pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, var(--signal-edge-soft) 32%, var(--signal-edge) 50%, var(--signal-edge-soft) 68%, transparent);
+  animation: edge var(--motion-emphasis) var(--ease-intelligence) backwards;
+}
+
+/* A selected control: color, border and shadow change together. */
+.active {
+  transition:
+    border-color var(--motion-fast) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard),
+    color var(--motion-fast) var(--ease-standard),
+    opacity var(--motion-fast) var(--ease-standard);
+}
+
+/* A number that just changed because of what you did: a brief blue tint, then back. */
+.numberUpdate { display: inline-block; border-radius: 6px; animation: number-update var(--motion-emphasis) var(--ease-intelligence) backwards; }
+
+/* Something saved or learned: one soft green ring, then the normal state. */
+.confirm { animation: confirm var(--motion-emphasis) var(--ease-intelligence); }
+
+/* High-value actions: a 1px press. */
+.press { transition: transform var(--motion-instant) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+.press:active { transform: translateY(1px) scale(.99); }
+
+@keyframes page-enter { from { opacity: .96; transform: translateY(3px); } }
+@keyframes reveal { from { opacity: 0; transform: translateY(3px); } }
+@keyframes edge { from { opacity: 0; } }
+@keyframes number-update { from { color: var(--accent); background: var(--signal-tint); transform: translateY(2px); } }
+@keyframes confirm {
+  0%, 100% { box-shadow: 0 0 0 0 var(--confirm-ring-off); }
+  45% { box-shadow: 0 0 0 3px var(--confirm-ring); }
+}

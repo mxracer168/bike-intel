@@ -8,6 +8,7 @@ import type { NotificationView } from '@/features/notifications/notifications'
 import { SearchButton, SearchProvider } from '@/features/search/SearchDialog'
 import { MobileNav } from './MobileNav'
 import { NavIcon } from './NavIcon'
+import { RouteEnter } from './RouteEnter'
 import { SidebarPanel, type ShellAccount, type ShellRetailer } from './SidebarPanel'
 import styles from './AppShell.module.css'
 
@@ -70,7 +71,7 @@ export function AppShell({ retailer, account, extras, children }: {
             <AddContextButton icon />
           </span>
         </header>
-        <main id="main">{children}</main>
+        <main id="main"><RouteEnter>{children}</RouteEnter></main>
       </div>
     </div>
   )

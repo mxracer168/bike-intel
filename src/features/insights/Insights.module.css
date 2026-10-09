@@ -35,8 +35,9 @@
 .lesson {
   display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-2); padding: 20px; text-align: left;
   border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--band-bg); font: inherit; color: inherit; cursor: pointer;
-  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+  transition: border-color var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard), transform var(--motion-instant) var(--ease-standard);
 }
+.lesson:active { transform: translateY(1px) scale(.99); }
 .lesson:hover { border-color: var(--line-strong); background: var(--surface); }
 .lessonTop { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); width: 100%; margin-bottom: var(--sp-2); }
 .lessonLabel { padding: 4px 10px; border-radius: 999px; font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600; }

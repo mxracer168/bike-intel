@@ -106,6 +106,21 @@
   /* Motion: quick, quiet, purposeful */
   --ease: cubic-bezier(.2,.7,.2,1);
   --t-fast: 120ms; --t-base: 180ms; --t-slow: 260ms;
+  /*
+   * The quiet intelligence layer (docs/design-system.md): motion only after
+   * something the retailer did (navigation, a selection, a disclosure, a
+   * changed number), never on a resting screen. One set of timings.
+   */
+  --motion-instant: 120ms;   /* press and focus */
+  --motion-fast: 180ms;      /* tabs, toggles, active indicators */
+  --motion-standard: 240ms;  /* disclosures and page entry */
+  --motion-emphasis: 360ms;  /* recalculated numbers, confirmations */
+  --ease-intelligence: cubic-bezier(.22,1,.36,1);
+  --ease-standard: cubic-bezier(.2,0,0,1);
+  --signal-edge-soft: rgba(96,165,250,.28);  --signal-edge: rgba(37,99,235,.38);
+  --signal-tint: rgba(219,234,254,.9);
+  --signal-rail-glow: rgba(59,130,246,.45);
+  --confirm-ring: rgba(16,185,129,.14);  --confirm-ring-off: rgba(16,185,129,0);
 }
 
 @media (max-width: 1023px) {
