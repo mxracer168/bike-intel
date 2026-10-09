@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ExampleMarker } from '@/ui/Example'
+import { ProgramList } from '@/features/programs/ProgramViews'
+import type { ProgramSummary } from '@/features/programs/types'
 import { connectionText, type SupplierAccountView } from './account'
 import { monogram, type RelationshipView, type SupplierPresentation, type SupplierSection } from './presentation'
 import { FitScore, ProgramFit } from './ProgramFit'
@@ -10,7 +12,7 @@ import { CopyButton, UploadProgram } from './SupplierActions'
 import styles from './Suppliers.module.css'
 
 /** What the retailer brings to the page (never part of the supplier's own presentation). */
-type RetailerContext = { retailerName: string; supplierName: string; programFit: ProgramFitMap }
+type RetailerContext = { retailerName: string; supplierName: string; programFit: ProgramFitMap; programs: ProgramSummary[] }
 
 type Contact = Extract<SupplierSection, { type: 'contact' }>
 
@@ -30,27 +32,37 @@ const renderers: { [K in 'about' | 'facts' | 'programs']: (s: Extract<SupplierSe
       {s.items.map((f) => <div key={f.label}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}
     </dl>
   ),
-  programs: (s, ctx) => (
-    <ul className={styles.programs}>
-      {s.programs.map((p) => {
-        const fit = ctx.programFit[p.name]
-        return (
-          <li key={p.name} className={styles.program}>
-            <div className={styles.programTop}>
-              <h3 className={styles.programName}>{p.name}</h3>
-              {fit && <FitScore fit={fit} />}
-            </div>
-            <div className={styles.programTop}>
-              {p.season ? <span className={styles.programMeta}>{p.season}</span> : <span />}
-              {p.closes && <span className={styles.programMeta}>Closes {p.closes}</span>}
-            </div>
-            <p className={styles.programSummary}>{p.summary}</p>
-            {fit && <ProgramFit fit={fit} retailerName={ctx.retailerName} programName={p.name} />}
-          </li>
-        )
-      })}
-    </ul>
-  ),
+  programs: (s, ctx) => {
+    // Programs with their own page use the same card as the Programs list and open the same page.
+    const listed = s.programs.flatMap((p) => ctx.programs.filter((x) => x.name === p.name))
+    const rest = s.programs.filter((p) => !listed.some((x) => x.name === p.name))
+    return (
+      <>
+        {listed.length > 0 && <ProgramList programs={listed} from="supplier" />}
+        {rest.length > 0 && (
+          <ul className={styles.programs}>
+            {rest.map((p) => {
+              const fit = ctx.programFit[p.name]
+              return (
+                <li key={p.name} className={styles.program}>
+                  <div className={styles.programTop}>
+                    <h3 className={styles.programName}>{p.name}</h3>
+                    {fit && <FitScore fit={fit} />}
+                  </div>
+                  <div className={styles.programTop}>
+                    {p.season ? <span className={styles.programMeta}>{p.season}</span> : <span />}
+                    {p.closes && <span className={styles.programMeta}>Closes {p.closes}</span>}
+                  </div>
+                  <p className={styles.programSummary}>{p.summary}</p>
+                  {fit && <ProgramFit fit={fit} retailerName={ctx.retailerName} programName={p.name} />}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </>
+    )
+  },
 }
 
 const defaultTitle = { about: 'About', facts: 'Ordering', programs: 'Programs' } as const
@@ -79,16 +91,18 @@ const displayUrl = (url: string) => url.replace(/^https?:\/\//, '').replace(/\/$
  * ordering and programs. A sticky rail holds the retailer's private account
  * details and how we connect to the supplier.
  */
-export function SupplierProfile({ presentation, relationship, retailerName, programFit = {}, account = {}, example = false }: {
+export function SupplierProfile({ presentation, relationship, retailerName, programFit = {}, programs = [], account = {}, example = false }: {
   presentation: SupplierPresentation
   relationship: RelationshipView
   retailerName: string
   programFit?: ProgramFitMap
+  /** This supplier's programs that have their own page (the Programs list's cards). */
+  programs?: ProgramSummary[]
   account?: SupplierAccountView
   example?: boolean
 }) {
   const { identity, sections } = presentation
-  const ctx = { retailerName, supplierName: identity.name, programFit }
+  const ctx = { retailerName, supplierName: identity.name, programFit, programs }
   const main = ORDER.flatMap((type) => sections.filter((s) => s.type === type))
   const contact = sections.find((s): s is Contact => s.type === 'contact')
   const current = relationship.status === 'claimed' || relationship.status === 'verified'

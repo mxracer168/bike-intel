@@ -168,3 +168,8 @@ export const demoPrograms: ProgramDetailView[] = build()
 export function findDemoProgram(id: string): ProgramDetailView | null {
   return demoPrograms.find((p) => p.id === id) ?? null
 }
+
+/** One demo supplier's programs, for their supplier page. */
+export function demoSupplierPrograms(supplierId: string): ProgramDetailView[] {
+  return demoPrograms.filter((p) => p.supplier.href === `/suppliers/${supplierId}`)
+}

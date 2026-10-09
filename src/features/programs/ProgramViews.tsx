@@ -6,16 +6,22 @@ import { AssessmentCard, RepFeedback } from './ProgramClient'
 import type { ProgramDetailView, ProgramSummary } from './types'
 import styles from './Programs.module.css'
 
-/** Programs, best fit first: one quiet card each, the whole card a link. */
-export function ProgramList({ programs }: { programs: ProgramSummary[] }) {
+/**
+ * Programs, one quiet card each, the whole card a link to the program. The
+ * same card on the Programs page and on a supplier's page; `from` tells the
+ * program page where its back arrow returns.
+ */
+export function ProgramList({ programs, from = 'programs' }: { programs: ProgramSummary[]; from?: 'programs' | 'supplier' }) {
+  // On a supplier page the cards sit under its "Programs" heading.
+  const Title = from === 'supplier' ? 'h3' : 'h2'
   return (
     <ul className={styles.list}>
       {programs.map((p) => (
         <li key={p.id}>
-          <Link href={`/programs/${p.id}`} className={styles.row}>
+          <Link href={`/programs/${p.id}${from === 'supplier' ? '?from=supplier' : ''}`} className={styles.row}>
             <div className={styles.rowName}>
               <p className={styles.rowSupplier}>{p.supplier.name}{p.own && ' · Uploaded by you'}</p>
-              <h2 className={styles.rowTitle}>{p.name}</h2>
+              <Title className={styles.rowTitle}>{p.name}</Title>
             </div>
             <div className={styles.rowFit}>
               {p.fit ? (
@@ -42,7 +48,15 @@ export function ProgramList({ programs }: { programs: ProgramSummary[] }) {
  * against, and what would make it stronger. The analysis appears only where
  * it exists; a program without one shows its terms as stored.
  */
-export function ProgramDetail({ program: p, retailerName }: { program: ProgramDetailView; retailerName: string }) {
+export function ProgramDetail({ program: p, retailerName, from = 'programs' }: {
+  program: ProgramDetailView
+  retailerName: string
+  /** Where the retailer came from: the back arrow returns there. */
+  from?: 'programs' | 'supplier'
+}) {
+  const back = from === 'supplier' && p.supplier.href
+    ? { href: p.supplier.href, label: `Back to ${p.supplier.name}` }
+    : { href: '/programs', label: 'Back to programs' }
   const a = p.analysis
   const eyebrow = [p.supplier.name, p.closes && `Closes ${p.closes}`].filter(Boolean).join(' · ')
   const meta = [p.season, p.delivery && `Delivery ${p.delivery}`].filter(Boolean).join(' · ')
@@ -50,7 +64,7 @@ export function ProgramDetail({ program: p, retailerName }: { program: ProgramDe
     <>
       <header className={styles.head}>
         <div className={styles.headMain}>
-          <Link href="/programs" className={styles.back} aria-label="Back to programs"><Icon name="chevron-left" size={18} /></Link>
+          <Link href={back.href} className={styles.back} aria-label={back.label}><Icon name="chevron-left" size={18} /></Link>
           <div className={styles.headText}>
             <p className={styles.eyebrow}>{eyebrow}</p>
             <h1 className={styles.title}>{p.name}</h1>

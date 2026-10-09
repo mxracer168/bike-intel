@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { z } from 'zod'
 import { isDemoPreviewEnabled } from '@/demo/config'
+import { demoSupplierPrograms } from '@/demo/programs'
 import { demoProgramFit, demoSupplierAccount, findDemoSupplier } from '@/demo/suppliers'
 import { getSupplier } from '@/domain/suppliers/directory'
 import { SupplierProfile } from '@/features/suppliers/SupplierProfile'
@@ -14,13 +15,13 @@ async function load(supplierId: string) {
   if (supplierId.startsWith('demo-')) {
     if (!isDemoPreviewEnabled()) return null
     const demo = findDemoSupplier(supplierId)
-    return demo ? { presentation: demo.presentation, relationship: demo.relationship, programFit: demoProgramFit(supplierId), account: demoSupplierAccount(supplierId), example: true } : null
+    return demo ? { presentation: demo.presentation, relationship: demo.relationship, programFit: demoProgramFit(supplierId), programs: demoSupplierPrograms(supplierId), account: demoSupplierAccount(supplierId), example: true } : null
   }
   if (!z.uuid().safeParse(supplierId).success) return null
   const { db, organization } = await requireOrganization()
   const found = await getSupplier(db, organization.id, supplierId)
   // No real Program fit yet: it needs the retailer's own history (docs/programs.md).
-  return found ? { ...found, programFit: {}, account: {}, example: false } : null
+  return found ? { ...found, programFit: {}, programs: [], account: {}, example: false } : null
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
@@ -37,7 +38,7 @@ export default async function SupplierPage({ params }: Params) {
   return (
     <Page>
       <SupplierProfile presentation={found.presentation} relationship={found.relationship}
-        retailerName={organization.name} programFit={found.programFit} account={found.account} example={found.example} />
+        retailerName={organization.name} programFit={found.programFit} programs={found.programs} account={found.account} example={found.example} />
     </Page>
   )
 }

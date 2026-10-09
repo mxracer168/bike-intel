@@ -51,6 +51,12 @@ stored.
 
 ## The Programs pages
 
+- **One card, one page.** A program is summarized by the same card on the
+  Programs page and on its supplier's page (`ProgramList`, which sizes to
+  its own column), and both open the same program page. The back arrow
+  returns where the retailer came from (`?from=supplier` returns to the
+  supplier). A supplier page program with no program page yet keeps the
+  plain card with "Why this fit?" described above.
 - **Programs** (`/programs`): every program the retailer can see, best
   Program fit first (programs without a fit after, by name). One card each:
   supplier and name, the fit, the estimated benefit, then commitment and

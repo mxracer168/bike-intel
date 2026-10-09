@@ -9,6 +9,7 @@ import { requireOrganization } from '@/server/session'
 import { Page } from '@/ui/Layout'
 
 type Params = { params: Promise<{ programId: string }> }
+type Search = { searchParams: Promise<{ from?: string | string[] }> }
 
 async function load(programId: string) {
   if (programId.startsWith('demo-')) return isDemoPreviewEnabled() ? findDemoProgram(programId) : null
@@ -22,14 +23,15 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return { title: (await load(programId))?.name ?? 'Program' }
 }
 
-export default async function ProgramPage({ params }: Params) {
+export default async function ProgramPage({ params, searchParams }: Params & Search) {
   const { organization } = await requireOrganization()
   const { programId } = await params
   const program = await load(programId)
   if (!program) notFound()
+  const { from } = await searchParams
   return (
     <Page>
-      <ProgramDetail program={program} retailerName={organization.name} />
+      <ProgramDetail program={program} retailerName={organization.name} from={from === 'supplier' ? 'supplier' : 'programs'} />
     </Page>
   )
 }
