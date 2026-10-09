@@ -4,6 +4,8 @@ import { Fragment, useId, useMemo, useState, useSyncExternalStore } from 'react'
 import { describeWeeklyRate, formatMoney } from '@/domain/language/plain'
 import { PriceVsMarket } from '@/features/network/NetworkBits'
 import { describeComparison, unitPrice, WMV_HELP, WMV_TERM } from '@/features/network/pricing'
+import { HealthSnapshot } from '@/features/today/HealthSnapshot'
+import type { HealthMetric } from '@/features/today/types'
 import { Icon } from '@/ui/Icon'
 import { InfoTip } from '@/ui/InfoTip'
 import {
@@ -31,26 +33,18 @@ function useMatches(query: string) {
 /** "+$18.00", "−$6.00"; a value that rounds to zero carries no sign. */
 const signed = (n: number, text: string) => (Math.abs(n) < 0.005 ? text : n > 0 ? `+${text}` : `−${text}`)
 const capitalize = (t: string) => t.charAt(0).toUpperCase() + t.slice(1)
-const weeksText = (w: number | null) => (w === null ? 'Not selling' : `${Math.round(w)} wk`)
-
-/** Gain or loss against average cost, per unit and as a share of cost. */
-function GainLoss({ row }: { row: ExcessRow }) {
-  const loss = row.gainPerUnit < -0.005
-  return (
-    <span className={[styles.gain, loss && styles.loss].filter(Boolean).join(' ')}>
-      <span>{signed(row.gainPerUnit, unitPrice(Math.abs(row.gainPerUnit)))}</span>
-      <span className={styles.sub}>{signed(Math.round(row.gainPercent), `${Math.abs(Math.round(row.gainPercent))}%`)}</span>
-    </span>
-  )
-}
+const weeksText = (w: number | null) => (w === null ? 'Not selling' : `${Math.round(w)} weeks`)
 
 /**
- * An opened excess line: the network price (Wholesale Market Value unless
- * changed here), what that means against average cost, and whether other
- * retailers can see it. Exceptions only: nothing needs doing to share it.
+ * An opened excess line, in two cards. Left, why it's excess: the facts
+ * behind the rule. Right, the retailer network: whether other retailers can
+ * see it (a switch), what it's worth there against average cost, and the
+ * network price (Wholesale Market Value unless changed here). Exceptions
+ * only: nothing needs doing to share it.
  */
-function ExcessDetail({ row, onPrice, onExclude }: {
+function ExcessDetail({ row, ruleWeeks, onPrice, onExclude }: {
   row: ExcessRow
+  ruleWeeks: number
   onPrice: (price: number | undefined) => void
   onExclude: (excluded: boolean) => void
 }) {
@@ -59,6 +53,9 @@ function ExcessDetail({ row, onPrice, onExclude }: {
   const inputId = useId()
   const units = `${row.excessQty} excess ${row.excessQty === 1 ? 'unit' : 'units'}`
   const compare = describeComparison(row.comparison)
+  const shared = !row.excluded
+  const total = row.gainPerUnit * row.excessQty
+  const loss = row.gainPerUnit < -0.005
 
   function save() {
     const value = Number(draft.replace(/[$,\s]/g, ''))
@@ -69,54 +66,82 @@ function ExcessDetail({ row, onPrice, onExclude }: {
 
   return (
     <div className={styles.detail}>
-      <section className={styles.detailBlock} aria-label="Network price">
-        <h3 className={styles.detailTitle}>Network price</h3>
-        <p className={styles.detailText}>
-          {row.overridden ? 'You set this price.' : `Set to ${WMV_TERM}. It follows that value until you change it.`}
-          {' '}{WMV_TERM}: <b>{unitPrice(row.wholesaleMarketValue)}</b>.
-        </p>
-        <form className={styles.priceForm} onSubmit={(e) => { e.preventDefault(); save() }}>
-          <label htmlFor={inputId} className="visually-hidden">Network price per unit for {row.item.product}</label>
-          <span className={styles.money}>
-            <span aria-hidden="true">$</span>
-            <input id={inputId} inputMode="decimal" value={draft} onChange={(e) => { setDraft(e.target.value); setProblem(null) }}
-              aria-invalid={problem ? true : undefined} />
-          </span>
-          <button type="submit" className={styles.secondary}>Save price</button>
-          {row.overridden && (
-            <button type="button" className={styles.textButton}
-              onClick={() => { onPrice(undefined); setDraft(row.wholesaleMarketValue.toFixed(2)) }}>
-              Use {WMV_TERM}
-            </button>
-          )}
-        </form>
-        {problem && <p className={styles.problem} role="alert">{problem}</p>}
-        <p className={styles.detailText}>
-          {compare ? <><PriceVsMarket comparison={row.comparison} />. </> : null}
-          Against your average cost of {unitPrice(row.item.unitCost)}, that’s {row.gainPerUnit >= 0 ? 'a gain' : 'a loss'} of{' '}
-          <b>{unitPrice(Math.abs(row.gainPerUnit))}</b> per unit ({Math.abs(Math.round(row.gainPercent))}%). Selling all {units}{' '}
-          brings in {formatMoney(Math.round(row.recovery))}.
+      <section className={styles.card} aria-labelledby={`${inputId}-why`}>
+        <div>
+          <h3 id={`${inputId}-why`} className={styles.cardTitle}>Why this inventory is excess</h3>
+          <p className={styles.cardText}>
+            Coverage is over your {ruleWeeks}-week rule. Only the units above it count as excess.
+          </p>
+        </div>
+        <dl className={styles.facts}>
+          <div><dt>Average cost</dt><dd>{unitPrice(row.item.unitCost)}</dd></div>
+          <div><dt>Excess units</dt><dd>{row.excessQty}</dd></div>
+          <div><dt>Excess value</dt><dd>{unitPrice(row.excessCost)}</dd></div>
+          <div><dt>Current coverage</dt><dd>{weeksText(row.weeksOfSupply)}</dd></div>
+          <div><dt>Selling</dt><dd>{capitalize(describeWeeklyRate(row.item.perWeek))}</dd></div>
+          <div><dt>Supplier</dt><dd>{row.item.supplier}</dd></div>
+        </dl>
+        <p className={styles.callout}>
+          {row.weeksOfSupply === null
+            ? 'No recent sales'
+            : `${Math.max(0, Math.round(row.weeksOfSupply - ruleWeeks))} weeks above your excess rule · ${row.item.onHand} on hand`}
         </p>
       </section>
 
-      <section className={styles.detailBlock} aria-label="Other retailers">
-        <h3 className={styles.detailTitle}>Other retailers</h3>
-        {row.excluded ? (
-          <p className={styles.detailText}>Excluded. Other retailers can’t see it; it stays on this list as excess.</p>
-        ) : (
-          <p className={styles.detailText}>
-            Other retailers can see {units} at {unitPrice(row.networkPrice)} each. Your stock levels, sales and cost stay private.
-          </p>
-        )}
-        <button type="button" className={styles.secondary} onClick={() => onExclude(!row.excluded)}>
-          {row.excluded ? 'Make available again' : 'Exclude from network'}
-        </button>
-        <dl className={styles.facts}>
-          <div><dt>On hand</dt><dd>{row.item.onHand}</dd></div>
-          <div><dt>Selling</dt><dd>{capitalize(describeWeeklyRate(row.item.perWeek))}</dd></div>
-          <div><dt>Weeks of supply</dt><dd>{row.weeksOfSupply === null ? '—' : Math.round(row.weeksOfSupply)}</dd></div>
-          <div><dt>Supplier</dt><dd>{row.item.supplier}</dd></div>
+      <section className={[styles.card, !shared && styles.cardOff].filter(Boolean).join(' ')} aria-labelledby={`${inputId}-net`}>
+        <div className={styles.cardHead}>
+          <div>
+            <h3 id={`${inputId}-net`} className={styles.cardTitle}>Retailer network</h3>
+            <p className={styles.cardText}>
+              {shared
+                ? `Other retailers can see ${units} at ${unitPrice(row.networkPrice)} each. Your stock levels, sales and cost stay private.`
+                : 'Excluded. Other retailers can’t see it; it stays on this list as excess.'}
+            </p>
+          </div>
+          <button type="button" role="switch" aria-checked={shared} className={styles.switch}
+            aria-label={`Offer ${row.item.product} to other retailers`} onClick={() => onExclude(shared)}>
+            <span aria-hidden="true" />
+          </button>
+        </div>
+
+        <dl className={styles.money3}>
+          <div><dt>{WMV_TERM}</dt><dd>{unitPrice(row.wholesaleMarketValue)}</dd></div>
+          <div>
+            <dt>Gain / loss per unit</dt>
+            <dd className={loss ? styles.loss : styles.gainText}>
+              {signed(row.gainPerUnit, unitPrice(Math.abs(row.gainPerUnit)))}
+              <span className={styles.pct}>{signed(Math.round(row.gainPercent), `${Math.abs(Math.round(row.gainPercent))}%`)}</span>
+            </dd>
+          </div>
+          <div>
+            <dt>Total if all sell</dt>
+            <dd className={total < -0.005 ? styles.loss : styles.gainText}>{signed(total, unitPrice(Math.abs(total)))}</dd>
+          </div>
         </dl>
+
+        <form className={styles.priceForm} onSubmit={(e) => { e.preventDefault(); save() }}>
+          <label htmlFor={inputId} className={styles.priceLabel}>Your network price</label>
+          <span className={styles.priceRow}>
+            <span className={styles.money}>
+              <span aria-hidden="true">$</span>
+              <input id={inputId} inputMode="decimal" value={draft} onChange={(e) => { setDraft(e.target.value); setProblem(null) }}
+                aria-invalid={problem ? true : undefined} aria-describedby={`${inputId}-note`} />
+            </span>
+            <button type="submit" className={styles.dark}>Save price</button>
+            {row.overridden && (
+              <button type="button" className={styles.textButton}
+                onClick={() => { onPrice(undefined); setDraft(row.wholesaleMarketValue.toFixed(2)) }}>
+                Use {WMV_TERM}
+              </button>
+            )}
+          </span>
+        </form>
+        {problem && <p className={styles.problem} role="alert">{problem}</p>}
+        <p id={`${inputId}-note`} className={styles.cardText}>
+          {row.overridden ? 'You set this price.' : `Set to ${WMV_TERM}; it follows that value until you change it.`}
+          {compare ? <> <PriceVsMarket comparison={row.comparison} />.</> : null}
+          {' '}Selling all {units} brings in {formatMoney(Math.round(row.recovery))}.
+        </p>
       </section>
     </div>
   )
@@ -148,10 +173,8 @@ export function ExcessView({ items, offers: initialOffers, initialRuleWeeks }: {
   const [open, setOpen] = useState<string | null>(null)
   const [shown, setShown] = useState(PAGE)
   const ruleId = useId()
-  const narrow = useMatches('(max-width: 760px)')
-  const mid = useMatches('(max-width: 960px)')
-  const medium = useMatches('(max-width: 1100px)')
-  const columns = narrow ? 4 : mid ? 7 : medium ? 9 : 10
+  const narrow = useMatches('(max-width: 640px)')
+  const columns = narrow ? 3 : 5
 
   const all = useMemo(() => excessRows(items, ruleWeeks, offers), [items, ruleWeeks, offers])
   const summary = summarizeExcess(all)
@@ -163,9 +186,16 @@ export function ExcessView({ items, offers: initialOffers, initialRuleWeeks }: {
   const update = (id: string, change: Partial<NetworkOffer>) =>
     setOffers((o) => ({ ...o, [id]: { ...o[id]!, ...change } }))
 
+  const figures: HealthMetric[] = [
+    { label: 'Excess items', value: summary.skus.toLocaleString('en-US'), note: `Over ${ruleWeeks} weeks of supply` },
+    { label: 'Excess units', value: summary.units.toLocaleString('en-US'), note: 'Above the rule' },
+    { label: 'Cost tied up', value: formatMoney(Math.round(summary.cost)), note: 'At average cost' },
+    { label: 'At network prices', value: formatMoney(Math.round(summary.recovery)), note: `${summary.shared} of ${summary.skus} items shared` },
+  ]
+
   return (
-    <div className={inv.zones}>
-      <section className={styles.intro} aria-labelledby="excess-title">
+    <>
+      <section className={styles.rule} aria-labelledby="excess-title">
         <h2 id="excess-title" className="visually-hidden">Excess inventory</h2>
         {editingRule ? (
           <form className={styles.ruleForm} onSubmit={(e) => { e.preventDefault(); setRuleWeeks(ruleDraft); setEditingRule(false); setOpen(null) }}>
@@ -174,20 +204,22 @@ export function ExcessView({ items, offers: initialOffers, initialRuleWeeks }: {
               {EXCESS_RULE_OPTIONS.map((w) => <option key={w} value={w}>{w} weeks</option>)}
             </select>
             <span>of projected supply.</span>
-            <button type="submit" className={styles.secondary}>Apply</button>
+            <button type="submit" className={styles.dark}>Apply</button>
             <button type="button" className={styles.textButton} onClick={() => { setRuleDraft(ruleWeeks); setEditingRule(false) }}>Cancel</button>
           </form>
         ) : (
-          <p className={styles.rule}>
-            We currently flag inventory with more than <b>{ruleWeeks} weeks</b> of projected supply.{' '}
-            <button type="button" className={styles.textButton} onClick={() => setEditingRule(true)}>Change rule</button>
-          </p>
+          <>
+            <div className={styles.ruleText}>
+              <p className={styles.ruleTitle}>Inventory with more than {ruleWeeks} weeks of projected supply is flagged as excess.</p>
+              <p className={styles.policy}>
+                Excess is offered privately to other retailers at {WMV_TERM}
+                <InfoTip term={WMV_TERM}>{`${WMV_TERM}: ${WMV_HELP}`}</InfoTip>
+                {' '}unless you change a price or exclude an item.
+              </p>
+            </div>
+            <button type="button" className={styles.textButton} onClick={() => setEditingRule(true)}>Change excess rule</button>
+          </>
         )}
-        <p className={styles.policy}>
-          Excess is offered to other retailers at {WMV_TERM}
-          <InfoTip term={WMV_TERM}>{`${WMV_TERM}: ${WMV_HELP}`}</InfoTip>
-          {' '}unless you change a price or exclude an item.
-        </p>
       </section>
 
       {all.length === 0 ? (
@@ -196,113 +228,97 @@ export function ExcessView({ items, offers: initialOffers, initialRuleWeeks }: {
         </p>
       ) : (
         <>
-          <dl className={styles.summary} aria-label="Excess at a glance">
-            <div><dt>Excess items</dt><dd>{summary.skus.toLocaleString('en-US')}</dd></div>
-            <div><dt>Excess units</dt><dd>{summary.units.toLocaleString('en-US')}</dd></div>
-            <div><dt>Cost tied up</dt><dd>{formatMoney(Math.round(summary.cost))}</dd></div>
-            <div><dt>At network prices</dt><dd>{formatMoney(Math.round(summary.recovery))}
-              {summary.shared < summary.skus && <span className={styles.sub}> {summary.shared} of {summary.skus} items shared</span>}
-            </dd></div>
-          </dl>
+          <section aria-labelledby="excess-glance">
+            <h2 id="excess-glance" className="visually-hidden">Excess at a glance</h2>
+            <HealthSnapshot metrics={figures} variant="panel" />
+          </section>
 
-          <section className={inv.zone} aria-labelledby="excess-items">
+          <section className={styles.items} aria-labelledby="excess-items">
             <h2 id="excess-items" className="visually-hidden">Excess items</h2>
-            <div className={inv.toolbar}>
-              <label className={inv.search}>
+            <div className={styles.toolbar}>
+              <label className={[inv.search, styles.search].join(' ')}>
                 <Icon name="search" size={15} />
                 <span className="visually-hidden">Search excess inventory</span>
-                <input type="search" placeholder="Search excess…" value={query} onChange={(e) => { setQuery(e.target.value); setShown(PAGE) }} />
+                <input type="search" placeholder="Search excess inventory" value={query} onChange={(e) => { setQuery(e.target.value); setShown(PAGE) }} />
               </label>
-              <label className={inv.control}>
-                <span className={styles.controlLabel}>Show</span>
-                <select value={view} onChange={(e) => { setView(e.target.value as ExcessViewKey); setShown(PAGE) }}>
-                  {(Object.keys(excessViewLabel) as ExcessViewKey[]).map((k) => <option key={k} value={k}>{excessViewLabel[k]}</option>)}
-                </select>
-              </label>
-              <label className={inv.control}>
-                <span className="visually-hidden">Brand</span>
-                <select value={brand} onChange={(e) => { setBrand(e.target.value); setShown(PAGE) }}>
-                  <option value="">All brands</option>
-                  {brands.map((b) => <option key={b} value={b}>{b}</option>)}
-                </select>
-              </label>
-              <label className={inv.control}>
-                <span className={styles.controlLabel}>Sort</span>
-                <select value={preset ?? ''} onChange={(e) => e.target.value && setSort(excessSortPreset[e.target.value as ExcessSort])}>
-                  {!preset && <option value="">By column</option>}
-                  {(Object.keys(excessSortLabel) as ExcessSort[]).map((k) => <option key={k} value={k}>{excessSortLabel[k]}</option>)}
-                </select>
-              </label>
+              <div className={styles.controls}>
+                <label className={inv.control}>
+                  <span className="visually-hidden">Show</span>
+                  <select value={view} onChange={(e) => { setView(e.target.value as ExcessViewKey); setShown(PAGE) }}>
+                    {(Object.keys(excessViewLabel) as ExcessViewKey[]).map((k) => <option key={k} value={k}>{excessViewLabel[k]}</option>)}
+                  </select>
+                </label>
+                <label className={inv.control}>
+                  <span className="visually-hidden">Brand</span>
+                  <select value={brand} onChange={(e) => { setBrand(e.target.value); setShown(PAGE) }}>
+                    <option value="">All brands</option>
+                    {brands.map((b) => <option key={b} value={b}>{b}</option>)}
+                  </select>
+                </label>
+                <label className={inv.control}>
+                  <span className="visually-hidden">Sort</span>
+                  <select value={preset ?? ''} onChange={(e) => e.target.value && setSort(excessSortPreset[e.target.value as ExcessSort])}>
+                    {!preset && <option value="">Sorted by column</option>}
+                    {(Object.keys(excessSortLabel) as ExcessSort[]).map((k) => <option key={k} value={k}>{excessSortLabel[k]}</option>)}
+                  </select>
+                </label>
+              </div>
             </div>
-            {filtered && <p className={inv.resultCount} role="status">{rows.length} of {all.length} excess items</p>}
+            {filtered && <p className={styles.count} role="status">{rows.length} of {all.length} excess items</p>}
 
-            {rows.length === 0 ? <p className={inv.empty}>No excess items match.</p> : (
-              <table className={[inv.table, styles.table].join(' ')} aria-label="Excess inventory">
-                <thead>
-                  <tr>
-                    <th scope="col" className={[inv.cGo, styles.wide].join(' ')}><span className="visually-hidden">Open</span></th>
-                    <SortHeader sortKey="product" sort={sort} onSort={onSort}>Product</SortHeader>
-                    <SortHeader sortKey="onHand" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cQty, styles.mid].join(' ')}>On hand</SortHeader>
-                    <SortHeader sortKey="excess" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cQty].join(' ')}>Excess</SortHeader>
-                    <SortHeader sortKey="weeks" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cWeeks, styles.mid].join(' ')}><span className={styles.headWrap}>Weeks of supply</span></SortHeader>
-                    <SortHeader sortKey="cost" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cMoney, styles.wide].join(' ')}>Avg. cost</SortHeader>
-                    <SortHeader sortKey="wmv" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cMoney, styles.wider].join(' ')}>
-                      <span className={styles.headWrap}>{WMV_TERM}</span>
-                    </SortHeader>
-                    <SortHeader sortKey="price" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cPrice].join(' ')}><span className={styles.headWrap}>Network price</span></SortHeader>
-                    <SortHeader sortKey="gainUnit" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cGain].join(' ')}>Gain / loss <span className={styles.perUnit}>per unit</span></SortHeader>
-                    <th scope="col" className={[styles.cStatus, styles.wide].join(' ')}>Network</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.slice(0, shown).map((r) => {
-                    const isOpen = open === r.item.id
-                    const toggle = () => setOpen(isOpen ? null : r.item.id)
-                    return (
-                      <Fragment key={r.item.id}>
-                        <tr className={[inv.row, isOpen && inv.openRow, r.excluded && styles.excludedRow].filter(Boolean).join(' ')} onClick={toggle}>
-                          <td className={[inv.go, styles.wide].join(' ')} aria-hidden="true"><Icon name="chevron-right" size={14} /></td>
-                          <th scope="row" className={inv.product}>
-                            <button type="button" className={[inv.lineButton, styles.productButton].join(' ')} aria-expanded={isOpen}
-                              aria-controls={`${r.item.id}-excess`} onClick={(e) => { e.stopPropagation(); toggle() }}>
-                              {r.item.product}
-                            </button>
-                            <span className={styles.productSub}>
-                              {[r.item.variant, r.item.identifiers[0]].filter(Boolean).join(' · ')}
-                              {r.excluded && <span className={styles.narrowOnly}> · Excluded</span>}
-                            </span>
-                          </th>
-                          <td className={[inv.num, styles.mid].join(' ')}>{r.item.onHand}</td>
-                          <td className={inv.num}>{r.excessQty}</td>
-                          <td className={[inv.num, styles.mid].join(' ')}>{weeksText(r.weeksOfSupply)}</td>
-                          <td className={[inv.num, styles.wide].join(' ')}>{unitPrice(r.item.unitCost)}</td>
-                          <td className={[inv.num, styles.wider].join(' ')}>{unitPrice(r.wholesaleMarketValue)}</td>
-                          <td className={inv.num}>
-                            <span className={styles.price}>
-                              <span>{unitPrice(r.networkPrice)}</span>
-                              <PriceVsMarket comparison={r.comparison} short />
-                            </span>
-                          </td>
-                          <td className={inv.num}><GainLoss row={r} /></td>
-                          <td className={[styles.status, r.excluded && styles.statusOff, styles.wide].filter(Boolean).join(' ')}>
-                            {r.excluded ? 'Excluded' : 'Available'}
-                          </td>
-                        </tr>
-                        {isOpen && (
-                          <tr className={inv.detailRow} id={`${r.item.id}-excess`}>
-                            <td colSpan={columns}>
-                              <ExcessDetail row={r}
-                                onPrice={(price) => update(r.item.id, { priceOverride: price })}
-                                onExclude={(excluded) => update(r.item.id, { excluded })} />
-                            </td>
+            <div className={inv.tableCard}>
+              {rows.length === 0 ? <p className={inv.empty}>No excess items match.</p> : (
+                <table className={[inv.table, styles.table].join(' ')} aria-label="Excess inventory">
+                  <thead>
+                    <tr>
+                      <SortHeader sortKey="product" sort={sort} onSort={onSort}>Product</SortHeader>
+                      <SortHeader sortKey="onHand" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cQty, styles.wide].join(' ')}>On hand</SortHeader>
+                      <SortHeader sortKey="excess" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cQty].join(' ')}>Excess</SortHeader>
+                      <SortHeader sortKey="weeks" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cWeeks, styles.wide].join(' ')}>Coverage</SortHeader>
+                      <SortHeader sortKey="tiedUp" sort={sort} onSort={onSort} numeric className={[inv.num, styles.cMoney].join(' ')}>Excess value</SortHeader>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.slice(0, shown).map((r) => {
+                      const isOpen = open === r.item.id
+                      const toggle = () => setOpen(isOpen ? null : r.item.id)
+                      return (
+                        <Fragment key={r.item.id}>
+                          <tr className={[inv.row, isOpen && inv.openRow, r.excluded && styles.excludedRow].filter(Boolean).join(' ')} onClick={toggle}>
+                            <th scope="row" className={inv.product}>
+                              <button type="button" className={inv.lineButton} aria-expanded={isOpen}
+                                aria-controls={`${r.item.id}-excess`} onClick={(e) => { e.stopPropagation(); toggle() }}>
+                                <span className={inv.caret} aria-hidden="true"><Icon name="chevron-down" size={14} /></span>
+                                <span className={inv.lineText}>
+                                  <span className={inv.lineName}>{r.item.product}</span>
+                                  <span className={inv.lineSub}>
+                                    {[r.item.variant, r.item.identifiers[0]].filter(Boolean).join(' · ')}
+                                    {r.excluded && <span className={styles.excludedTag}> · Not shared</span>}
+                                  </span>
+                                </span>
+                              </button>
+                            </th>
+                            <td className={[inv.num, styles.wide].join(' ')}>{r.item.onHand}</td>
+                            <td className={inv.num}>{r.excessQty}</td>
+                            <td className={[inv.num, styles.wide].join(' ')}>{weeksText(r.weeksOfSupply)}</td>
+                            <td className={[inv.num, styles.value].join(' ')}>{unitPrice(r.excessCost)}</td>
                           </tr>
-                        )}
-                      </Fragment>
-                    )
-                  })}
-                </tbody>
-              </table>
-            )}
+                          {isOpen && (
+                            <tr className={inv.detailRow} id={`${r.item.id}-excess`}>
+                              <td colSpan={columns}>
+                                <ExcessDetail row={r} ruleWeeks={ruleWeeks}
+                                  onPrice={(price) => update(r.item.id, { priceOverride: price })}
+                                  onExclude={(excluded) => update(r.item.id, { excluded })} />
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
             {rows.length > shown && (
               <button type="button" className={inv.textButton} onClick={() => setShown((n) => n + PAGE)}>
                 Show {Math.min(PAGE, rows.length - shown)} more of {rows.length - shown}
@@ -311,6 +327,6 @@ export function ExcessView({ items, offers: initialOffers, initialRuleWeeks }: {
           </section>
         </>
       )}
-    </div>
+    </>
   )
 }

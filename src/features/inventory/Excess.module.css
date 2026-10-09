@@ -1,91 +1,101 @@
-/* ---------- The rule and the sharing policy, in words ---------- */
-.intro { display: flex; flex-direction: column; gap: 4px; }
-.rule { font-size: var(--fs-lead); line-height: var(--lh-lead); color: var(--ink); }
-.rule b { font-weight: 600; }
-.policy { font-size: 15px; line-height: 22px; color: var(--ink-2); }
-.ruleForm { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); font-size: var(--fs-lead); line-height: var(--lh-lead); }
+/* Excess inventory (Figma reference: Inventory › Excess inventory). Shares the item table's card from Inventory.module.css. */
+
+/* ---------- The rule, on a soft blue surface ---------- */
+.rule {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-5);
+  padding: var(--sp-4) 20px; border: 1px solid var(--accent-muted); border-radius: var(--r-lg); background: var(--accent-wash);
+}
+.ruleText { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1 1 360px; }
+.ruleTitle { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink-strong); }
+.policy { display: inline; font-size: var(--fs-meta); line-height: 20px; color: var(--ink-3); }
+.ruleForm { flex: 1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); font-size: 14px; line-height: 20px; color: var(--ink); }
 .select {
-  min-height: 40px; padding: 0 10px; border: 1px solid var(--line); border-radius: var(--r-md);
-  background: var(--surface); box-shadow: var(--sh-1); font-size: 15px; font-weight: 500; color: var(--ink);
+  min-height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--surface); box-shadow: var(--sh-1); font-size: 14px; font-weight: 500; color: var(--ink);
 }
-.textButton { border: 0; background: none; padding: 2px 0; font: inherit; font-size: 15px; font-weight: 500; color: var(--accent); cursor: pointer; }
+.textButton { flex: none; border: 0; background: none; padding: 2px 0; font: inherit; font-size: var(--fs-meta); font-weight: 600; color: var(--accent-hover); cursor: pointer; }
 .textButton:hover { text-decoration: underline; text-underline-offset: 3px; }
-.secondary {
-  min-height: 40px; padding: 6px 16px; border: 1px solid var(--line); border-radius: var(--r-md);
-  background: var(--surface); box-shadow: var(--sh-1); color: var(--ink); font-size: 14px; font-weight: 600; cursor: pointer; align-self: flex-start;
+.dark {
+  min-height: 38px; padding: 0 14px; border: 0; border-radius: var(--r-md);
+  background: var(--inverse); color: var(--on-inverse); font-size: var(--fs-meta); font-weight: 600; cursor: pointer;
 }
-.secondary:hover { background: var(--subtle); }
+.dark:hover { background: var(--ink); }
+.empty { color: var(--ink-3); padding: var(--sp-4) 0; }
 
-/* ---------- Summary: one quiet row of figures, not cards ---------- */
-.summary { margin: 0; display: flex; flex-wrap: wrap; gap: var(--sp-4) var(--sp-7); padding: 20px 0; border-block: 1px solid var(--bar-line); }
-.summary > div { display: flex; flex-direction: column; gap: 2px; }
-.summary dt { font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 500; color: var(--ink-3); }
-.summary dd { margin: 4px 0 0; font-size: var(--fs-answer); line-height: var(--lh-answer); font-weight: 600; letter-spacing: -0.025em; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
-.summary .sub { display: block; margin-top: 4px; font-weight: 400; letter-spacing: 0; }
-.sub { font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); }
-.empty { color: var(--ink-2); padding: var(--sp-4) 0; border-top: 1px solid var(--line); }
-.controlLabel { color: var(--ink-2); }
+/* ---------- Items: search on the left, the filters as quiet controls on the right ---------- */
+.items { display: flex; flex-direction: column; gap: var(--sp-3); }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
+.search { flex: 1 1 320px; }
+.controls { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.count { font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); }
 
-/* ---------- Table ---------- */
-.cQty { width: 76px; }
-.cWeeks { width: 96px; }
-.cMoney { width: 112px; }
-.cPrice { width: 128px; }
-.cGain { width: 108px; }
-.cStatus { width: 96px; }
-.perUnit { display: block; font-weight: 400; }
-/* Long headers wrap rather than run into the next column. */
-.table thead th { vertical-align: bottom; }
-.headWrap { display: inline-block; white-space: normal; }
-.productButton { font-weight: 500; }
-.productSub { display: block; font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.price { display: inline-flex; flex-direction: column; align-items: flex-end; }
-.gain { display: inline-flex; flex-direction: column; align-items: flex-end; }
-.loss { color: var(--risk); }
-.loss .sub { color: var(--risk); }
-.status { color: var(--ink-2); }
-.statusOff { color: var(--ink-3); }
-.excludedRow .productButton, .excludedRow td:not(.status) { color: var(--ink-3); }
-.excludedRow .price span:first-child { text-decoration: none; }
-.narrowOnly { display: none; }
+/* ---------- Table columns ---------- */
+.cQty { width: 104px; }
+.cWeeks { width: 140px; }
+.cMoney { width: 156px; }
+.value { font-weight: 500; color: var(--ink-strong); }
+.excludedRow .lineName, .excludedRow td { color: var(--ink-3); }
+.excludedTag { color: var(--ink-3); font-weight: 500; }
 
-/* ---------- An opened line ---------- */
-.detail { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--sp-4); }
-.detailBlock {
-  display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0;
-  background: var(--surface); border: 1px solid var(--bar-line); border-radius: var(--r-lg); box-shadow: var(--sh-1); padding: var(--sp-4) var(--sp-5);
+/* ---------- An opened line: why it's excess, and the retailer network ---------- */
+.detail { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: var(--sp-4); }
+.card {
+  display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0;
+  padding: 20px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--sh-1);
+  transition: background var(--t-base) var(--ease), opacity var(--t-base) var(--ease);
 }
-.detailTitle { font-size: 15px; line-height: 22px; font-weight: 600; color: var(--ink-strong); }
-.detailText { font-size: 14px; line-height: 22px; color: var(--ink-3); white-space: normal; }
-.detailText b { color: var(--ink); font-weight: 600; }
-.priceForm { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); }
+/* Not shared: the network card steps back, but its controls still work. */
+.cardOff { background: var(--subtle); }
+.cardOff .money3, .cardOff .priceForm { opacity: .6; }
+.cardHead { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4); }
+.cardTitle { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink-strong); }
+.cardText { margin-top: 4px; font-size: var(--fs-meta); line-height: 20px; color: var(--ink-3); }
+.cardText b { color: var(--ink-2); font-weight: 600; }
+
+.facts { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4) 20px; }
+.facts dt { font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); }
+.facts dd { margin: 4px 0 0; font-size: 15px; line-height: 22px; font-weight: 600; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
+.callout { padding: var(--sp-3) var(--sp-4); border-radius: var(--r-md); background: var(--con-soft); font-size: var(--fs-meta); line-height: 18px; font-weight: 500; color: var(--con); }
+
+.money3 { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-4); padding: var(--sp-4) 0; border-block: 1px solid var(--line); }
+.money3 dt { font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); }
+.money3 dd { margin: 4px 0 0; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
+.gainText { color: var(--pos) !important; }
+.loss { color: var(--risk) !important; }
+.pct { margin-left: 6px; font-size: var(--fs-meta); font-weight: 500; color: var(--ink-3); }
+
+/* On / off for other retailers. */
+.switch {
+  position: relative; flex: none; width: 44px; height: 24px; border: 0; border-radius: 999px; padding: 0;
+  background: var(--line-strong); cursor: pointer; transition: background var(--t-fast) var(--ease);
+}
+.switch[aria-checked='true'] { background: var(--accent); }
+.switch span {
+  position: absolute; top: 4px; left: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); box-shadow: var(--sh-1);
+  transition: left var(--t-fast) var(--ease);
+}
+.switch[aria-checked='true'] span { left: 24px; }
+.switch:focus-visible { box-shadow: var(--focus-ring); }
+
+.priceForm { display: flex; flex-direction: column; gap: 6px; }
+.priceLabel { font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 500; color: var(--ink-3); }
+.priceRow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); }
 .money {
-  display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 12px;
-  border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-1); color: var(--ink-3);
+  display: inline-flex; align-items: center; gap: 4px; min-height: 38px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); color: var(--ink-3);
 }
 .money:focus-within { border-color: var(--accent); box-shadow: var(--focus-ring); }
-.money input { width: 96px; border: 0; background: transparent; font-size: 15px; color: var(--ink); font-variant-numeric: tabular-nums; outline: none; }
+.money input { width: 96px; border: 0; background: transparent; font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; outline: none; }
 .money input:focus-visible { box-shadow: none; }
-.problem { font-size: 14px; color: var(--risk); }
-.facts { margin: var(--sp-2) 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px var(--sp-4); font-size: 14px; }
-.facts dt { color: var(--ink-3); font-size: var(--fs-meta); }
-.facts dd { margin: 0; }
+.problem { font-size: var(--fs-meta); color: var(--risk); }
 
 @media (max-width: 1100px) {
-  .wider { display: none; }
-}
-@media (max-width: 960px) {
-  .mid { display: none; }
-}
-@media (max-width: 760px) {
-  .wide, .wider, .mid { display: none; }
-  .narrowOnly { display: inline; }
-  .cQty { width: 56px; }
-  .cPrice { width: 96px; }
-  .cGain { width: 84px; }
-  .perUnit { display: none; }
-  .productSub { white-space: normal; }
   .detail { grid-template-columns: minmax(0, 1fr); }
-  .detailBlock { padding: var(--sp-3) var(--sp-4); }
-  .summary { gap: var(--sp-3) var(--sp-5); }
+}
+@media (max-width: 640px) {
+  .wide { display: none; }
+  .cQty { width: 64px; }
+  .cMoney { width: 100px; }
+  .money3 { grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
+  .card { padding: var(--sp-4); }
 }

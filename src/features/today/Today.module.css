@@ -52,6 +52,10 @@
   .health.panel.few .card { padding: var(--sp-4) 0; box-shadow: 0 -1px 0 var(--line); }
   .health.panel.few .card:first-child { padding-top: 0; box-shadow: none; }
   .health.panel.few .card:last-child { padding-bottom: 0; }
+  /* Four figures on a phone: two by two, a short rule between the columns. */
+  .health.panel:not(.few) { row-gap: 20px; }
+  .health.panel:not(.few) .card { padding: 0 var(--sp-3) 0 0; box-shadow: none; }
+  .health.panel:not(.few) .card:nth-child(even) { padding: 0 0 0 var(--sp-4); box-shadow: -1px 0 0 var(--line); }
 }
 
 /* ---------- Today: priorities beside the questions rail ---------- */

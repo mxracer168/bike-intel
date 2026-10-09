@@ -60,6 +60,18 @@ were the same thing. "Units on hand" is never one of the top health cards.
 
    The inventory table's **Excess** condition uses the same rule.
 
+   The tab reads top to bottom: the rule on a soft blue surface ("Inventory
+   with more than 26 weeks of projected supply is flagged as excess", with
+   "Change excess rule"); four figures on one panel (excess items, units,
+   cost tied up, at network prices); search with the Show, brand and sort
+   controls; and the table (Product · On hand · Excess · Coverage · Excess
+   value, each sortable; the ready-made sorts cover gain and loss). An opened
+   line shows two cards: why it's excess (average cost, excess units and
+   value, coverage, selling rate, supplier, and how far over the rule), and
+   the retailer network (a switch for whether other retailers can see it,
+   Wholesale Market Value, gain or loss per unit and in total, and the
+   network price with Save and, once changed, Use Wholesale Market Value).
+
 **Locations.** With more than one stocking location, a location control
 ("All locations" by default) changes the status, figures, chart and table; all
 locations are consolidated and an opened item shows its split. With one
