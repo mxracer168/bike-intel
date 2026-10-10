@@ -18,7 +18,11 @@ export type CatalogProduct = {
   example: boolean
 }
 
-export type CatalogImage = { src: string; alt: string; source: { name: string; url: string } }
+export type CatalogImage = {
+  src: string; alt: string; source: { name: string; url: string }
+  /** A similar product's image (same brand and type), not this exact one: example data only. */
+  approximate?: boolean
+}
 
 /** An attribute value: normalized meaning for filtering, and the designation this item is sold under. */
 export type AttributeValue = { value: string | number; designation: string }

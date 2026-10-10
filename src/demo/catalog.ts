@@ -69,11 +69,11 @@ const ONE_LOCATION = [{ id: 'all', name: 'Store' }]
 function localImages(): Record<string, CatalogImage> {
   try {
     const manifest = JSON.parse(readFileSync(join(process.cwd(), 'public/demo/products/manifest.json'), 'utf8')) as {
-      products?: Record<string, { src: string; alt: string; source: { name: string; url: string } }>
+      products?: Record<string, { src: string; alt: string; source: { name: string; url: string }; match?: 'exact' | 'approximate' }>
     }
     return Object.fromEntries(Object.entries(manifest.products ?? {})
       .filter(([, e]) => typeof e?.src === 'string' && e.src.startsWith('/demo/products/'))
-      .map(([id, e]) => [id, { src: e.src, alt: e.alt, source: { name: e.source.name, url: e.source.url } }]))
+      .map(([id, e]) => [id, { src: e.src, alt: e.alt, source: { name: e.source.name, url: e.source.url }, approximate: e.match === 'approximate' || undefined }]))
   } catch {
     return {}
   }

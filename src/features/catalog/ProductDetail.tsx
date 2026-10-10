@@ -65,7 +65,7 @@ export function ProductDetail({ product, initialOption, orders, backHref, backLa
               <ProductImage image={product.image} size="hero" />
               <figcaption className={styles.provenance}>
                 {product.image
-                  ? <>Image: <a href={product.image.source.url} target="_blank" rel="noreferrer">{product.image.source.name}</a></>
+                  ? <>{product.image.approximate ? 'Similar product image (approximate demo match)' : 'Image'}: <a href={product.image.source.url} target="_blank" rel="noreferrer">{product.image.source.name}</a></>
                   : 'No product image matched yet'}
               </figcaption>
             </figure>

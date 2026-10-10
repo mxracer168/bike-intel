@@ -999,6 +999,18 @@ What the screens hold to:
     `public/demo/products/`, which is git-ignored and never committed.
   - It writes `manifest.json`, which `src/demo/catalog.ts` reads, and
     `review.html`, a contact sheet for checking every match.
+  - `--relaxed` adds a fallback for products with no strict match: the
+    closest result of the same brand and the same general product type
+    (tire, helmet, pedals, light, hub, bottle cage…), allowing another
+    size, color, pack or model.
+    - It prefers the result sharing the most words of the product name,
+      and never crosses types. The type is read from each store title; for
+      our own product, from its name or else its catalog category.
+    - These are recorded as approximate, labelled "Approximate demo match"
+      on the review sheet (with the store's title and page), and captioned
+      as a similar product's image on Product Detail.
+    - An exact image is never replaced by an approximate one, and an
+      approximate one gets a strict retry on every run.
   - `overrides.json` hides a wrong match or supplies an image URL.
   - Without the folder, every product shows the placeholder.
 - **Discovery is derived.** Search, filters (with counts that follow the
