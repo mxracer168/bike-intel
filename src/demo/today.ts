@@ -4,6 +4,7 @@
  */
 import type { ConversationEntry, IntelligenceQuestionView, SyncStatus } from '@/features/intelligence/types'
 import { summarizeOrder } from '@/features/orders/summarize'
+import type { AheadItem } from '@/features/today/Ahead'
 import type { HealthMetric } from '@/features/today/types'
 import { orderPriority } from '@/features/work/fromOrder'
 import type { WorkItemView } from '@/features/work/types'
@@ -51,10 +52,17 @@ export const DEMO_CEDAR_RIDGE = 'demo-cedar-ridge'
 export const DEMO_KIDS_BIKES = 'demo-kids-bikes-august'
 
 export const demoIntelligenceQuestions: IntelligenceQuestionView[] = [
-  { id: DEMO_CEDAR_RIDGE, topic: 'Trail tires', prompt: 'Should we carry more trail tires ahead of the Cedar Ridge opening?', choices: ['Yes, a few more', 'Keep it normal', 'Not sure yet'], status: 'open', example: true },
-  { id: 'demo-winter-service', topic: 'Winter service special', prompt: 'Are you running a winter service special this year?', choices: ['Yes', 'No', 'Not decided'], status: 'open', example: true },
-  { id: 'demo-tubes-26', topic: '26-inch tubes', prompt: 'Do you want to keep stocking 26-inch tubes?', choices: ['Yes', 'Just a few', 'No'], status: 'open', example: true },
-  { id: DEMO_KIDS_BIKES, topic: 'Kids’ bikes in August', prompt: 'Kids’ bike sales were much stronger than expected in August. Do you know what changed?', choices: ['Nothing specific', 'Not sure'], status: 'open', example: true },
+  { id: DEMO_CEDAR_RIDGE, topic: 'Trail tires', prompt: 'Should we carry more trail tires ahead of the Cedar Ridge opening?', reason: 'Trail tire demand usually rises when new trails open; the next Northline order is the place to act on it.', choices: ['Yes, a few more', 'Keep it normal', 'Not sure yet'], status: 'open', example: true },
+  { id: 'demo-winter-service', topic: 'Winter service special', prompt: 'Are you running a winter service special this year?', reason: 'It changes how many brake pads and chains to book in the winter service program.', choices: ['Yes', 'No', 'Not decided'], status: 'open', example: true },
+  { id: 'demo-tubes-26', topic: '26-inch tubes', prompt: 'Do you want to keep stocking 26-inch tubes?', reason: 'They sell slowly, and the next order would restock them.', choices: ['Yes', 'Just a few', 'No'], status: 'open', example: true },
+  { id: DEMO_KIDS_BIKES, topic: 'Kids’ bikes in August', prompt: 'Kids’ bike sales were much stronger than expected in August. Do you know what changed?', reason: 'Knowing whether it repeats decides how many to plan for next August.', choices: ['Nothing specific', 'Not sure'], status: 'open', example: true },
+]
+
+/** What's coming, for Today's "Ahead": the example programs' closing dates (demo/suppliers.ts). */
+export const demoAhead: AheadItem[] = [
+  { title: 'Winter service parts program', detail: 'Northline · closes October 31' },
+  { title: 'Tire pre-season', detail: 'Northline · closes November 15' },
+  { title: 'Complete Bike Early Commitment', detail: 'Northline · closes November 30' },
 ]
 
 export const demoSync: SyncStatus = { state: 'ok', label: 'All synced · 7:40 am' }

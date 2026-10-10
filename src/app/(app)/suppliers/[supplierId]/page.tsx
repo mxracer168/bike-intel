@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { z } from 'zod'
+import { demoCatalog } from '@/demo/catalog'
 import { isDemoPreviewEnabled } from '@/demo/config'
 import { demoSupplierPrograms } from '@/demo/programs'
 import { demoProgramFit, demoSupplierAccount, findDemoSupplier } from '@/demo/suppliers'
@@ -35,10 +36,13 @@ export default async function SupplierPage({ params }: Params) {
   const { supplierId } = await params
   const found = await load(supplierId)
   if (!found) notFound()
+  // A link to this supplier's products, when the (example) catalog has any.
+  const catalogHref = found.example && demoCatalog.some((p) => p.variants.some((v) => v.offers.some((o) => o.supplierId === supplierId && !o.illustrative)))
+    ? `/catalog?supplier=${encodeURIComponent(supplierId)}` : undefined
   return (
     <Page>
       <SupplierProfile presentation={found.presentation} relationship={found.relationship}
-        retailerName={organization.name} programFit={found.programFit} programs={found.programs} account={found.account} example={found.example} />
+        retailerName={organization.name} programFit={found.programFit} programs={found.programs} account={found.account} example={found.example} catalogHref={catalogHref} />
     </Page>
   )
 }

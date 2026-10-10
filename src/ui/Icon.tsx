@@ -1,4 +1,4 @@
-type IconName = 'chevron-down' | 'chevron-right' | 'chevron-left' | 'check' | 'alert' | 'info' | 'arrow-right' | 'menu' | 'close' | 'search' | 'external' | 'plus' | 'minus' | 'mic' | 'arrow-up' | 'file' | 'grip' | 'more' | 'question' | 'copy' | 'list-bullet' | 'list-number' | 'trend-up' | 'arrow-down' | 'mic-off' | 'captions' | 'phone-down' | 'calendar' | 'bell' | 'chat'
+type IconName = 'chevron-down' | 'chevron-right' | 'chevron-left' | 'check' | 'alert' | 'info' | 'arrow-right' | 'menu' | 'close' | 'search' | 'external' | 'plus' | 'minus' | 'grid' | 'list' | 'filter' | 'sort' | 'image' | 'mic' | 'arrow-up' | 'file' | 'grip' | 'more' | 'question' | 'copy' | 'list-bullet' | 'list-number' | 'trend-up' | 'arrow-down' | 'mic-off' | 'captions' | 'phone-down' | 'calendar' | 'bell' | 'chat'
 
 const paths: Record<IconName, React.ReactNode> = {
   'chevron-down': <path d="M3.5 6 8 10.5 12.5 6" />,
@@ -21,6 +21,11 @@ const paths: Record<IconName, React.ReactNode> = {
   'arrow-down': <path d="M8 3v10M4 9l4 4 4-4" />,
   plus: <path d="M8 3v10M3 8h10" />,
   minus: <path d="M3.5 8h9" />,
+  grid: <><rect x="2.7" y="2.7" width="4" height="4" rx=".7" /><rect x="9.3" y="2.7" width="4" height="4" rx=".7" /><rect x="2.7" y="9.3" width="4" height="4" rx=".7" /><rect x="9.3" y="9.3" width="4" height="4" rx=".7" /></>,
+  list: <><path d="M6 4h7.3M6 8h7.3M6 12h7.3" /><circle cx="3.3" cy="4" r=".5" fill="currentColor" stroke="none" /><circle cx="3.3" cy="8" r=".5" fill="currentColor" stroke="none" /><circle cx="3.3" cy="12" r=".5" fill="currentColor" stroke="none" /></>,
+  filter: <><path d="M2.7 4h4.6M10 4h3.3M2.7 8h2M7.3 8h6M2.7 12h6.6M12 12h1.3" /><circle cx="8.7" cy="4" r="1.3" /><circle cx="6" cy="8" r="1.3" /><circle cx="10.7" cy="12" r="1.3" /></>,
+  sort: <><path d="M2.7 4.7h6.6M2.7 8h4.6M2.7 11.3h2.6" /><path d="M11.3 3.3v9.4M9.3 10.7l2 2 2-2" /></>,
+  image: <><rect x="2" y="3" width="12" height="10" rx="1.5" /><circle cx="5.7" cy="6.3" r="1.1" /><path d="m2.5 11.5 3.7-3.4 2.6 2.3 2-1.7 2.7 2.4" /></>,
   'mic-off': <><rect x="6" y="2" width="4" height="7.5" rx="2" /><path d="M3.5 7.5a4.5 4.5 0 0 0 9 0M8 12v2M2.5 2.5l11 11" /></>,
   captions: <><rect x="1.8" y="3.5" width="12.4" height="9" rx="1.6" /><path d="M4.5 7h3M9 7h2.5M4.5 9.5h2M8 9.5h3.5" /></>,
   'phone-down': <path d="M1.8 9.4c3.5-3.1 8.9-3.1 12.4 0l-1.3 1.8-2.6-.7-.3-1.7a7.3 7.3 0 0 0-4 0l-.3 1.7-2.6.7z" />,

@@ -97,7 +97,8 @@ email + password and email confirmation.
 - **Consent** is two separate append-only rows in `organization_agreement`
   (platform terms, industry intelligence) sharing a `presentation_id`.
 - **Shell and routes.** Flat left sidebar (`content/navigation.ts`): Today,
-  Orders (`/orders`, `/orders/[orderId]`), Inventory, Programs, Suppliers,
+  Orders (`/orders`, `/orders/[orderId]`), Catalog (`/catalog`,
+  `/catalog?supplier=…`, `/catalog/[productId]`), Inventory, Programs, Suppliers,
   Insights (performance and opportunities), Business (profile, locations, team
   as tabs). `/recommendations`, `/performance` and `/opportunities` redirect to
   where their content now lives.
@@ -108,12 +109,16 @@ email + password and email confirmation.
   - the account menu opens beside the rail.
   The choice is remembered in a cookie (`bi_sidebar`), so the server
   renders it on first paint. Phones keep the full drawer.
+  Pages fill the working area beside the sidebar (no page max-width); no page
+  changes the sidebar.
 - **Presentation shapes, not data models.** `ProposedOrderView` /
   `OrderLineView` / `OrderSummary`, `WorkItemView` and `SupplierPresentation`
   describe what screens render. Today answers "what deserves my attention?":
-  a sentence derived from real state, three health figures, and one ranked
-  list of `WorkItemView`s whose first item, whichever it is after the
-  retailer's own reordering, gets the hero treatment. An order becomes one
+  a sentence derived from real state, three health figures, the
+  replenishment plan (the proposed orders taken together,
+  `features/today/plan.ts`), the current questions, and one ranked list of
+  `WorkItemView`s whose first item, whichever it is after the retailer's
+  own reordering, is emphasized in place. An order becomes one
   item (`features/work/fromOrder.ts`, with the figures the hero shows) and
   line evidence stays on the order.
 - **The intelligence conversation is the interface; `context_item` is the
@@ -484,7 +489,10 @@ prepared migration and the proposed first implementation slice are in
   repository and tested locally and in CI, but **not applied to the live
   project**.
 - No application code reads the catalog tables yet, so the app works
-  before and after they are applied.
+  before and after they are applied. The Catalog screens run on example data
+  (`src/demo/catalog.ts`, built from the example orders and inventory) through
+  presentation shapes (`features/catalog/types.ts`); without example data
+  they say there is no catalog yet.
 - `database.types.ts` is regenerated after the apply.
 - The migrations are applied only after a real supplier file has been
   profiled against them.

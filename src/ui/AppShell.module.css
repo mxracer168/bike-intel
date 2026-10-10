@@ -206,6 +206,17 @@
   }
 }
 
+/* Phones: the top bar goes dark, continuing the sidebar (Figma reference). */
+@media (max-width: 639px) {
+  .mobileBar { background: var(--nav-bg); border-bottom-color: var(--nav-edge); color: var(--nav-ink-strong); }
+  .mobileBar .logo { color: var(--nav-ink-strong); }
+  .mobileBar .menuButton { color: var(--nav-ink); }
+  .mobileBar .menuButton:hover { background: var(--nav-hover); }
+  /* Search, notifications and the conversation: light marks on the dark bar. */
+  .mobileBar .barEnd :is(button, a) { color: var(--nav-ink); }
+  .mobileBar .barEnd :is(button, a):hover { background: var(--nav-hover); color: var(--nav-ink-strong); }
+}
+
 /* ---------- Focused shell (sign-in, onboarding): logo only ---------- */
 .focused { min-height: 100dvh; display: flex; flex-direction: column; }
 .bar {

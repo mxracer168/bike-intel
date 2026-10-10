@@ -1,108 +1,67 @@
 .wrap { display: flex; flex-direction: column; gap: var(--sp-2); }
-.list { list-style: none; display: flex; flex-direction: column; }
 
 /*
- * Every item: a drag grip in the left gutter (outside the content edge, out of
- * sight until wanted), then the item. The first item is the hero; the rest
- * are quiet rows separated by hairlines.
+ * What needs attention: one card, numbered rows separated by hairlines. The
+ * first row is emphasized in place (a pale blue wash, a blue number, its
+ * status and figures). A drag grip waits in the left gutter (desktop).
  */
-.item { position: relative; }
+.queue {
+  list-style: none; display: flex; flex-direction: column;
+  border: 1px solid var(--line); border-radius: var(--r-xl);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+.item {
+  position: relative; display: grid; grid-template-columns: 24px minmax(0, 1fr) 28px; gap: 0 var(--sp-3); align-items: start;
+  padding: var(--sp-4) var(--sp-3) var(--sp-4) var(--sp-4);
+  transition: background-color var(--motion-fast) var(--ease-standard);
+}
+.item + .item { border-top: 1px solid var(--line); }
+.item:first-child { border-radius: var(--r-xl) var(--r-xl) 0 0; }
+.item:last-child { border-radius: 0 0 var(--r-xl) var(--r-xl); }
+.item:only-child { border-radius: var(--r-xl); }
 .linked { cursor: pointer; }
-/* The row being dragged: a quiet lift, nothing more. */
-.dragging { background: var(--surface); box-shadow: var(--sh-2); border-radius: var(--r-md); }
+.linked:hover { background: var(--surface); }
+.lead { padding: 20px var(--sp-3) 20px 20px; background: var(--accent-wash); }
+.lead.linked:hover { background: var(--accent-soft); }
+.dragging { background: var(--surface); box-shadow: var(--sh-2); }
 
-/* ---------- Rows: dot · title and detail · action on hover · arrow · "⋯" ---------- */
-.row {
-  display: grid; grid-template-columns: var(--sp-6) 6px minmax(0, 1fr) auto 18px 32px; gap: 0 var(--sp-4); align-items: center;
-  padding: var(--sp-5) 0; margin-left: calc(-1 * (var(--sp-6) + var(--sp-4)));
+.rank {
+  width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; margin-top: -1px;
+  background: var(--sunken); color: var(--ink-3); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums;
 }
-.row + .row::before {
-  content: ''; position: absolute; top: 0; left: calc(var(--sp-6) + var(--sp-4)); right: 0; height: 1px; background: var(--bar-line);
-}
-
-.dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
-.info { background: var(--dot-info); }
-.caution { background: var(--dot-caution); }
-.good { background: var(--dot-good); }
-.risk { background: var(--dot-risk); }
+.lead .rank { background: var(--accent); color: var(--on-accent); }
 
 .body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.title { font-size: 16px; line-height: 24px; font-weight: 500; letter-spacing: 0; color: var(--ink); }
+.status {
+  font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600; letter-spacing: var(--tracking-meta);
+  text-transform: uppercase; color: var(--accent-hover); margin-bottom: var(--sp-1);
+}
+.title { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0; color: var(--ink-strong); }
+.lead .title { font-size: 16px; line-height: 24px; font-weight: 600; }
 .rowLink, .titleText { color: inherit; text-decoration: none; }
 .rowLink:focus-visible { box-shadow: none; outline: none; }
 /* The whole item is the link. */
-.rowLink::after { content: ''; position: absolute; inset: 0; border-radius: var(--r-md); }
-.row:has(.rowLink:focus-visible) { box-shadow: var(--focus-ring); border-radius: var(--r-md); }
-.detail { font-size: 14px; line-height: 20px; color: var(--ink-3); }
+.rowLink::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+.item:has(.rowLink:focus-visible) { box-shadow: var(--focus-ring); }
+.detail { font-size: var(--fs-meta); line-height: 20px; color: var(--ink-3); }
+.lead .detail { font-size: 14px; color: var(--ink-2); }
+.leadFoot { margin-top: var(--sp-2); font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600; color: var(--accent-hover); font-variant-numeric: tabular-nums; }
 
-.actionLabel {
-  font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600; color: var(--accent); white-space: nowrap;
-  opacity: 0; transition: opacity var(--t-fast) var(--ease);
-}
-.go { display: inline-flex; color: var(--ink-faint); transition: color var(--t-fast) var(--ease); }
-.linked:hover .actionLabel, .row:focus-within .actionLabel { opacity: 1; }
-.linked:hover .go, .row:focus-within .go { color: var(--accent); }
+.end { display: grid; justify-items: end; }
+.end > * { grid-area: 1 / 1; }
+.go { display: inline-flex; margin: 3px 6px 0 0; color: var(--ink-faint); transition: opacity var(--motion-fast) var(--ease-standard); }
+.item:hover .go, .item:focus-within .go { opacity: 0; }
 
-/* ---------- The hero: the first item, whichever it is ---------- */
-.hero { display: grid; grid-template-columns: var(--sp-6) minmax(0, 1fr); align-items: start; padding-bottom: var(--sp-3); margin-left: calc(-1 * var(--sp-6)); }
-.hero > .grip { margin-top: var(--sp-6); }
-.heroCard {
-  position: relative; display: flex; flex-direction: column; gap: var(--sp-6);
-  padding: var(--sp-6) calc(var(--sp-6) + 4px); border-radius: var(--r-xl);
-  background: var(--inverse); color: var(--on-inverse); box-shadow: var(--sh-hero);
-  transition: transform var(--t-base) var(--ease);
-}
-.linked .heroCard:hover { transform: translateY(-2px); }
-.hero:has(.rowLink:focus-visible) .heroCard { box-shadow: var(--focus-ring), var(--sh-hero); }
-.hero .rowLink::after { border-radius: var(--r-xl); }
-.hero.dragging { background: none; box-shadow: none; }
-.hero.dragging .heroCard { box-shadow: var(--sh-3); }
-
-.heroTop { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-6); }
-.heroText { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-.heroStatus {
-  display: flex; align-items: center; gap: var(--sp-2);
-  font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600; letter-spacing: var(--tracking-meta);
-  text-transform: uppercase; color: var(--inverse-eyebrow);
-}
-.heroTitle {
-  margin-top: var(--sp-4); font-size: var(--fs-answer); line-height: var(--lh-answer); font-weight: 600;
-  letter-spacing: -0.025em; color: var(--on-inverse);
-}
-.heroDetail { margin-top: var(--sp-2); max-width: 36rem; font-size: 14px; line-height: 24px; color: var(--inverse-2); }
-.heroGo {
-  flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
-  background: var(--inverse-control); color: var(--on-inverse);
-  transition: background var(--t-base) var(--ease), color var(--t-base) var(--ease);
-}
-.linked:hover .heroGo, .hero:focus-within .heroGo { background: var(--surface); color: var(--ink-strong); }
-
-.heroFacts { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sp-5) 40px; padding-right: 40px; }
-.heroFigure { display: flex; flex-direction: column; gap: 4px; }
-.heroValue { font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; }
-.heroLabel { font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--inverse-3); }
-.heroProgress { display: flex; flex-direction: column; gap: var(--sp-2); font-size: 14px; line-height: 20px; font-weight: 500; color: var(--on-inverse); }
-.track { display: block; width: 144px; height: 6px; border-radius: 999px; overflow: hidden; background: var(--inverse-track); }
-.track > span { display: block; height: 100%; border-radius: inherit; background: var(--inverse-fill); }
-/* Quick answers keep their own light surface inside the dark card. */
-.heroAnswer {
-  position: relative; z-index: 1; padding: var(--sp-3) var(--sp-4); border-radius: var(--r-md);
-  background: var(--surface); color: var(--ink);
-}
-
-/* The "⋯" menu sits in the hero's lower right corner. */
-.hero .more { position: absolute; right: var(--sp-4); bottom: var(--sp-4); }
-.hero .moreButton { color: var(--inverse-2); }
-.hero .moreButton:hover { color: var(--on-inverse); background: var(--inverse-control); }
-
-/* ---------- Controls shared by both ---------- */
+/* ---------- Controls ---------- */
 .grip, .moreButton {
   position: relative; z-index: 1; width: 24px; height: 28px; display: grid; place-items: center;
   border: 0; background: none; color: var(--ink-3); border-radius: var(--r-sm); cursor: grab;
   opacity: 0; transition: opacity var(--t-fast);
 }
-.moreButton { width: 32px; cursor: pointer; }
-.grip:hover, .row .moreButton:hover { color: var(--ink); background: var(--sunken); }
+/* The grip sits just outside the card, in the column's gutter. */
+.grip { position: absolute; left: -30px; top: 14px; }
+.moreButton { width: 28px; margin-top: -4px; cursor: pointer; }
+.grip:hover, .moreButton:hover { color: var(--ink); background: var(--sunken); }
 .item:hover .grip, .item:hover .moreButton, .item:focus-within .grip, .item:focus-within .moreButton,
 .grip:focus-visible, .moreButton[aria-expanded='true'], .dragging .grip { opacity: 1; }
 .grip:active { cursor: grabbing; }
@@ -125,23 +84,12 @@
 }
 .reset:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
-.answer { display: flex; flex-direction: column; gap: var(--sp-2); padding-top: var(--sp-2); }
+.answer { position: relative; z-index: 1; display: flex; flex-direction: column; gap: var(--sp-2); padding-top: var(--sp-2); }
 .thanks { font-size: 14px; color: var(--ink-2); }
 
 /* Touch screens and phones: no drag (it fights scrolling); the "⋯" menu is always there, quietly. */
 @media (hover: none), (max-width: 640px) {
   .grip { display: none; }
-  .row, .hero { margin-left: 0; }
-  .row { grid-template-columns: 6px minmax(0, 1fr) 18px 32px; gap: 0 var(--sp-3); }
-  .row + .row::before { left: 0; }
-  .hero { grid-template-columns: minmax(0, 1fr); }
-  .actionLabel { display: none; }
+  .go { display: none; }
   .moreButton { opacity: 1; }
-}
-@media (max-width: 640px) {
-  .row { padding: var(--sp-4) 0; }
-  .heroCard { padding: var(--sp-5); gap: var(--sp-5); }
-  .heroTop { gap: var(--sp-4); }
-  .heroTitle { margin-top: var(--sp-3); font-size: 20px; line-height: 28px; }
-  .heroGo { width: 36px; height: 36px; }
 }

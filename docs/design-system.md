@@ -50,11 +50,19 @@ Make app itself is not copied into this repository.
   and the retailer's name on a blue brand tile, icon navigation (24px grid,
   1.7 stroke), the retailer's status and the account at the bottom. A 72px
   translucent top bar with search, notifications and Add context. Below
-  1024px the sidebar becomes the phone panel and a 64px bar replaces both.
+  1024px the sidebar becomes the phone panel and a 64px bar replaces both;
+  below 640px that bar is dark, continuing the sidebar.
+- **Full width.** Pages use the whole working area the sidebar leaves,
+  expanded or collapsed, with the 40 / 28 / 16px gutters; there is no page
+  max-width (`Page`), only `Page width="narrow"` for reading. Layouts that
+  depend on space respond to the working area, not the window (the Catalog
+  uses container queries), so no page changes the sidebar.
 - **The sidebar network.** A restrained animated network of lines and nodes
   in the sidebar's lower left (`ui/AmbientNetwork.tsx`). It is atmosphere,
-  not content: approved for the sidebar only. Nothing else in the product
-  gets glowing or animated "intelligence" effects. Still under reduced motion.
+  not content: approved for the sidebar, and (approved 2026-10-10, Figma
+  reference) a faint network inside Today's dark Replenishment plan card.
+  Nothing else in the product gets glowing or animated "intelligence"
+  effects. Still under reduced motion.
 - **Shared patterns from the Figma screens.** Section headings are 20px
   600 with one 14px sentence under them; small section labels are uppercase
   metadata in the accent. Panels (the order at a glance, and the health
@@ -128,11 +136,15 @@ comparable row each), `HealthSnapshot` (business health as one panel of figures 
 with short rules between them, label, a 24px value, an optional note and a small arrow
 whose color says whether the change is good for the business, never whether
 it went up; Today shows three, Inventory and Insights their own),
-`PriorityList` (the first item, whichever it is, is the dark hero: a status
-label, the title, one sentence, and the order's figure and free-freight
-progress when known; the rest are rows with a status dot, the action label
-on hover and a chevron), `WeeklyCheckIn` (Today's right rail, "Questions for
-you": the live count and "Answer now", opening the conversation), `IntelligenceProvider` / `AddContextButton` (the
+`PriorityList` ("What needs attention": one card of numbered rows; the first
+item, whichever it is, is emphasized in place with a pale blue wash, a blue
+number, its status and its figures; the rest are quiet rows with an arrow
+where the "⋯" menu appears on hover), `ReplenishmentPlan` (Today's dark
+card: the proposed orders taken together, three facts, one reason from what
+the orders already say, a quiet freshness note and "Review plan →"),
+`CurrentQuestions` (Today's questions, at most three, each with its reason
+and its own answers plus "Tell us more"; an answer becomes "Context saved"),
+`CatalogBrowser` / `ProductDetail` (see "Catalog" below), `IntelligenceProvider` / `AddContextButton` (the
 retailer's ongoing conversation with one assistant, speaking as "I", in a
 side panel: one continuous thread with no date dividers (click, tap or press
 Enter on a message to show when it was sent; the thread is one tab stop,
@@ -160,10 +172,10 @@ on hand, on order, the quantity stepper, unit cost and line total; clicking
 a row opens its recommendation card in place; see "Order review" below and
 `docs/network.md`), `PriorityList`
 (Today's priorities: orders, deadlines, stock, sync problems, one row shape; each
-row with a destination is one link with a quiet chevron; the retailer can
+row with a destination is one link; the retailer can
 reorder by dragging a grip that appears on hover/focus, with arrow keys on the
-grip, or from a "⋯" menu (always visible on touch); no rank numbers; "Back to
-suggested order" appears only once the order has changed), `EvidenceChart`
+grip, or from a "⋯" menu (always visible on touch); the numbers follow the
+current order; "Back to suggested order" appears only once the order has changed), `EvidenceChart`
 (weekly sales; single series, per-bar tooltip, screen-reader table),
 `InsightsView` (an eyebrow, title and one sentence with the period on the right; performance as a panel of figures; how recent decisions played out as three lesson cards (choose one) above that lesson's decisions, each leading with what happened and then the evidence box: recommended › you approved › demand, and which plan landed closer; patterns and opportunities as cards, conclusion first and facts small; a question the data can't answer sits in the soft Harbor blue of "Questions for you"; see `docs/insights.md`), `InventoryView` (a status sentence, a panel of health figures, one ranked list of bars switched between brand and category and dollars and units that filters the item table, and the item table with a header band, two-line products and a demand mark; see `docs/inventory.md`), `SupplierProfile` (the retailer's standing above the supplier name; about, a row of ordering facts, then roomy program cards with the retailer's Program fit, `4.6 / 5 · Program fit`, and "Why this fit?" opening a pale-blue analysis area; a sticky rail with Your account and Connection; see `docs/suppliers.md` and `docs/programs.md`), `SupplierDirectory`
 (instant name search).
@@ -176,9 +188,26 @@ Across screens:
 
 | Level | Screen | Question it answers | Shows |
 |---|---|---|---|
-| 1 | Today | What deserves my attention? | The date, the title and one sentence derived from real state ("Five things deserve your attention." plus "The rest of the business is moving as expected." only when no health figure is going the wrong way); a panel of three health figures; "Priorities", whose first item is the dark hero (positional: it follows the retailer's reordering), the rest quiet rows; "Questions for you" in the right rail (beneath, below 1280px). No line evidence. |
+| 1 | Today | What deserves my attention? | The date, the title and one sentence derived from real state ("Five things deserve your attention." plus "The rest of the business is moving as expected." only when no health figure is going the wrong way); a panel of three health figures across the page; then a wider column with the Replenishment plan and Current questions, and a narrower one with "What needs attention" (its first item emphasized in place, positional: it follows the retailer's reordering) and "Ahead" (program dates, quieter); one column below 1280px. No line evidence. |
 | 2 | Proposed order | What should I buy from this supplier? | Every line, scannable in hundreds. |
 | 3 | Line (expanded in place) | Why this quantity? | The reasoning, then the evidence only when asked. |
+
+## Catalog
+
+Figma reference: Catalog and Product Detail. Discovery first, then one
+product's options and who can supply them (`docs/catalog.md`).
+
+| Part | Shows |
+|---|---|
+| Header | "Catalog" and one sentence; a supplier's catalog adds the eyebrow "Supplier catalog", "All suppliers" back, and its proposed order (total, distance to free freight; green only when it already ships free). |
+| Control bar | Full bleed under the top bar and sticky there: search, Sort (Best Match, Price: low to high, Brand, Availability; "Sort" over a native select on phones), Filters (when the rail isn't shown) with a count, Grid / List. |
+| Filter rail | When the working area is at least 880px wide, whatever the sidebar does: Category as a short list ("Show all"), then Brand, Supplier (not in a supplier's catalog), Availability, Buying Intelligence; a category's own attributes (wheel size, width, valve…) once results narrow to that category. A filter with one option is hidden. Otherwise a full-height dialog: groups, then each group's options; "Show N products" applies. |
+| Results | "All catalog products" or "Results for …", "N of M products". Grid cards (3:2 image, brand, name, category and options, the retailer signal, availability and cost) or list rows (60px image, the same in one line, cost column). |
+| Product | Back to the catalog it came from. Image (4:3) with its source, or a quiet placeholder and "No product image matched yet". Brand · Category, name, options and suppliers. The recommendation for the selected option on the dark surface (never a product-wide total), or what the retailer has of it. Option chips (a dot marks a recommended one). "Best source — Supplier · $X each" with the reason underneath. Supplier offers for that option. Other retailers (Phase 2, example). |
+
+Search, filters, sort, view and the selected option live in the address.
+Only images matched to the exact product are shown, on a light ground; the
+placeholder is decorative.
 
 ## Order review
 

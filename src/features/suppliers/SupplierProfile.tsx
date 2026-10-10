@@ -91,7 +91,7 @@ const displayUrl = (url: string) => url.replace(/^https?:\/\//, '').replace(/\/$
  * ordering and programs. A sticky rail holds the retailer's private account
  * details and how we connect to the supplier.
  */
-export function SupplierProfile({ presentation, relationship, retailerName, programFit = {}, programs = [], account = {}, example = false }: {
+export function SupplierProfile({ presentation, relationship, retailerName, programFit = {}, programs = [], account = {}, example = false, catalogHref }: {
   presentation: SupplierPresentation
   relationship: RelationshipView
   retailerName: string
@@ -100,6 +100,8 @@ export function SupplierProfile({ presentation, relationship, retailerName, prog
   programs?: ProgramSummary[]
   account?: SupplierAccountView
   example?: boolean
+  /** This supplier's products in the Catalog, when there are any. */
+  catalogHref?: string
 }) {
   const { identity, sections } = presentation
   const ctx = { retailerName, supplierName: identity.name, programFit, programs }
@@ -122,6 +124,7 @@ export function SupplierProfile({ presentation, relationship, retailerName, prog
             {example && <ExampleMarker />}
           </p>
           <h1 className={styles.heroName}>{identity.name}</h1>
+          {catalogHref && <Link href={catalogHref} className={styles.catalogLink}>Browse {identity.name}’s catalog →</Link>}
         </div>
       </header>
 

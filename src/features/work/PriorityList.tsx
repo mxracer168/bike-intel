@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type DragEv
 import { Icon } from '@/ui/Icon'
 import { applyUserOrder, isCustomOrder, moveTo } from './order'
 import { QuickAnswer } from './QuickAnswer'
-import { workStatus, workTone, type WorkItemView } from './types'
+import { workStatus, type WorkItemView } from './types'
 import styles from './Work.module.css'
 
 const ORDER_EVENT = 'priority-order-change'
@@ -57,9 +57,9 @@ function useStoredOrder(key: string): string[] | null {
  * it, and learning from how it differs from ours, is recorded in
  * docs/intelligence.md.
  *
- * Whatever sits first (our ranking or theirs) is shown large, as the one
- * thing to start with; the rest follow as quiet rows. Every item with
- * somewhere to go is one link. Reordering: drag the grip
+ * A compact, numbered queue. Whatever sits first (our ranking or theirs)
+ * is emphasized in place, with its status and figures, as the one thing to
+ * start with. Every item with somewhere to go is one link. Reordering: drag the grip
  * (appears on hover/focus, desktop); focus the grip and use Up/Down
  * (keyboard); or the "⋯" menu (always there on touch screens).
  */
@@ -139,12 +139,11 @@ export function PriorityList({ items, storageKey, label, example = false }: {
 
   return (
     <div className={styles.wrap}>
-      <ul className={styles.list} aria-label={label}>
+      <ol className={styles.queue} aria-label={label}>
         {current.map((item, index) => {
           const href = item.action?.href
           const first = index === 0
           const last = index === current.length - 1
-          const tone = styles[workTone(item)]
           const grip = (
             <button
               type="button"
@@ -182,76 +181,43 @@ export function PriorityList({ items, storageKey, label, example = false }: {
           const answer = item.choices && (
             <QuickAnswer name={`work-${item.id}`} prompt={item.title} choices={item.choices} example={example} />
           )
-
           // Whatever is first, by our ranking or the retailer's, leads: the
-          // same item with the same controls, given more room.
-          if (first) {
-            const { figure, progress, summary } = item.facts ?? {}
-            return (
-              <li
-                key={item.id}
-                ref={(el) => { rows.current.set(item.id, el) }}
-                className={[styles.item, styles.hero, href && styles.linked, dragging === item.id && styles.dragging].filter(Boolean).join(' ')}
-                onDragOver={(e) => onDragOver(e, item.id)}
-                onDrop={(e) => e.preventDefault()}
-              >
-                {grip}
-                <div className={styles.heroCard}>
-                  <div className={styles.heroTop}>
-                    <div className={styles.heroText}>
-                      <p className={styles.heroStatus}><span className={[styles.dot, tone].join(' ')} aria-hidden="true" />{workStatus(item)}</p>
-                      <h3 className={styles.heroTitle}>{title}</h3>
-                      {(summary ?? item.detail) && <p className={styles.heroDetail}>{summary ?? item.detail}</p>}
-                    </div>
-                    {href && <span className={styles.heroGo} aria-hidden="true"><Icon name="chevron-right" size={20} /></span>}
-                  </div>
-                  {answer && <div className={styles.heroAnswer}>{answer}</div>}
-                  {(figure || progress) && (
-                    <div className={styles.heroFacts}>
-                      {figure && (
-                        <p className={styles.heroFigure}>
-                          <span className={styles.heroValue}>{figure.value}</span>
-                          <span className={styles.heroLabel}>{figure.label}</span>
-                        </p>
-                      )}
-                      {progress && (
-                        <div className={styles.heroProgress}>
-                          <p>{progress.label}</p>
-                          <span className={styles.track} aria-hidden="true">
-                            <span style={{ width: `${Math.round(Math.min(1, Math.max(0, progress.ratio)) * 100)}%` }} />
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {more}
-                </div>
-              </li>
-            )
-          }
+          // same row, emphasized in place, with its status and figures.
+          const { figure, progress, summary } = first ? item.facts ?? {} : {}
+          const foot = first && [figure?.value, progress?.label].filter(Boolean).join(' · ')
 
           return (
             <li
               key={item.id}
               ref={(el) => { rows.current.set(item.id, el) }}
-              className={[styles.item, styles.row, href && styles.linked, dragging === item.id && styles.dragging].filter(Boolean).join(' ')}
+              className={[styles.item, first && styles.lead, href && styles.linked, dragging === item.id && styles.dragging].filter(Boolean).join(' ')}
               onDragOver={(e) => onDragOver(e, item.id)}
               onDrop={(e) => e.preventDefault()}
             >
               {grip}
-              <span className={[styles.dot, tone].join(' ')} aria-hidden="true" />
+              <span className={styles.rank} aria-hidden="true">{index + 1}</span>
               <div className={styles.body}>
+                {first && <p className={styles.status}>{workStatus(item)}</p>}
                 <h3 className={styles.title}>{title}</h3>
-                {item.detail && <p className={styles.detail}>{item.detail}</p>}
+                {(first ? summary ?? item.detail : item.detail) && (
+                  <p className={styles.detail}>{first ? summary ?? item.detail : item.detail}</p>
+                )}
                 {answer}
+                {first && (foot || href) && (
+                  <p className={styles.leadFoot}>
+                    {foot}{foot && href && ' · '}{href && <>{item.action?.label} <span aria-hidden="true">→</span></>}
+                  </p>
+                )}
               </div>
-              <span className={styles.actionLabel} aria-hidden="true">{href && item.action?.label}</span>
-              <span className={styles.go} aria-hidden="true">{href && <Icon name="chevron-right" size={18} />}</span>
-              {more}
+              {/* The arrow rests where the "⋯" menu appears on hover or focus. */}
+              <span className={styles.end}>
+                {!first && href && <span className={styles.go} aria-hidden="true"><Icon name="arrow-right" size={15} /></span>}
+                {more}
+              </span>
             </li>
           )
         })}
-      </ul>
+      </ol>
       {custom && (
         <button type="button" className={styles.reset} onClick={() => { commit(items.map((i) => i.id)); setAnnouncement('Back to the suggested order.') }}>
           Back to suggested order

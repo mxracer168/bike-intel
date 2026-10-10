@@ -3,12 +3,13 @@
  * destinations we can defend. Pages with sub-pages (Business) use a quiet
  * row of in-page tabs rather than more sidebar items.
  */
-export type NavIconName = 'today' | 'orders' | 'inventory' | 'programs' | 'suppliers' | 'insights' | 'connections' | 'business'
+export type NavIconName = 'today' | 'orders' | 'catalog' | 'inventory' | 'programs' | 'suppliers' | 'insights' | 'connections' | 'business'
 export type NavItem = { href: string; label: string; icon?: NavIconName }
 
 export const navigation: NavItem[] = [
   { href: '/today', label: 'Today', icon: 'today' },
   { href: '/orders', label: 'Orders', icon: 'orders' },
+  { href: '/catalog', label: 'Catalog', icon: 'catalog' },
   { href: '/inventory', label: 'Inventory', icon: 'inventory' },
   { href: '/programs', label: 'Programs', icon: 'programs' },
   { href: '/suppliers', label: 'Suppliers', icon: 'suppliers' },

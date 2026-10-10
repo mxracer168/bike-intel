@@ -5,7 +5,7 @@ import { businessTabs, inventoryTabs, isCurrent, navigation } from '@/content/na
 
 describe('primary navigation', () => {
   it('is the approved flat list, starting with Today', () => {
-    expect(navigation.map((i) => i.label)).toEqual(['Today', 'Orders', 'Inventory', 'Programs', 'Suppliers', 'Insights', 'Connections', 'Business'])
+    expect(navigation.map((i) => i.label)).toEqual(['Today', 'Orders', 'Catalog', 'Inventory', 'Programs', 'Suppliers', 'Insights', 'Connections', 'Business'])
   })
 
   it('points every item and in-page tab at a real page', () => {

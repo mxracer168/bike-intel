@@ -1,5 +1,7 @@
+/* Full width of the working area (Figma reference): pages use whatever width
+   the sidebar leaves, expanded or collapsed. Only reading pages are capped. */
 .page {
-  width: 100%; max-width: calc(var(--page-width) + 2 * var(--gutter));
+  width: 100%; min-width: 0;
   margin: 0 auto; padding: var(--sp-7) var(--gutter) var(--sp-8);
   display: flex; flex-direction: column; gap: var(--sp-6);
 }

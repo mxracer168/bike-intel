@@ -942,3 +942,46 @@ review then states:
 
 If the file exposes no problem with the prepared schema, the review says
 so. The file itself is never committed to the repository.
+
+## Catalog screens on example data (2026-10-10)
+
+The retailer-facing Catalog follows the Figma Catalog and Product Detail
+designs (`/catalog`, `/catalog?supplier=…`, `/catalog/[productId]`). Until
+the migrations are applied and a source is imported, it runs on example
+data only (`src/demo/catalog.ts`). That data is built from the example
+proposed orders and inventory: real product names and brands, one Variant
+per order line or inventory item. A few second-supplier offers exist only
+to show comparison; each is marked `illustrative` and labelled "Example
+comparison".
+
+What the screens hold to:
+- **Recommendation scope.** Example recommendations come from proposed
+  order lines, so they are Variant-level (G1). Product Detail says which
+  option they are for ("3 recommended for 700 × 28"). Other options'
+  recommendations are listed separately. A product-wide total is never shown.
+- **Supplier cost, not landed cost (G2).** "Best source — Supplier · $X
+  each" uses the supplier's price per canonical unit (packs normalized).
+  The reason underneath uses only what the proposed orders already say:
+  - which proposed order holds the recommendation;
+  - how far that order is from free freight;
+  - when another supplier lists the item for less.
+
+  No freight or landed figure is estimated (`features/catalog/sourcing.ts`).
+- **Adding to an order** from the Catalog is not built. Order quantities
+  are still edited only on the order. A recommended option links to its
+  line in the proposed order ("Review in order").
+- **Retailer network (Phase 2).** Product Detail shows the example network
+  listings and Wholesale Market Value with the same mocked introduction as
+  orders. No new network backend.
+- **Product images.** Only an image matched to the exact product, with its
+  source recorded (`CatalogImage.source`), is shown, on a light ground.
+  Otherwise a quiet placeholder shows ("No product image matched yet");
+  a wrong product is worse than none. No example product has an image yet:
+  manufacturer image hosts are not reachable from the build environment, and
+  none is attached without being checked.
+- **Discovery is derived.** Search, filters (with counts that follow the
+  results), contextual attribute filters and sort are pure functions over
+  presentation shapes (`features/catalog/search.ts`). The same functions
+  can later read the rights-filtered discovery index. Attribute filters
+  keep both meanings: one normalized value (622) and the designations the
+  item is sold under ("700c / 29″").

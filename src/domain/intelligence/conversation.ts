@@ -42,6 +42,8 @@ export type IntelligenceQuestionView = {
   /** A few words naming the question ("Trail tires"), for orientation while answering. */
   topic?: string
   choices: string[]
+  /** Why we're asking: the decision the answer can improve. */
+  reason?: string
   status: QuestionState
   answer?: { choice: string | null; body: string | null }
   example?: boolean
@@ -112,7 +114,7 @@ export async function loadConversation(db: Db, organizationId: string, userId: s
 export async function loadOpenQuestions(db: Db, organizationId: string): Promise<IntelligenceQuestionView[] | null> {
   const { data, error } = await db
     .from('intelligence_question')
-    .select('id, prompt, choices, status, deferred_until')
+    .select('id, prompt, reason, choices, status, deferred_until')
     .eq('organization_id', organizationId)
     .in('status', ['open', 'deferred'])
     .order('priority', { ascending: false })
@@ -127,6 +129,7 @@ export async function loadOpenQuestions(db: Db, organizationId: string): Promise
     .map((q) => ({
       id: q.id,
       prompt: q.prompt,
+      reason: q.reason ?? undefined,
       choices: Array.isArray(q.choices) ? q.choices.filter((c): c is string => typeof c === 'string') : [],
       status: q.status as QuestionState,
     }))

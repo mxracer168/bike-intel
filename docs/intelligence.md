@@ -41,9 +41,10 @@ silently overridden by operating data (see `business-instructions.md`).
   answers are written words, so they are also part of the conversation.
 - **"Not now" defers**: the question comes back at the next check-in (for now,
   a week later). Only the system retires a question (`withdrawn`).
-- **Weekly check-in** ("There are three things we'd like to check with you
-  this week") draws from the same prioritized question queue. Scheduling is
-  not built.
+- **Current questions on Today** (replacing the weekly check-in card) draw
+  from the same prioritized queue: at most three, each with the reason it is
+  asked and its own answers, plus "Tell us more". Answers are recorded with
+  the `check_in` surface. Scheduling a weekly check-in is not built.
 
 ## Answering questions (future): retrieve, don't dump
 
