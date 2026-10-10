@@ -973,12 +973,19 @@ What the screens hold to:
 - **Retailer network (Phase 2).** Product Detail shows the example network
   listings and Wholesale Market Value with the same mocked introduction as
   orders. No new network backend.
-- **Product images.** Only an image matched to the exact product, with its
-  source recorded (`CatalogImage.source`), is shown, on a light ground.
-  Otherwise a quiet placeholder shows ("No product image matched yet");
-  a wrong product is worse than none. No example product has an image yet:
-  manufacturer image hosts are not reachable from the build environment, and
-  none is attached without being checked.
+- **Product images.** A product shows an image only when one is attached
+  with its source (`CatalogImage.source`); otherwise a quiet placeholder
+  shows ("No product image matched yet"). Example-catalog photos are local
+  only:
+  - `npm run demo:images` (`scripts/demo-images/`) searches a few bike
+    shops' public storefront search by product name.
+  - It keeps a result only on a strict name match (every model word and
+    number, and the brand), and downloads the photo into
+    `public/demo/products/`, which is git-ignored and never committed.
+  - It writes `manifest.json`, which `src/demo/catalog.ts` reads, and
+    `review.html`, a contact sheet for checking every match.
+  - `overrides.json` hides a wrong match or supplies an image URL.
+  - Without the folder, every product shows the placeholder.
 - **Discovery is derived.** Search, filters (with counts that follow the
   results), contextual attribute filters and sort are pure functions over
   presentation shapes (`features/catalog/search.ts`). The same functions

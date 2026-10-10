@@ -5,13 +5,16 @@
  * supplier stock and recommendations come from the proposed orders' lines
  * (Variant-level), on hand and incoming from the order lines or the
  * inventory. A few second-supplier offers are added only so supplier
- * comparison can be seen; each is marked `illustrative`. No product image
- * is attached until one has been matched to the exact product and its
- * source recorded (docs/catalog.md).
+ * comparison can be seen; each is marked `illustrative`. Product photos are
+ * local only: `npm run demo:images` fetches them into public/demo/products/
+ * (git-ignored) with a manifest naming each one's source; without it, every
+ * product shows the placeholder (docs/catalog.md).
  */
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { readAttributes } from '@/features/catalog/attributes'
 import type { OrderContexts } from '@/features/catalog/sourcing'
-import type { CatalogOffer, CatalogProduct, CatalogVariant } from '@/features/catalog/types'
+import type { CatalogImage, CatalogOffer, CatalogProduct, CatalogVariant } from '@/features/catalog/types'
 import { summarizeOrder } from '@/features/orders/summarize'
 import { demoInventory } from './inventory'
 import { demoOrders } from './orders'
@@ -61,6 +64,20 @@ const ILLUSTRATIVE: { product: string; supplier: string; costFactor: number; sta
 ]
 
 const ONE_LOCATION = [{ id: 'all', name: 'Store' }]
+
+/** Locally fetched photos (scripts/demo-images), by product id; none when they haven't been fetched. */
+function localImages(): Record<string, CatalogImage> {
+  try {
+    const manifest = JSON.parse(readFileSync(join(process.cwd(), 'public/demo/products/manifest.json'), 'utf8')) as {
+      products?: Record<string, { src: string; alt: string; source: { name: string; url: string } }>
+    }
+    return Object.fromEntries(Object.entries(manifest.products ?? {})
+      .filter(([, e]) => typeof e?.src === 'string' && e.src.startsWith('/demo/products/'))
+      .map(([id, e]) => [id, { src: e.src, alt: e.alt, source: { name: e.source.name, url: e.source.url } }]))
+  } catch {
+    return {}
+  }
+}
 
 function build(): CatalogProduct[] {
   const products = new Map<string, CatalogProduct>()
@@ -131,6 +148,8 @@ function build(): CatalogProduct[] {
     }
   }
 
+  const images = localImages()
+  for (const p of products.values()) p.image = images[p.id] ?? null
   return [...products.values()].sort((a, b) => a.name.localeCompare(b.name))
 }
 

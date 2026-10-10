@@ -156,10 +156,11 @@ describe('best source for one option', () => {
 })
 
 describe('example catalog', () => {
-  it('has products with options, several suppliers, and no unmatched images', () => {
+  it('has products with options, several suppliers, and only local images with a recorded source', () => {
     expect(demoCatalog.length).toBeGreaterThan(100)
     expect(new Set(demoCatalog.map((p) => p.id)).size).toBe(demoCatalog.length)
-    expect(demoCatalog.every((p) => p.image === null && p.example && p.variants.length > 0)).toBe(true)
+    expect(demoCatalog.every((p) => p.example && p.variants.length > 0)).toBe(true)
+    expect(demoCatalog.every((p) => p.image === null || (p.image.src.startsWith('/demo/products/') && p.image.source.url.startsWith('http')))).toBe(true)
     expect(demoCatalog.some((p) => p.variants.some((v) => v.offers.length > 1))).toBe(true)
   })
 

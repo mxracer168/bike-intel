@@ -16,7 +16,8 @@
     "test:db": "supabase/tests/local/run.sh",
     "test:e2e": "playwright test",
     "check:secrets": "node scripts/check-secret-leak.mjs",
-    "db:types": "npx supabase gen types typescript --local --schema public > src/lib/supabase/database.types.ts"
+    "db:types": "npx supabase gen types typescript --local --schema public > src/lib/supabase/database.types.ts",
+    "demo:images": "node --no-warnings --experimental-strip-types --import ./scripts/demo-images/register.mjs scripts/demo-images/fetch.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

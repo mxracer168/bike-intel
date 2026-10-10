@@ -9,3 +9,5 @@ next-env.d.ts
 playwright-report/
 test-results/
 .DS_Store
+# Example-catalog product photos, fetched locally (npm run demo:images); never committed
+public/demo/products/
