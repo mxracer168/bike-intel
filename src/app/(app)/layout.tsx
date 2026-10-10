@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { isDemoPreviewEnabled } from '@/demo/config'
 import { demoConnections } from '@/demo/connections'
@@ -10,6 +11,7 @@ import {
 } from '@/features/notifications/notifications'
 import { getOnboardingStatus } from '@/server/session'
 import { AppShell, type ShellExtras } from '@/ui/AppShell'
+import { SIDEBAR_COOKIE } from '@/ui/sidebar'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { status, organization, user, facts, db } = await getOnboardingStatus()
@@ -34,11 +36,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     sync: demo ? demoSync : undefined,
     notifications: { items: notifications, storageKey: `bi:notifications-read:${organization.id}:${user.id}` },
   }
+  const sidebarCollapsed = (await cookies()).get(SIDEBAR_COOKIE)?.value === 'collapsed'
   return (
     <AppShell
       retailer={{ name: organization.name, locationCount: facts.locationCount }}
       account={{ email: user.email }}
       extras={extras}
+      sidebarCollapsed={sidebarCollapsed}
     >
       {children}
     </AppShell>

@@ -9,6 +9,7 @@ import { SearchButton, SearchProvider } from '@/features/search/SearchDialog'
 import { MobileNav } from './MobileNav'
 import { NavIcon } from './NavIcon'
 import { RouteEnter } from './RouteEnter'
+import { ShellFrame } from './ShellFrame'
 import { SidebarPanel, type ShellAccount, type ShellRetailer } from './SidebarPanel'
 import styles from './AppShell.module.css'
 
@@ -39,19 +40,20 @@ export type ShellExtras = {
 /**
  * Signed-in application frame: a dark navy sidebar (primary navigation,
  * current retailer, sync status, personal account), a slim header with the
- * "Add context" entry, and the page content. On phones the sidebar becomes a
+ * "Add context" entry, and the page content. On desktop the sidebar can
+ * collapse to an icon rail (remembered per browser); on phones it becomes a
  * panel opened from the top bar.
  */
-export function AppShell({ retailer, account, extras, children }: {
-  retailer: ShellRetailer; account: ShellAccount; extras: ShellExtras; children: ReactNode
+export function AppShell({ retailer, account, extras, sidebarCollapsed = false, children }: {
+  retailer: ShellRetailer; account: ShellAccount; extras: ShellExtras; sidebarCollapsed?: boolean; children: ReactNode
 }) {
-  const panel = () => (
-    <SidebarPanel retailer={retailer} account={account} sync={extras.sync} />
+  const panel = (collapsible = false) => (
+    <SidebarPanel retailer={retailer} account={account} sync={extras.sync} collapsible={collapsible} />
   )
   const frame = (
-    <div className={styles.shell}>
+    <ShellFrame initialCollapsed={sidebarCollapsed}>
       <a href="#main" className={styles.skip}>Skip to content</a>
-      <aside className={styles.sidebar} aria-label="Sidebar">{panel()}</aside>
+      <aside className={styles.sidebar} aria-label="Sidebar">{panel(true)}</aside>
       <header className={styles.mobileBar}>
         <span className={styles.barStart}>
           <MobileNav>{panel()}</MobileNav>
@@ -73,7 +75,7 @@ export function AppShell({ retailer, account, extras, children }: {
         </header>
         <main id="main"><RouteEnter>{children}</RouteEnter></main>
       </div>
-    </div>
+    </ShellFrame>
   )
   return (
     <IntelligenceProvider retailerName={retailer.name} questions={extras.intelligence.questions}

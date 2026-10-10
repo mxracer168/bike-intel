@@ -101,6 +101,13 @@ email + password and email confirmation.
   Insights (performance and opportunities), Business (profile, locations, team
   as tabs). `/recommendations`, `/performance` and `/opportunities` redirect to
   where their content now lives.
+  On desktop the sidebar collapses to an 80 px icon rail (Figma reference)
+  and expands again from the control beside the logo:
+  - nav labels stay in each link's accessible name and show as tooltips;
+  - a sync problem still shows as a dot;
+  - the account menu opens beside the rail.
+  The choice is remembered in a cookie (`bi_sidebar`), so the server
+  renders it on first paint. Phones keep the full drawer.
 - **Presentation shapes, not data models.** `ProposedOrderView` /
   `OrderLineView` / `OrderSummary`, `WorkItemView` and `SupplierPresentation`
   describe what screens render. Today answers "what deserves my attention?":

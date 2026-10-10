@@ -1,5 +1,8 @@
 /* ---------- Application shell: dark navy sidebar + light working canvas (Figma reference) ---------- */
-.shell { min-height: 100dvh; display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); background: var(--canvas); }
+.shell {
+  min-height: 100dvh; display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); background: var(--canvas);
+  transition: grid-template-columns var(--motion-standard) var(--ease-intelligence);
+}
 .skip { position: absolute; left: var(--sp-4); top: -60px; z-index: 50; background: var(--surface); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm); box-shadow: var(--sh-2); }
 .skip:focus { top: var(--sp-2); }
 
@@ -42,10 +45,19 @@
 .panel > :not(.network) { position: relative; z-index: 1; }
 .panel::-webkit-scrollbar { display: none; }
 
+.brandRow { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-6); }
 .brand {
-  display: flex; align-items: center; gap: var(--sp-3); padding: 0 var(--sp-2); margin-bottom: var(--sp-6);
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--sp-3); padding: 0 var(--sp-2);
   text-decoration: none; color: var(--nav-ink-strong); border-radius: var(--r-md);
 }
+/* Collapse / expand the desktop sidebar. */
+.collapse {
+  flex: none; width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: var(--r-md);
+  background: none; color: var(--nav-ink-quiet); cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast);
+}
+.collapse:hover { background: var(--nav-hover); color: var(--nav-ink-strong); }
+.collapse:focus-visible { box-shadow: 0 0 0 2px var(--nav-network); }
 .brandTile {
   width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: var(--r-md);
   background: var(--brand); color: var(--on-accent); box-shadow: var(--sh-1);
@@ -62,6 +74,7 @@
   transition: background var(--t-fast) var(--ease), color var(--t-fast);
 }
 .navLink svg { flex: none; }
+.navLabel { white-space: nowrap; }
 .navLink:hover { color: var(--nav-ink-strong); background: var(--nav-hover); }
 .navLink[aria-current='page'] { position: relative; color: var(--nav-current-ink); background: var(--nav-current); box-shadow: inset 0 0 0 1px var(--nav-current-ring); }
 /* The current page: a slim lit rail at the left edge, and the icon settling once, as it becomes current. */
@@ -80,6 +93,7 @@
 .retailer { display: flex; flex-direction: column; padding: 0 var(--sp-2); min-width: 0; }
 .retailerMeta { font-size: 12px; line-height: 18px; color: var(--nav-ink); }
 .syncAttention { font-size: 12px; line-height: 18px; font-weight: 500; color: var(--dot-caution); }
+.syncDot { display: none; }
 
 .account { position: relative; border-top: 1px solid var(--nav-rule); padding-top: 20px; }
 .account summary {
@@ -127,6 +141,30 @@
 @keyframes pulse { 0%, 72%, 100% { opacity: .4; transform: scale(.8); } 82% { opacity: 1; transform: scale(1.65); } }
 @keyframes signal { to { stroke-dashoffset: -216; } }
 @media (prefers-reduced-motion: reduce) { .node, .signals { animation: none; } .node { opacity: .55; } }
+
+/* ---------- Collapsed desktop sidebar: an icon rail (Figma reference) ---------- */
+@media (min-width: 1024px) {
+  .shell[data-sidebar='collapsed'] { grid-template-columns: var(--sidebar-rail-width) minmax(0, 1fr); }
+  /* Visible overflow lets the account menu open beside the rail; the network is kept inside it. */
+  .shell[data-sidebar='collapsed'] .sidebar .panel { padding: var(--sp-4) var(--sp-3) 20px; overflow: visible; }
+  .shell[data-sidebar='collapsed'] .sidebar .network { left: 0; width: 100%; overflow: hidden; }
+  .shell[data-sidebar='collapsed'] .sidebar .brandRow { flex-direction: column; gap: var(--sp-2); }
+  .shell[data-sidebar='collapsed'] .sidebar .brand { flex: none; padding: 0; }
+  .shell[data-sidebar='collapsed'] .sidebar .brandText,
+  .shell[data-sidebar='collapsed'] .sidebar .retailer,
+  .shell[data-sidebar='collapsed'] .sidebar .email,
+  .shell[data-sidebar='collapsed'] .sidebar .accountCaret { display: none; }
+  .shell[data-sidebar='collapsed'] .sidebar .navLink { justify-content: center; padding: 10px 0; }
+  /* Labels leave the screen but stay in each link's accessible name. */
+  .shell[data-sidebar='collapsed'] .sidebar .navLabel {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+  .shell[data-sidebar='collapsed'] .sidebar .syncDot {
+    display: block; align-self: center; width: 8px; height: 8px; border-radius: 50%; background: var(--dot-caution);
+  }
+  .shell[data-sidebar='collapsed'] .sidebar .account summary { justify-content: center; padding: var(--sp-2) 0; }
+  .shell[data-sidebar='collapsed'] .sidebar .menu { left: calc(100% + 12px); right: auto; bottom: 0; min-width: 200px; }
+}
 
 /* ---------- Light bars: the product mark ---------- */
 .logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: var(--ink); text-decoration: none; white-space: nowrap; border-radius: var(--r-sm); }

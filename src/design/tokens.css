@@ -89,6 +89,7 @@
   --reading-width: 672px;
   --page-width: 1200px;
   --sidebar-width: 288px;
+  --sidebar-rail-width: 80px;
   --topbar-height: 72px;    /* the sticky top bar beside the sidebar */
   --gutter: 40px;
 
