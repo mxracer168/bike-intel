@@ -116,9 +116,16 @@ function build(): CatalogProduct[] {
             ? { quantity: line.quantity, orderId: order.id, lineId: line.id, reason: line.reason, confidence: line.confidence }
             : undefined,
         },
+        orderLines: [{ orderId: order.id, lineId: line.id, quantity: line.quantity }],
         network: line.network?.length ? { listings: line.network, wholesaleMarketValue: line.wholesaleMarketValue } : undefined,
       }
-      if (!p.variants.some((v) => v.id === variant.id)) p.variants.push(variant)
+      const same = p.variants.find((v) => v.id === variant.id)
+      if (!same) p.variants.push(variant)
+      else {
+        // The same option in a second supplier's order: one more offer and order line.
+        same.orderLines = [...(same.orderLines ?? []), ...variant.orderLines!]
+        if (!same.offers.some((o) => o.supplierId === offer.supplierId)) same.offers.push(offer)
+      }
     }
   }
 
@@ -173,6 +180,9 @@ export function demoSupplierName(id: string): string | null {
 export function demoOrderContexts(): OrderContexts {
   return Object.fromEntries(demoOrders.map((o) => {
     const s = summarizeOrder(o)
-    return [supplierId(o.supplier), { orderId: o.id, supplierName: o.supplier, freightGap: s.freightGap, currency: o.currency }]
+    return [supplierId(o.supplier), {
+      orderId: o.id, supplierName: o.supplier, freightGap: s.freightGap, currency: o.currency,
+      total: s.total, lineCount: s.lineCount, leadTimeDays: o.leadTimeDays,
+    }]
   }))
 }

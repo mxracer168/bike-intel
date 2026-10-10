@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { demoCatalog, demoOrderContexts } from '@/demo/catalog'
 import { readAttributes } from '@/features/catalog/attributes'
 import { activeFilters, discover, toggle } from '@/features/catalog/search'
+import { confirmLabel, current, destinations, itemKey, placements } from '@/features/catalog/ordering'
 import { bestSource, stockLabel } from '@/features/catalog/sourcing'
 import type { CatalogOffer, CatalogProduct, CatalogVariant } from '@/features/catalog/types'
 import { catalogQuery, readCatalogState } from '@/features/catalog/url'
@@ -196,5 +197,45 @@ describe('replenishment plan on Today', () => {
   it('has nothing to say without orders, and no reason when none is near free freight', () => {
     expect(buildPlan([])).toBeNull()
     expect(buildPlan([summary('a', 'Northline', 2, 50)])!.reason).toBeUndefined()
+  })
+})
+
+describe('adding an option to an order', () => {
+  const orders = {
+    north: { orderId: 'o-north', supplierName: 'North Supply', freightGap: 176, currency: 'USD', total: 4824 },
+    cascade: { orderId: 'o-cascade', supplierName: 'Cascade Supply', freightGap: 80, currency: 'USD', total: 220 },
+  }
+  const v = variant('700-28', '700 × 28', [offer('north', 52, { usual: true, status: 'out' }), offer('cascade', 50.96), offer('trek', 49)], {
+    orderLines: [{ orderId: 'o-north', lineId: 'l1', quantity: 3 }],
+  })
+  const empty = { orders: {}, started: {} }
+
+  it('offers each supplier as its proposed order, a started order, or a new one', () => {
+    const d = destinations('gp', v, orders, empty)
+    expect(d.map((x) => [x.offer.supplierId, x.kind, x.orderId, x.line?.quantity])).toEqual([
+      ['north', 'proposed', 'o-north', 3], ['cascade', 'proposed', 'o-cascade', undefined], ['trek', 'new', undefined, undefined],
+    ])
+    expect(confirmLabel(d[0]!, 3)).toBe('3 already in north order')
+    expect(confirmLabel(d[0]!, 5)).toBe('Set north order to 5')
+    expect(confirmLabel(d[1]!, 3)).toBe('Add 3 to cascade order')
+    expect(confirmLabel(d[2]!, 1)).toBe('Start trek order with 1')
+  })
+
+  it('follows the retailer’s changes: line quantities, Catalog additions and started orders', () => {
+    const drafts = {
+      orders: {
+        'o-north': { lines: { l1: 0 }, added: [] },
+        'o-cascade': { lines: {}, added: [{ key: itemKey('gp', '700-28'), productId: 'gp', optionId: '700-28', product: 'GP', quantity: 3, unitCost: 50.96 }] },
+        'draft-trek': { lines: {}, added: [] },
+      },
+      started: { 'draft-trek': { id: 'draft-trek', supplierId: 'trek', supplierName: 'trek Supply', currency: 'USD' } },
+    }
+    const d = destinations('gp', v, orders, drafts)
+    expect(d[0]!.line).toEqual({ lineId: 'l1', quantity: 0 })
+    expect(d[1]).toMatchObject({ added: 3, orderTotal: 372.88, freightGap: undefined })
+    expect(current(d[1]!)).toBe(3)
+    expect(confirmLabel(d[1]!, 3)).toBe('3 already in cascade order')
+    expect(d[2]).toMatchObject({ kind: 'started', orderId: 'draft-trek' })
+    expect(placements(d)).toEqual([{ supplierName: 'cascade Supply', orderId: 'o-cascade', quantity: 3 }])
   })
 })

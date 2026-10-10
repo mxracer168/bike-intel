@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { formatMoney, plural } from '@/domain/language/plain'
 import { Icon } from '@/ui/Icon'
 import { SortHeader } from '@/ui/SortHeader'
 import { nextSort, sortRows, type SortState, type SortValue } from '@/ui/sorting'
+import { addedTotal, useDrafts } from './drafts'
 import type { OrderSummary } from './types'
 import styles from './Orders.module.css'
 
@@ -45,7 +46,34 @@ const orderValue: Record<OrderSortKey, (o: OrderSummary) => SortValue> = {
  * No line detail here; that lives on the order. Arrives in priority order;
  * any column re-sorts it.
  */
-export function OrderList({ orders, label }: { orders: OrderSummary[]; label: string }) {
+export function OrderList({ orders: given, label, lineCosts }: {
+  orders: OrderSummary[]; label: string
+  /**
+   * Example orders only: each line's unit cost and suggested quantity, so the
+   * list follows changes kept in this browser (quantities, Catalog additions,
+   * orders started from the Catalog; drafts.ts).
+   */
+  lineCosts?: Record<string, { freeFreightAt?: number; lines: Record<string, [unitCost: number, quantity: number]> }>
+}) {
+  const drafts = useDrafts()
+  const orders = useMemo(() => {
+    if (!lineCosts) return given
+    const changed = given.map((o) => {
+      const d = drafts.orders[o.id]
+      if (!d) return o
+      const { lines = {}, freeFreightAt } = lineCosts[o.id] ?? {}
+      const delta = Object.entries(d.lines).reduce((sum, [id, q]) => (lines[id] ? sum + lines[id][0] * (q - lines[id][1]) : sum), 0)
+      const dropped = Object.entries(d.lines).filter(([id, q]) => lines[id] && q === 0).length
+      const total = Math.round((o.total + delta + addedTotal(d)) * 100) / 100
+      const freightGap = freeFreightAt !== undefined && total < freeFreightAt ? Math.round((freeFreightAt - total) * 100) / 100 : undefined
+      return { ...o, total, freightGap, lineCount: o.lineCount - dropped + d.added.length }
+    })
+    const started = Object.values(drafts.started).map((s): OrderSummary => {
+      const d = drafts.orders[s.id]
+      return { id: s.id, supplier: s.supplierName, currency: s.currency, lineCount: d?.added.length ?? 0, total: addedTotal(d), confident: 0, review: 0, questions: 0 }
+    })
+    return [...changed, ...started]
+  }, [given, lineCosts, drafts])
   const [sort, setSort] = useState<SortState<OrderSortKey> | null>(null)
   const onSort = (key: OrderSortKey) => setSort((s) => nextSort(s, key))
   const rows = sort ? sortRows(orders, orderValue[sort.key], sort.dir) : orders
@@ -64,7 +92,7 @@ export function OrderList({ orders, label }: { orders: OrderSummary[]; label: st
       </thead>
       <tbody>
         {rows.map((o) => {
-          const note = orderNote(o)
+          const note = o.id.startsWith('draft-') ? 'New order · started from the Catalog' : orderNote(o)
           return (
             <tr key={o.id}>
               <th scope="row">

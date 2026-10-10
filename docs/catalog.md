@@ -967,9 +967,24 @@ What the screens hold to:
   - when another supplier lists the item for less.
 
   No freight or landed figure is estimated (`features/catalog/sourcing.ts`).
-- **Adding to an order** from the Catalog is not built. Order quantities
-  are still edited only on the order. A recommended option links to its
-  line in the proposed order ("Review in order").
+- **Adding to an order (example only, 2026-10-10).** Product Detail follows
+  the updated Figma design: the product on the left, and the decision for
+  the selected option in a sticky dark card on the right (the
+  recommendation, a quantity starting at it, "Add N to {supplier} order",
+  "Choose another supplier"). Both buttons open a side tray. There, each
+  supplier offering the option is a destination:
+  - its proposed order: the option's own line is set to the quantity, or
+    the option is added under "Added from the Catalog";
+  - an order already started from the Catalog;
+  - a new order, which starts one (`/orders/draft-{supplier}`).
+
+  Moving a recommendation to another supplier offers to take it off the
+  order it was in, so it isn't bought twice. Adding the same option again
+  sets its quantity and never doubles it. The order page, the order list
+  (totals, lines, free freight) and the product card all read the same
+  state. It lives in this browser only (`features/orders/drafts.ts`); the
+  real version is the working purchase order. Sending a started order
+  isn't part of the example.
 - **Retailer network (Phase 2).** Product Detail shows the example network
   listings and Wholesale Market Value with the same mocked introduction as
   orders. No new network backend.

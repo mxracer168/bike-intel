@@ -228,3 +228,34 @@ button.evidenceHead:hover .evidenceTitle { color: var(--accent-hover); }
   .table .detailRow > td { padding: 0 6px var(--sp-3); }
   .linesHead { align-items: flex-start; }
 }
+
+/* Added from the Catalog (example only): a short list under the lines. */
+.added { margin-top: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-3); }
+.addedTitle { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--ink-strong); }
+.addedList { list-style: none; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--sh-1); }
+.addedRow {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto 6rem 6rem 4rem; align-items: center; gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4); font-variant-numeric: tabular-nums;
+}
+.addedRow + .addedRow { border-top: 1px solid var(--line); }
+.addedName { min-width: 0; font-weight: 500; color: var(--ink-strong); text-decoration: none; }
+.addedName:hover { text-decoration: underline; text-underline-offset: 3px; }
+.addedUnit { text-align: right; color: var(--ink-3); }
+.addedTotal { text-align: right; font-weight: 600; color: var(--ink); }
+@media (max-width: 640px) {
+  .addedRow { grid-template-columns: minmax(0, 1fr) auto; }
+  .addedUnit { display: none; }
+}
+
+/* A new order started from the Catalog (example only). */
+.started { display: flex; flex-direction: column; gap: var(--sp-5); }
+.startedBack { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; color: var(--ink-3); text-decoration: none; }
+.startedBack:hover { color: var(--ink-strong); }
+.startedHead { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--sp-4); }
+.startedEyebrow {
+  font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600; letter-spacing: var(--tracking-meta); text-transform: uppercase; color: var(--accent);
+}
+.startedTitle { margin-top: var(--sp-2); font-size: 30px; line-height: 36px; letter-spacing: -0.035em; color: var(--ink-strong); }
+.startedSub { margin-top: 4px; font-size: 14px; color: var(--ink-3); }
+.startedNote { font-size: 14px; color: var(--ink-3); }
+.startedEmpty { display: flex; flex-direction: column; gap: var(--sp-2); }

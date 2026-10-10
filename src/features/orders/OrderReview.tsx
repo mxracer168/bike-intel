@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Fragment, useEffect, useId, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { average } from '@/domain/language/plain'
 import { WeeklySalesChart } from '@/features/recommendations/WeeklySalesChart'
@@ -15,6 +16,7 @@ import motion from '@/ui/Motion.module.css'
 import { QuantityStepper } from '@/ui/QuantityStepper'
 import { networkMatch, networkSignal, retailerLabel, supplierShort, type NetworkMatch } from './network'
 import { ActionBar, HandoffStatus, OrderGlance, OrderHeader, SubmitDialog, type OrderProgress } from './OrderHeader'
+import { addedTotal, setAddedQuantity, setLineQuantity, useDrafts, type AddedItem } from './drafts'
 import { lineTotal, orderTotal, sortForReview } from './summarize'
 import type { NetworkListing, OrderLineView, ProposedOrderView } from './types'
 import { calculation, explanation, nextStep, oneDecimal, seasonView, supplierView } from './why'
@@ -295,6 +297,33 @@ function NetworkPanel({ id, match, wholesaleMarketValue, strong }: {
   )
 }
 
+/** Products added to this order from the Catalog (example only): quantity, unit cost, line total. */
+function AddedFromCatalog({ orderId, items, currency, locked }: { orderId: string; items: AddedItem[]; currency: string; locked: boolean }) {
+  return (
+    <section className={styles.added} aria-labelledby={`${orderId}-added`}>
+      <h3 id={`${orderId}-added`} className={styles.addedTitle}>Added from the Catalog</h3>
+      <ul className={styles.addedList}>
+        {items.map((a) => (
+          <li key={a.key} className={styles.addedRow}>
+            <Link href={`/catalog/${encodeURIComponent(a.productId)}?option=${encodeURIComponent(a.optionId)}`} className={styles.addedName}>
+              {a.product}{a.variant && <>{' '}<span className={styles.variant}>{a.variant}</span></>}
+            </Link>
+            {locked
+              ? <span className={styles.lockedQty}>{a.quantity}</span>
+              : <QuantityStepper compact value={a.quantity} onChange={(n) => setAddedQuantity(orderId, a.key, n)} label={`Quantity for ${a.product}${a.variant ? ` ${a.variant}` : ''}`} />}
+            <span className={styles.addedUnit}>{cost(a.unitCost, currency)}</span>
+            <span className={styles.addedTotal}>{cost(lineTotal(a, a.quantity), currency)}</span>
+            {!locked && (
+              <button type="button" className={styles.textButton} onClick={() => setAddedQuantity(orderId, a.key, 0)}
+                aria-label={`Remove ${a.product}${a.variant ? ` ${a.variant}` : ''}`}>Remove</button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 const Caret = () => <span className={styles.caret} aria-hidden="true"><Icon name="chevron-down" size={14} /></span>
 
 type LineSortKey = 'product' | 'onHand' | 'onOrder' | 'quantity' | 'unitCost' | 'cost'
@@ -322,6 +351,9 @@ export function OrderReview({ order, backHref, weekStarts, example, openLine }: 
   weekStarts?: string[]
 }) {
   const [quantities, setQuantities] = useState<Record<string, number>>({})
+  // Example orders keep their changes and Catalog additions in this browser (drafts.ts).
+  const drafts = useDrafts()
+  const draft = example ? drafts.orders[order.id] : undefined
   const [open, setOpen] = useState<string | null>(() => (openLine && order.lines.some((l) => l.id === openLine) ? openLine : null))
   const [filter, setFilter] = useState<'all' | 'attention' | 'network'>('all')
   const [progress, setProgress] = useState<OrderProgress>({ status: 'draft' })
@@ -336,8 +368,13 @@ export function OrderReview({ order, backHref, weekStarts, example, openLine }: 
 
   const sorted = sortForReview(order.lines)
   const attention = sorted.filter((l) => l.state !== 'ok')
-  const qty = (l: OrderLineView) => quantities[l.id] ?? l.quantity
-  const setQty = (id: string, n: number) => setQuantities((prev) => ({ ...prev, [id]: n }))
+  const qty = (l: OrderLineView) => quantities[l.id] ?? draft?.lines[l.id] ?? l.quantity
+  const setQty = (id: string, n: number) => {
+    setQuantities((prev) => ({ ...prev, [id]: n }))
+    if (example) setLineQuantity(order.id, id, n)
+  }
+  const merged = { ...draft?.lines, ...quantities }
+  const added = draft?.added ?? []
   // Compared against what we'd order now, so it follows quantity changes.
   const fromNetwork = sorted.filter((l) => networkMatch(l.network, qty(l)).kind !== 'none')
   const filtered = filter === 'all' ? sorted : filter === 'attention' ? attention : fromNetwork
@@ -353,8 +390,8 @@ export function OrderReview({ order, backHref, weekStarts, example, openLine }: 
     cost: (l) => lineTotal(l, qty(l)),
   }
   const shown = lineSort ? sortRows(filtered, lineValue[lineSort.key], lineSort.dir) : filtered
-  const total = orderTotal(order.lines, quantities)
-  const ordering = order.lines.filter((l) => qty(l) > 0).length
+  const total = Math.round((orderTotal(order.lines, merged) + addedTotal(draft)) * 100) / 100
+  const ordering = order.lines.filter((l) => qty(l) > 0).length + added.length
   const toggle = (id: string) => setOpen((current) => (current === id ? null : id))
   const columns = narrow ? 4 : mid ? 5 : 6
 
@@ -363,7 +400,7 @@ export function OrderReview({ order, backHref, weekStarts, example, openLine }: 
       <OrderHeader order={order} backHref={backHref} total={total} lineCount={ordering}
         progress={progress} onProgress={setProgress} onReview={() => setReviewing(true)} />
       <OrderGlance order={order} total={total} lineCount={ordering} progress={progress} />
-      <HandoffStatus order={order} quantities={quantities} progress={progress} example={example} />
+      <HandoffStatus order={order} quantities={merged} progress={progress} example={example} />
 
       <div className={[styles.work, progress.status !== 'submitted' && order.handoff && styles.withBar].filter(Boolean).join(' ')}>
         <div className={styles.linesHead}>
@@ -445,6 +482,8 @@ export function OrderReview({ order, backHref, weekStarts, example, openLine }: 
             </tfoot>
           </table>
         </div>
+
+        {added.length > 0 && <AddedFromCatalog orderId={order.id} items={added} currency={order.currency} locked={locked} />}
 
         {order.intelligenceQuestionId && (
           <AnchoredQuestion questionId={order.intelligenceQuestionId} headline="1 question could change this order" />

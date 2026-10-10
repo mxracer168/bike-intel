@@ -20,13 +20,17 @@ export default function OrdersPage() {
     )
   }
   const orders = demoOrders.map(summarizeOrder)
+  const lineCosts = Object.fromEntries(demoOrders.map((o) => [o.id, {
+    freeFreightAt: o.freeFreightAt,
+    lines: Object.fromEntries(o.lines.map((l) => [l.id, [l.unitCost, l.quantity] as [number, number]])),
+  }]))
   return (
     <Page>
       <header className={styles.head}>
         <p className={styles.eyebrow}><ExampleMarker /></p>
         <h1 className={styles.title}>{orders.length} proposed orders</h1>
       </header>
-      <OrderList orders={orders} label="Proposed orders" />
+      <OrderList orders={orders} label="Proposed orders" lineCosts={lineCosts} />
     </Page>
   )
 }

@@ -37,6 +37,8 @@ export type CatalogVariant = {
     /** A recommendation for this Variant, from a proposed order. */
     recommended?: { quantity: number; orderId: string; lineId: string; reason: string; confidence: string }
   }
+  /** The proposed order lines for this option (its suggested quantity there, even 0). */
+  orderLines?: { orderId: string; lineId: string; quantity: number }[]
   /** Other retailers' listings (retailer network, Phase 2; example only). */
   network?: { listings: NetworkListing[]; wholesaleMarketValue?: number }
 }

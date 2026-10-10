@@ -9,7 +9,11 @@ import type { CatalogOffer, CatalogVariant } from './types'
  * piece of order context used is what the proposed orders already say: which
  * order a recommendation sits in, and how far that order is from free freight.
  */
-export type ProposedOrderContext = { orderId: string; supplierName: string; freightGap?: number; currency: string }
+export type ProposedOrderContext = {
+  orderId: string; supplierName: string; freightGap?: number; currency: string
+  /** For choosing where to add: the order as proposed. */
+  total?: number; lineCount?: number; leadTimeDays?: number
+}
 export type OrderContexts = Record<string, ProposedOrderContext>
 
 export type BestSource = {
