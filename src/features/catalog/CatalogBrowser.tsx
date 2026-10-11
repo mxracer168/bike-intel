@@ -8,7 +8,7 @@ import { Icon } from '@/ui/Icon'
 import { ProductImage } from './ProductImage'
 import { activeFilters, discover, sortLabels, toggle, type Facet, type FacetKey, type Filters, type ProductSummary, type SortKey } from './search'
 import type { CatalogProduct } from './types'
-import { catalogQuery, type CatalogState } from './url'
+import { CATALOG_VIEW_COOKIE, catalogQuery, type CatalogState } from './url'
 import styles from './Catalog.module.css'
 
 /**
@@ -26,7 +26,12 @@ export function CatalogBrowser({ products, initial, supplierId }: {
   const [query, setQuery] = useState(initial.query)
   const [filters, setFilters] = useState<Filters>(initial.filters)
   const [sort, setSort] = useState<SortKey>(initial.sort)
-  const [view, setView] = useState<'grid' | 'list'>(initial.view)
+  const [view, setViewState] = useState<'grid' | 'list'>(initial.view)
+  // Remember the choice for next time (every catalog, this browser).
+  const setView = (next: 'grid' | 'list') => {
+    setViewState(next)
+    document.cookie = `${CATALOG_VIEW_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`
+  }
   const [filtersOpen, setFiltersOpen] = useState(false)
 
   const found = useMemo(() => discover(products, { query, filters, sort, supplierId }), [products, query, filters, sort, supplierId])

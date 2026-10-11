@@ -112,6 +112,13 @@ describe('catalog state in the address', () => {
     expect(readCatalogState(params)).toEqual(state)
   })
 
+  it('uses the remembered view unless the address says otherwise', () => {
+    expect(readCatalogState({}, 'list').view).toBe('list')
+    expect(readCatalogState({ view: 'grid' }, 'list').view).toBe('grid')
+    expect(readCatalogState({ view: 'list' }, 'grid').view).toBe('list')
+    expect(readCatalogState({}, 'cards').view).toBe('grid')
+  })
+
   it('ignores what it does not know', () => {
     expect(readCatalogState({ sort: 'cheapest', view: 'cards', other: 'x', 'attr.Bad-Key': '1' }))
       .toEqual({ query: '', filters: {}, sort: 'best', view: 'grid' })

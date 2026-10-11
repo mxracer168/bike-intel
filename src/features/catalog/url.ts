@@ -8,6 +8,9 @@ import type { FacetKey, Filters, SortKey } from './search'
  */
 export type CatalogState = { query: string; filters: Filters; sort: SortKey; view: 'grid' | 'list' }
 
+/** The list or grid choice, remembered in a cookie so the server renders it on first paint. */
+export const CATALOG_VIEW_COOKIE = 'bi_catalog_view'
+
 const PARAM: Partial<Record<FacetKey, string>> = { supplier: 'from' }
 const GENERAL: FacetKey[] = ['category', 'brand', 'supplier', 'availability', 'intelligence']
 const paramFor = (key: FacetKey) => (key.startsWith('attr:') ? `attr.${key.slice(5)}` : PARAM[key] ?? key)
@@ -16,7 +19,8 @@ const SORTS: SortKey[] = ['best', 'price', 'brand', 'availability']
 type Params = Record<string, string | string[] | undefined>
 const list = (v: string | string[] | undefined) => (v === undefined ? [] : Array.isArray(v) ? v : [v])
 
-export function readCatalogState(params: Params): CatalogState {
+/** The state in the address; the view falls back to the remembered one (cookie) when the address doesn't say. */
+export function readCatalogState(params: Params, rememberedView?: string): CatalogState {
   const filters: Filters = {}
   for (const [name, value] of Object.entries(params)) {
     const key: FacetKey | undefined = GENERAL.find((k) => paramFor(k) === name)
@@ -30,7 +34,7 @@ export function readCatalogState(params: Params): CatalogState {
     query: q.slice(0, 100),
     filters,
     sort: sort && SORTS.includes(sort) ? sort : 'best',
-    view: list(params.view)[0] === 'list' ? 'list' : 'grid',
+    view: (list(params.view)[0] ?? rememberedView) === 'list' ? 'list' : 'grid',
   }
 }
 

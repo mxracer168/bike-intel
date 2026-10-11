@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { demoCatalog, demoSupplierName, demoSupplierOrder } from '@/demo/catalog'
 import { isDemoPreviewEnabled } from '@/demo/config'
 import { formatMoney } from '@/domain/language/plain'
 import { CatalogBrowser } from '@/features/catalog/CatalogBrowser'
-import { readCatalogState } from '@/features/catalog/url'
+import { CATALOG_VIEW_COOKIE, readCatalogState } from '@/features/catalog/url'
 import { summarizeOrder } from '@/features/orders/summarize'
 import { Placeholder } from '@/features/placeholder/Placeholder'
 import { requireOrganization } from '@/server/session'
@@ -66,7 +67,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
           </Link>
         )}
       </header>
-      <CatalogBrowser products={demoCatalog} initial={readCatalogState(params)} supplierId={supplier} />
+      <CatalogBrowser products={demoCatalog} initial={readCatalogState(params, (await cookies()).get(CATALOG_VIEW_COOKIE)?.value)} supplierId={supplier} />
     </Page>
   )
 }
