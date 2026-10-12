@@ -17,7 +17,7 @@
   transition: border-color var(--motion-fast) var(--ease-standard), background var(--motion-fast) var(--ease-standard);
 }
 .step:hover { border-color: var(--accent-muted); }
-.step[aria-pressed='true'] { border-color: var(--accent-muted); background: var(--accent-wash); box-shadow: 0 0 0 1px var(--accent-line); }
+.step[aria-expanded='true'] { border-color: var(--accent-muted); background: var(--accent-wash); box-shadow: 0 0 0 1px var(--accent-line); }
 .stepLabel {
   font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2);
 }
@@ -27,6 +27,7 @@
 .stepDetail { font-size: 12px; line-height: 16px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .step[data-adjusted] .stepDetail { color: var(--accent-hover); font-weight: 600; }
 
+.panel[hidden] { display: none; }
 .panel { padding: var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--canvas); }
 
 /* a + b = c */
@@ -118,7 +119,7 @@
 [data-tone='dark'] .op, [data-tone='dark'] .sumOp, [data-tone='dark'] .flowArrow { color: var(--inverse-3); }
 [data-tone='dark'] .step { border-color: var(--inverse-track); background: var(--inverse-control); }
 [data-tone='dark'] .step:hover { border-color: var(--signal-edge-soft); }
-[data-tone='dark'] .step[aria-pressed='true'] { border-color: var(--signal-edge-soft); background: var(--nav-current); box-shadow: none; }
+[data-tone='dark'] .step[aria-expanded='true'] { border-color: var(--signal-edge-soft); background: var(--nav-current); box-shadow: none; }
 [data-tone='dark'] .stepLabel { color: var(--inverse-2); }
 [data-tone='dark'] .stepValue { color: var(--on-inverse); }
 [data-tone='dark'] .step[data-order] .stepLabel, [data-tone='dark'] .step[data-order] .stepValue { color: var(--inverse-link); }

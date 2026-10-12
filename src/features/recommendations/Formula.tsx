@@ -51,8 +51,8 @@ const ruleShort = (rule?: OrderRule) =>
 
 export function Formula({ data, tone = 'light' }: { data: FormulaData; tone?: 'light' | 'dark' }) {
   const { current, need, adjusted } = adjustment(data)
-  // When the supplier's rule changed the quantity, open on that: it's the part people ask about.
-  const [step, setStep] = useState<Step>(adjusted ? 'order' : 'target')
+  // Closed until a step is chosen; choosing the open step again closes it.
+  const [step, setStep] = useState<Step | null>(null)
   const panel = useId()
   const steps: { key: Step; label: string; detail: string; value: number }[] = [
     { key: 'target', label: 'Target', detail: 'Expected sales + Safety stock', value: data.target },
@@ -68,9 +68,9 @@ export function Formula({ data, tone = 'light' }: { data: FormulaData; tone?: 'l
         {steps.map((s, i) => (
           <span key={s.key} className={styles.stepWrap}>
             {i > 0 && <span className={styles.op} aria-hidden="true">{ops[i - 1]}</span>}
-            <button type="button" className={styles.step} aria-pressed={step === s.key} aria-controls={panel}
+            <button type="button" className={styles.step} aria-expanded={step === s.key} aria-controls={panel}
               data-order={s.key === 'order' || undefined} data-adjusted={(s.key === 'order' && adjusted) || undefined}
-              onClick={() => setStep(s.key)}>
+              onClick={() => setStep((open) => (open === s.key ? null : s.key))}>
               <span className={styles.stepLabel}>{s.label}</span>
               <span className={styles.stepValue}>{s.value}</span>
               <span className={styles.stepDetail}>{s.detail}</span>
@@ -78,7 +78,7 @@ export function Formula({ data, tone = 'light' }: { data: FormulaData; tone?: 'l
           </span>
         ))}
       </div>
-      <div id={panel} className={styles.panel} aria-live="polite">
+      <div id={panel} className={styles.panel} aria-live="polite" hidden={step === null}>
         {step === 'target' && <TargetEvidence data={data} />}
         {step === 'current' && <CurrentEvidence data={data} />}
         {step === 'need' && <NeedEvidence data={data} need={need} />}

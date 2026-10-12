@@ -38,8 +38,10 @@ the need:
   (`features/orders/why.ts`).
 - The paragraph says why ("Northline sells these in cases of 6, so we
   rounded up to 6").
-- The Order step shows Need → Case pack / Minimum → Order, and the formula
-  opens on that step.
+- The Order step shows Need → Case pack / Minimum → Order, and its tile
+  names the rule ("Minimum 3").
+- The formula's detail area starts closed: a tile opens its evidence, and
+  clicking the open tile again closes it.
 - A case line's quantity stepper moves a case at a time.
 
 The example Northline order opens on such a line for demos: the chain tool's
