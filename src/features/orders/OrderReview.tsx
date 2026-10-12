@@ -233,6 +233,7 @@ function AddedFromCatalog({ orderId, items, currency, locked }: { orderId: strin
           <li key={a.key} className={styles.addedRow}>
             <Link href={`/catalog/${encodeURIComponent(a.productId)}?option=${encodeURIComponent(a.optionId)}`} className={styles.addedName}>
               {a.product}{a.variant && <>{' '}<span className={styles.variant}>{a.variant}</span></>}
+              {a.sku && <span className={styles.sku}><span className="visually-hidden">Supplier SKU </span>{a.sku}</span>}
             </Link>
             {locked
               ? <span className={styles.lockedQty}>{a.quantity}</span>
@@ -376,6 +377,7 @@ export function OrderReview({ order, backHref, weekStarts, example, openLine, im
                             {line.product}
                             {line.variant && <>{' '}<span className={styles.variant}>{line.variant}</span></>}
                           </span>
+                          {line.supplierSku && <span className={styles.sku}><span className="visually-hidden">Supplier SKU </span>{line.supplierSku}</span>}
                           <span className={styles.lineSub}>
                             <span className={styles.why}>{isOpen ? 'Hide reasoning' : `Why ${line.quantity}?`}<Caret /></span>
                           </span>

@@ -285,7 +285,7 @@ function AddTray({ product, variant, dests, initial, quantity, onQuantity, onClo
     let orderId = dest.orderId
     if (dest.kind === 'new') orderId = startOrder(dest.offer.supplierId, dest.offer.supplierName, dest.offer.currency)
     if (dest.line) setLineQuantity(orderId!, dest.line.lineId, quantity)
-    else addToOrder(orderId!, { key: itemKey(product.id, variant.id), productId: product.id, optionId: variant.id, product: product.name, variant: variant.label || undefined, quantity, unitCost: perUnit(dest.offer) })
+    else addToOrder(orderId!, { key: itemKey(product.id, variant.id), productId: product.id, optionId: variant.id, product: product.name, variant: variant.label || undefined, sku: dest.offer.sku, quantity, unitCost: perUnit(dest.offer) })
     if (moving && takeOff) setLineQuantity(moving.orderId!, moving.line!.lineId, 0)
     setDone({ label: current(dest) !== undefined ? `${who} order set to ${quantity}` : dest.kind === 'new' ? `Started a ${who} order with ${quantity}` : `Added ${quantity} to ${who} order`, orderId: orderId! })
   }
@@ -308,6 +308,7 @@ function AddTray({ product, variant, dests, initial, quantity, onQuantity, onClo
             const s = stockLabel(d.offer)
             const on = d.offer.supplierId === dest.offer.supplierId
             const facts = [
+              d.offer.sku && `SKU ${d.offer.sku}`,
               `${unitPrice(perUnit(d.offer), d.offer.currency)} each`,
               d.kind !== 'new' && d.orderTotal !== undefined && `${formatMoney(Math.round(d.orderTotal), d.offer.currency)} order`,
               d.kind === 'proposed' && (d.freightGap !== undefined ? `${formatMoney(Math.ceil(d.freightGap), d.offer.currency)} to free freight` : 'ships free'),
@@ -401,9 +402,12 @@ function Offers({ variant, orders, optionLabel }: { variant: CatalogVariant; ord
           return (
             <div key={o.supplierId} className={styles.offerRow} data-best={o.supplierId === bestId || undefined} data-open={isOpen || undefined}>
               <button type="button" className={styles.offerButton} aria-expanded={isOpen} aria-controls={id} onClick={() => setOpen(isOpen ? null : o.supplierId)}>
-                <span className={styles.offerName}>
-                  {o.supplierName}
-                  {o.supplierId === bestId && <span className={styles.bestTag}>Best source</span>}
+                <span className={styles.offerWho}>
+                  <span className={styles.offerName}>
+                    {o.supplierName}
+                    {o.supplierId === bestId && <span className={styles.bestTag}>Best source</span>}
+                  </span>
+                  {o.sku && <span className={styles.offerSku}><span className="visually-hidden">Supplier </span>SKU {o.sku}</span>}
                 </span>
                 <span className={styles.offerCell}><span className={styles.cellLabel}>Unit price</span><b>{unitPrice(perUnit(o), o.currency)}</b></span>
                 <span className={styles.offerCell} data-tone={stock.tone}><span className={styles.cellLabel}>Available</span>{stock.text.split(' · ')[0]}</span>
@@ -413,6 +417,7 @@ function Offers({ variant, orders, optionLabel }: { variant: CatalogVariant; ord
               {isOpen && (
                 <div id={id} className={styles.offerDetail}>
                   <dl>
+                    {o.sku && <div><dt>Supplier SKU</dt><dd>{o.sku}</dd></div>}
                     <div><dt>Unit price</dt><dd>{unitPrice(perUnit(o), o.currency)}{o.pack > 1 && ` (${unitPrice(o.unitCost, o.currency)} per pack of ${o.pack})`}</dd></div>
                     <div><dt>Pack size</dt><dd>{plural(o.pack, 'unit')}</dd></div>
                     <div><dt>Availability</dt><dd>{stock.text}</dd></div>

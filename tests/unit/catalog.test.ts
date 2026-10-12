@@ -246,3 +246,22 @@ describe('adding an option to an order', () => {
     expect(placements(d)).toEqual([{ supplierName: 'cascade Supply', orderId: 'o-cascade', quantity: 3 }])
   })
 })
+
+describe('supplier SKUs (example data)', () => {
+  it('gives every offer its supplier’s item number, the same in the order and the Catalog', async () => {
+    const { demoOrders } = await import('@/demo/orders')
+    const offers = demoCatalog.flatMap((p) => p.variants.flatMap((v) => v.offers))
+    expect(offers.every((o) => typeof o.sku === 'string' && o.sku.length > 3)).toBe(true)
+    const line = demoOrders[0]!.lines[0]!
+    const product = demoCatalog.find((p) => p.name === line.product)!
+    const offer = product.variants.flatMap((v) => v.offers).find((o) => o.supplierName === demoOrders[0]!.supplier)!
+    expect(line.supplierSku).toBeDefined()
+    expect(offer.sku).toBe(line.supplierSku)
+    expect(line.supplierSku).toMatch(/^NL-\d{6}$/)
+  })
+
+  it('finds a product by its supplier SKU', () => {
+    const sku = demoCatalog[0]!.variants[0]!.offers[0]!.sku!
+    expect(discover(demoCatalog, { query: sku, filters: {}, sort: 'best' }).results[0]!.product.id).toBe(demoCatalog[0]!.id)
+  })
+})

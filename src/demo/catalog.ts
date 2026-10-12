@@ -17,6 +17,7 @@ import type { OrderContexts } from '@/features/catalog/sourcing'
 import type { CatalogImage, CatalogOffer, CatalogProduct, CatalogVariant } from '@/features/catalog/types'
 import { summarizeOrder } from '@/features/orders/summarize'
 import { demoInventory } from './inventory'
+import { demoSku } from './sku'
 import { demoOrders } from './orders'
 
 const SUPPLIER_IDS: Record<string, string> = {
@@ -100,7 +101,7 @@ function build(): CatalogProduct[] {
       const inv = inventory.find((i) => i.product === line.product)
       const p = product(line.product, inv?.brand, inv?.category)
       const offer: CatalogOffer = {
-        supplierId: supplierId(order.supplier), supplierName: order.supplier, unitCost: line.unitCost, pack: 1,
+        supplierId: supplierId(order.supplier), supplierName: order.supplier, sku: line.supplierSku, unitCost: line.unitCost, pack: 1,
         currency: order.currency, status: line.supplier.status, availability: line.availability,
         usual: (usualSupplier.get(line.product) ?? order.supplier) === order.supplier,
       }
@@ -136,7 +137,7 @@ function build(): CatalogProduct[] {
     if (p.variants.some((v) => v.id === id)) continue
     p.variants.push({
       id, label: i.variant ?? '', attributes: readAttributes(p.category, i.variant ?? ''),
-      offers: [{ supplierId: supplierId(i.supplier), supplierName: i.supplier, unitCost: i.unitCost, pack: 1, currency: 'USD', usual: true }],
+      offers: [{ supplierId: supplierId(i.supplier), supplierName: i.supplier, sku: demoSku(i.supplier, i.product, i.variant || undefined), unitCost: i.unitCost, pack: 1, currency: 'USD', usual: true }],
       own: { onHand: i.onHand, onOrder: i.onOrder, perWeek: i.perWeek },
     })
   }
@@ -148,7 +149,7 @@ function build(): CatalogProduct[] {
       const usual = v.offers.find((o) => o.usual) ?? v.offers[0]
       if (!usual || v.offers.some((o) => o.supplierName === x.supplier)) continue
       v.offers.push({
-        supplierId: supplierId(x.supplier), supplierName: x.supplier, currency: usual.currency, pack: 1,
+        supplierId: supplierId(x.supplier), supplierName: x.supplier, sku: demoSku(x.supplier, p.name, v.label || undefined), currency: usual.currency, pack: 1,
         unitCost: Math.round(usual.unitCost * x.costFactor * 100) / 100,
         status: x.status, availability: x.availability, usual: false, illustrative: true,
       })

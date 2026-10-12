@@ -14,6 +14,8 @@ export type AddedItem = {
   optionId: string
   product: string
   variant?: string
+  /** The chosen supplier's item number. */
+  sku?: string
   quantity: number
   unitCost: number
 }
@@ -83,7 +85,7 @@ export function addToOrder(orderId: string, item: AddedItem, lineId?: string, se
   const d = draftOf(s, orderId)
   const existing = d.added.find((a) => a.key === item.key)
   const added = existing
-    ? d.added.map((a) => (a.key === item.key ? { ...a, quantity: item.quantity, unitCost: item.unitCost } : a))
+    ? d.added.map((a) => (a.key === item.key ? { ...a, quantity: item.quantity, unitCost: item.unitCost, sku: item.sku } : a))
     : [...d.added, item]
   write(withDraft(s, orderId, { ...d, added }))
 }

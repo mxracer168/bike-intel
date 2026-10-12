@@ -4,6 +4,7 @@
  * product names. Lines are generated deterministically so every load shows
  * the same numbers.
  */
+import { demoSku } from './sku'
 import { average, describeCover } from '@/domain/language/plain'
 import type { Confidence, HandoffView, LineState, NetworkListing, OrderLineView, ProposedOrderView } from '@/features/orders/types'
 
@@ -101,6 +102,7 @@ function build(plan: Plan): ProposedOrderView {
       id: `${plan.id}-${i + 1}`,
       product: item.name,
       variant: item.variant,
+      supplierSku: demoSku(plan.supplier, item.name, item.variant),
       onHand,
       onOrder,
       quantity,
@@ -321,6 +323,7 @@ northline.intelligenceQuestionId = 'demo-cedar-ridge'
  * neither (the header shows only the total); Cascade's prices are stale.
  */
 northline.context = { cadenceDays: 12, typicalOrder: 3950 }
+cascade.lines = cascade.lines.map((l) => ({ ...l, supplierSku: demoSku(cascade.supplier, l.product, l.variant) }))
 cascade.context = { cadenceDays: 30, typicalOrder: 260, pricesUpdatedDaysAgo: 9 }
 
 /**

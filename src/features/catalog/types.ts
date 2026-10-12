@@ -51,6 +51,8 @@ export type CatalogVariant = {
 export type CatalogOffer = {
   supplierId: string
   supplierName: string
+  /** The supplier's own item number for this option. */
+  sku?: string
   /** Per ordering unit, as the supplier sells it. */
   unitCost: number
   /** Canonical units in one ordering unit (a box of 10 tubes is 10). Comparisons use cost per canonical unit. */

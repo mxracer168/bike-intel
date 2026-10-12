@@ -49,6 +49,7 @@ export function StartedOrder({ id }: { id: string }) {
               <li key={a.key} className={styles.addedRow}>
                 <Link href={`/catalog/${encodeURIComponent(a.productId)}?option=${encodeURIComponent(a.optionId)}`} className={styles.addedName}>
                   {a.product}{a.variant && <>{' '}<span className={styles.variant}>{a.variant}</span></>}
+                  {a.sku && <span className={styles.sku}><span className="visually-hidden">Supplier SKU </span>{a.sku}</span>}
                 </Link>
                 <QuantityStepper compact value={a.quantity} onChange={(n) => setAddedQuantity(id, a.key, n)} label={`Quantity for ${a.product}${a.variant ? ` ${a.variant}` : ''}`} />
                 <span className={styles.addedUnit}>{money(a.unitCost)}</span>

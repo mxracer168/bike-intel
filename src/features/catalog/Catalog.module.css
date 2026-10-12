@@ -444,6 +444,8 @@
   text-align: left; color: var(--ink-2); cursor: pointer;
 }
 .offerName { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); font-weight: 600; color: var(--ink-strong); }
+.offerWho { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.offerSku { font-size: 12px; line-height: 16px; font-weight: 400; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .bestTag { padding: 2px var(--sp-2); border-radius: 999px; background: var(--accent-line); color: var(--accent-hover); font-size: 11px; line-height: 16px; font-weight: 600; }
 .offerSub { font-size: 12px; line-height: 16px; color: var(--ink-3); font-weight: 400; }
 .offerCell b { font-weight: 600; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
@@ -571,7 +573,7 @@
 @container detail (max-width: 720px) {
   .offerCols { display: none; }
   .offerButton { grid-template-columns: repeat(3, minmax(0, 1fr)) 2rem; row-gap: var(--sp-2); }
-  .offerName { grid-column: 1 / 4; grid-row: 1; }
+  .offerWho { grid-column: 1 / 4; grid-row: 1; }
   .offerChevron { grid-column: 4; grid-row: 1; }
   .offerCell { display: flex; flex-direction: column; }
   .cellLabel { display: block; font-size: 12px; line-height: 16px; color: var(--ink-2); }

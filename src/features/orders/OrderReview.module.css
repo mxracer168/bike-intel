@@ -53,6 +53,8 @@
 .lineButton:focus-visible { box-shadow: var(--focus-ring); border-radius: 2px; }
 .lineName { font-weight: 500; color: var(--ink-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .variant { font-weight: 400; color: var(--ink-3); }
+/* The supplier's item number, under the name: what the supplier calls it. */
+.sku { display: block; font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 400; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .lineSub { display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--sp-3); font-size: var(--fs-meta); line-height: var(--lh-meta); }
 .why { display: inline-flex; align-items: center; gap: 2px; margin-top: 4px; font-weight: 600; color: var(--accent-hover); }
 .qty { white-space: nowrap; }

@@ -97,7 +97,7 @@ export function relevance(s: ProductSummary, query: string): number {
   if (words.length === 0) return 1
   const name = s.product.name.toLowerCase()
   const brand = s.product.brand.toLowerCase()
-  const rest = [s.product.category, ...s.suppliers, ...s.product.variants.flatMap((v) => [v.label, ...Object.values(v.attributes).map((a) => a.designation)])]
+  const rest = [s.product.category, ...s.suppliers, ...s.product.variants.flatMap((v) => [v.label, ...v.offers.map((o) => o.sku ?? ''), ...Object.values(v.attributes).map((a) => a.designation)])]
     .join(' ').toLowerCase()
   let score = 0
   for (const w of words) {

@@ -1013,6 +1013,18 @@ What the screens hold to:
       approximate one gets a strict retry on every run.
   - `overrides.json` hides a wrong match or supplies an image URL.
   - Without the folder, every product shows the placeholder.
+- **Supplier SKUs.** Each offer carries its supplier's own item number
+  (`CatalogOffer.sku`, `OrderLineView.supplierSku`). It appears:
+  - under the supplier in Supplier options, and in that supplier's
+    details as "Supplier SKU";
+  - in the add-to-order tray;
+  - under the product name in order rows and Catalog additions.
+
+  Search finds products by it. The example numbers are invented per
+  supplier (`src/demo/sku.ts`); the same supplier, product and option
+  always get the same number, so the order and the Catalog agree. Real
+  SKUs come from the supplier source (`supplier_item`'s supplier
+  identifier).
 - **Discovery is derived.** Search, filters (with counts that follow the
   results), contextual attribute filters and sort are pure functions over
   presentation shapes (`features/catalog/search.ts`). The same functions

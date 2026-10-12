@@ -58,6 +58,8 @@ export type OrderLineView = {
   /** The canonical product, when known (example lines have none). */
   productId?: string
   product: string
+  /** The supplier's own item number for this product and option. */
+  supplierSku?: string
   variant?: string
   onHand: number
   onOrder: number
