@@ -46,6 +46,16 @@ describe('ordering rules', () => {
     }
   })
 
+  it('splits every example target into expected sales + safety stock', () => {
+    for (const o of demoOrders) for (const l of o.lines) {
+      const c = calculation(l)
+      expect(c.expectedSales + c.safetyStock).toBe(c.expectedDemand)
+      expect(c.safetyStock).toBeGreaterThanOrEqual(0)
+      expect(c.expectedSales).toBeGreaterThanOrEqual(c.expectedDemand >= 2 ? 1 : 0)
+    }
+    expect(calculation(line({ onHand: 2, need: 5, quantity: 6, safetyStock: 2 }))).toMatchObject({ expectedDemand: 7, expectedSales: 5, safetyStock: 2 })
+  })
+
   it('opens the Northline order on a line whose order differs from its need (for demos)', () => {
     const first = sortForReview(demoOrders.find((o) => o.id === 'northline')!.lines)[0]!
     expect(first.need).toBeDefined()

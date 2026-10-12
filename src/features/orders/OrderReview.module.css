@@ -75,7 +75,7 @@
 .textButton { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; }
 .textButton:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-/* ---------- The recommendation: confidence and commitment, the reason, how we got to the quantity ---------- */
+/* ---------- The recommendation: one quiet row, then the formula (features/recommendations/Formula) ---------- */
 .rec {
   container-type: inline-size; overflow: hidden; cursor: auto;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-xl); box-shadow: var(--sh-1);
@@ -90,52 +90,24 @@
   font-size: var(--fs-meta); font-weight: 600; color: var(--accent-hover); cursor: pointer;
 }
 .addContext:hover { text-decoration: underline; text-underline-offset: 3px; }
-.explanation { margin-top: calc(-1 * var(--sp-2)); max-width: 80ch; font-size: 14px; line-height: 24px; color: var(--ink-2); }
-
-/* How we got to the quantity: the formula (features/recommendations/Formula). */
-.how { display: flex; flex-direction: column; gap: var(--sp-3); }
-.howTitle { font-size: 16px; line-height: 24px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink-strong); }
-.howLead { font-size: var(--fs-meta); line-height: 18px; color: var(--ink-3); }
-
-.howHead { display: flex; flex-direction: column; gap: 2px; }
-
-.notes { display: flex; flex-direction: column; gap: 6px; }
-.notes ul { padding-left: 18px; color: var(--ink-2); font-size: 14px; line-height: 22px; display: flex; flex-direction: column; gap: 2px; }
-.notesTitle { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink-strong); }
-
-/* The recommended next step: the action, on a blue band at the foot of the card. */
-.recFoot {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-5);
-  padding: 20px var(--sp-6); background: var(--accent-wash); border-top: 1px solid var(--line);
-  font-size: 14px; line-height: 20px; color: var(--ink-2);
-}
-.recFootLabel {
-  font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600; letter-spacing: var(--tracking-meta);
-  text-transform: uppercase; color: var(--accent-hover); margin-bottom: 4px;
-}
-.changed { margin-top: 4px; color: var(--ink-3); }
-.recFootTotal { font-weight: 600; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
 
 /* ---------- Other retailers: closed until asked for ---------- */
 .networkPanel { container-type: inline-size; border: 1px solid var(--accent-line); border-radius: var(--r-lg); background: var(--accent-wash); overflow: hidden; }
 .networkStrong { border-color: var(--accent-muted); box-shadow: var(--sh-1); }
 .networkHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-4); padding: 14px var(--sp-4); }
-.networkIntro { max-width: 36rem; }
+.networkToggle {
+  flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3);
+  padding: 0; border: 0; background: none; font: inherit; text-align: left; color: var(--ink-3); cursor: pointer;
+}
+.networkToggle:focus-visible { box-shadow: var(--focus-ring); border-radius: var(--r-sm); }
+.networkIntro { display: flex; flex-direction: column; min-width: 0; }
 .networkEyebrow {
   font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600; letter-spacing: var(--tracking-meta);
   text-transform: uppercase; color: var(--accent-hover);
 }
-.networkTitle { margin-top: 4px; font-size: 14px; line-height: 24px; font-weight: 600; letter-spacing: -0.015em; color: var(--ink-strong); }
-.networkLead { margin-top: 4px; font-size: 14px; line-height: 22px; color: var(--ink-2); }
-.networkSide { display: flex; flex-direction: column; align-items: flex-end; gap: var(--sp-3); }
+.networkTitle { margin-top: 2px; font-size: 14px; line-height: 24px; font-weight: 600; letter-spacing: -0.015em; color: var(--ink-strong); }
 .networkMarket { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--ink-2); }
 .networkMarket b { color: var(--ink-strong); font-weight: 600; font-variant-numeric: tabular-nums; }
-.disclosure {
-  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px;
-  border: 1px solid var(--accent-muted); border-radius: var(--r-md); background: var(--surface);
-  font-size: 13px; font-weight: 600; color: var(--accent-hover); cursor: pointer;
-}
-.disclosure:hover { border-color: var(--accent); }
 .networkBody { border-top: 1px solid var(--accent-line); background: var(--surface); padding: 0 var(--sp-5); }
 .networkGroup { font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); padding: var(--sp-3) 0 2px; }
 .networkList { list-style: none; display: flex; flex-direction: column; }
@@ -159,8 +131,6 @@
 }
 @container (max-width: 560px) {
   .recMain { padding: var(--sp-5) var(--sp-4); gap: var(--sp-5); }
-  .recFoot { padding: var(--sp-4); }
-  .networkSide { align-items: flex-start; }
 }
 
 @media (max-width: 1279px) {

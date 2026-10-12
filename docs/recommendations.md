@@ -9,25 +9,26 @@ chart. Every explanation follows the same order:
    expect them to need before they can restock. A reason that changed the
    quantity is said inside that paragraph ("Because this item is new to your
    store, we started small…"); a reason that didn't isn't shown.
-3. **How we got there**: one formula everywhere (orders and the Catalog),
-   **Target − Current = Need → Order**:
-   - the target is what we expect them to need before the next chance to
-     restock;
-   - current is on hand plus already ordered;
-   - the need is the gap;
-   - the order is the need after the supplier's ordering rule.
-
-   Each step opens its evidence:
-   - Target: demand rate, coverage, lead time, seasonal trend and the
-     weekly sales chart;
-   - Current: on hand + incoming;
-   - Need: what's on hand lasts, and the uncovered gap;
-   - Order: the need, the rule and the recommended order, with the
-     supplier's stock and delivery.
-
-   The arithmetic is derived in one place and always reconciles with the
-   quantity shown. Changing the quantity changes the commitment and
-   totals, never the formula.
+3. **How we got there**, shown rather than told (Figma reference): one
+   formula everywhere (orders and the Catalog), **Target − Current = Need
+   → Order**. On an opened order line it comes first, under one quiet row
+   (confidence, commitment, Add context); there is no paragraph above it.
+   - The target is expected sales + safety stock, and the Target step shows
+     that sum.
+   - Each step opens its evidence as figures, tables and bars:
+     - Target: the sum; demand rate, coverage, lead time and trend; recent
+       weekly demand as bars.
+     - Current: on hand by location, and open purchase orders, or "No open
+       purchase orders".
+     - Need: how long on hand lasts, the target coverage, and a bar of on
+       hand / on order / uncovered.
+     - Order: Need → case pack or minimum → Recommended order, and the
+       supplier's stock in a few words.
+   - The arithmetic is derived in one place and always reconciles with the
+     quantity shown. Changing the quantity changes the commitment and
+     totals, never the formula ("Back to N" in the top row).
+   - The plain-language reason (`explanation()`) stays available, but the
+     opened line doesn't lead with it.
 
 **Ordering rules.** When the supplier sells in cases (order a multiple of the
 case) or has a minimum order quantity, the recommended order can differ from

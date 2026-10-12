@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Fragment, useEffect, useState, useSyncExternalStore } from 'react'
-import { average } from '@/domain/language/plain'
+import { average, plural } from '@/domain/language/plain'
 import { ProductImage } from '@/features/catalog/ProductImage'
 import type { CatalogImage } from '@/features/catalog/types'
 import { Formula } from '@/features/recommendations/Formula'
@@ -16,12 +16,12 @@ import { InfoTip } from '@/ui/InfoTip'
 import { Changed } from '@/ui/Changed'
 import motion from '@/ui/Motion.module.css'
 import { QuantityStepper } from '@/ui/QuantityStepper'
-import { networkMatch, networkSignal, retailerLabel, supplierShort, type NetworkMatch } from './network'
+import { networkMatch, retailerLabel, supplierShort, type NetworkMatch } from './network'
 import { ActionBar, HandoffStatus, OrderGlance, OrderHeader, SubmitDialog, type OrderProgress } from './OrderHeader'
 import { addedTotal, setAddedQuantity, setLineQuantity, useDrafts, type AddedItem } from './drafts'
 import { lineTotal, orderTotal, sortForReview } from './summarize'
 import type { NetworkListing, OrderLineView, ProposedOrderView } from './types'
-import { calculation, explanation, nextStep, seasonView, supplierView } from './why'
+import { calculation, seasonView, supplierView } from './why'
 import { SortHeader } from '@/ui/SortHeader'
 import { nextSort, sortRows, type SortState, type SortValue } from '@/ui/sorting'
 import styles from './OrderReview.module.css'
@@ -51,13 +51,11 @@ function cost(amount: number, currency: string) {
 }
 
 /**
- * An opened line (Figma reference: the recommendation formula). The
- * confidence, what this line commits and Add context; the reason in one
- * paragraph; then how we got to the quantity, Target − Current = Need →
- * Order, each step with its evidence (demand, stock, the gap, the supplier's
- * case pack or minimum and its stock); other retailers when they have it;
- * and the recommended next step (docs/recommendations.md). Changing the
- * quantity changes the commitment and totals, never the formula.
+ * An opened line (Figma reference: the recommendation formula). One quiet
+ * row (confidence, what this line commits, "Back to N" once changed, Add
+ * context), then the formula itself, Target − Current = Need → Order, each
+ * step showing its evidence, and other retailers when they have it.
+ * Changing the quantity changes the commitment and totals, never the formula.
  */
 function Recommendation({ line, quantity, setQuantity, order, weekStarts, locked }: {
   line: OrderLineView; quantity: number; setQuantity: (n: number) => void; order: ProposedOrderView; weekStarts?: string[]
@@ -66,21 +64,24 @@ function Recommendation({ line, quantity, setQuantity, order, weekStarts, locked
 }) {
   const intelligence = useIntelligence()
   const calc = calculation(line)
-  const avg = average(line.weeklySales)
-  const sup = supplierView(line, order.leadTimeDays)
   const season = seasonView(line)
-  const who = supplierShortName(order.supplier)
+  const sup = supplierView(line, order.leadTimeDays)
   const label = [line.product, line.variant].filter(Boolean).join(' ')
   const match = networkMatch(line.network, quantity)
-  const weeks = avg > 0 ? Math.max(1, Math.round(calc.expectedDemand / avg)) : 0
   return (
-    <section className={[styles.rec, motion.reveal, motion.surface].join(' ')} aria-labelledby={`${line.id}-why`}>
+    <section className={[styles.rec, motion.reveal, motion.surface].join(' ')} aria-label={`Why ${line.quantity}: ${label}`}>
       <div className={styles.recMain}>
         <div className={styles.recHead}>
           <div className={styles.recMeta}>
             <ConfidenceMark level={line.confidence} />
             <span className={styles.recDot} aria-hidden="true">·</span>
             <span><Changed value={quantity}>{cost(lineTotal(line, quantity), order.currency)}</Changed> commitment</span>
+            {!locked && quantity !== line.quantity && (
+              <>
+                <span className={styles.recDot} aria-hidden="true">·</span>
+                <button type="button" className={styles.textButton} onClick={() => setQuantity(line.quantity)}>Back to {line.quantity}</button>
+              </>
+            )}
           </div>
           {intelligence && (
             <button type="button" className={styles.addContext} aria-haspopup="dialog"
@@ -90,54 +91,27 @@ function Recommendation({ line, quantity, setQuantity, order, weekStarts, locked
           )}
         </div>
 
-        <p className={styles.explanation}>{explanation(line, who)}</p>
-
-        <section className={styles.how} aria-labelledby={`${line.id}-why`}>
-          <div className={styles.howHead}>
-            <h2 id={`${line.id}-why`} className={styles.howTitle}>How we got to {line.quantity}</h2>
-            <p className={styles.howLead}>Your inventory plan through the next restock. Choose a step to see what&rsquo;s behind it.</p>
-          </div>
-          <Formula data={{
-            target: calc.expectedDemand, onHand: calc.onHand, onOrder: calc.onOrder, recommendation: calc.recommended,
-            rule: calc.rule, supplierName: who, targetNote: calc.demandNote,
-            perWeek: avg, coverageWeeks: weeks, leadTimeDays: order.leadTimeDays, trend: season?.value,
-            weeklySales: line.weeklySales, weekStarts,
-            supply: { value: sup.value, note: sup.warehouses.length > 0 ? sup.warehouses.map((w) => `${w.name} ${w.available}`).join(' · ') : sup.note, attention: sup.attention },
-          }} />
-        </section>
+        <Formula data={{
+          target: calc.expectedDemand, safetyStock: calc.safetyStock, onHand: calc.onHand, onOrder: calc.onOrder,
+          recommendation: calc.recommended, rule: calc.rule,
+          perWeek: average(line.weeklySales), leadTimeDays: order.leadTimeDays, trend: season?.value,
+          weeklySales: line.weeklySales, weekStarts,
+          supply: {
+            supplier: order.supplier.split(' ')[0] ?? order.supplier,
+            value: line.supplier.status === 'out' ? `Out of stock · ${sup.value}` : sup.value,
+            attention: sup.attention,
+            arrivesInDays: line.supplier.status === 'out' || line.supplier.status === 'delayed' ? undefined : order.leadTimeDays,
+          },
+        }} />
 
         {match.kind !== 'none' && (
           <NetworkPanel id={`${line.id}-network`} match={match} wholesaleMarketValue={line.wholesaleMarketValue}
             strong={supplierShort(line.supplier.status)} />
         )}
-
-        {line.alternatives.length > 0 && (
-          <section className={styles.notes}>
-            <h3 className={styles.notesTitle}>Other options</h3>
-            <ul>{line.alternatives.map((a) => <li key={a}>{a}</li>)}</ul>
-          </section>
-        )}
       </div>
-
-      <footer className={styles.recFoot}>
-        <div>
-          <h3 className={styles.recFootLabel}>Recommended next step</h3>
-          <p>{nextStep(line, who, order.orderBy)}</p>
-          {!locked && quantity !== line.quantity && (
-            <p className={styles.changed}>
-              You changed this to {quantity}.{' '}
-              <button type="button" className={styles.textButton} onClick={() => setQuantity(line.quantity)}>Back to {line.quantity}</button>
-            </p>
-          )}
-        </div>
-        <p className={styles.recFootTotal}><Changed value={quantity}>{cost(lineTotal(line, quantity), order.currency)}</Changed></p>
-      </footer>
     </section>
   )
 }
-
-/** "Northline Distribution" → "Northline" in running text. */
-const supplierShortName = (name: string) => name.split(' ')[0] ?? name
 
 /**
  * One other retailer's offer: who they are and their reputation, how many,
@@ -181,26 +155,28 @@ function NetworkPanel({ id, match, wholesaleMarketValue, strong }: {
 }) {
   const [open, setOpen] = useState(false)
   const row = (l: NetworkListing) => <NetworkRow key={l.id} listing={l} wholesaleMarketValue={wholesaleMarketValue} />
-  const available = [...(match.kind === 'full' ? match.cover : []), ...match.some].reduce((n, l) => n + l.available, 0)
+  const listings = [...(match.kind === 'full' ? match.cover : []), ...match.some]
+  const available = listings.reduce((n, l) => n + l.available, 0)
+  const retailers = listings.length
+  const lowest = Math.min(...listings.map((l) => l.price))
   return (
     <section className={[styles.networkPanel, strong && styles.networkStrong].filter(Boolean).join(' ')} aria-labelledby={`${id}-title`}>
       <div className={styles.networkHead}>
-        <div className={styles.networkIntro}>
-          <p className={styles.networkEyebrow}>Retailer network</p>
-          <h3 id={`${id}-title`} className={styles.networkTitle}>{networkSignal(match)}</h3>
-          <p className={styles.networkLead}>{available} available from retailers in the network, if you want to replace or add to part of this supplier order.</p>
-        </div>
-        <div className={styles.networkSide}>
-          {wholesaleMarketValue !== undefined && (
-            <p className={styles.networkMarket}>
-              {WMV_TERM} <b>{unitPrice(wholesaleMarketValue)}</b>
-              <InfoTip term={WMV_TERM}>{`${WMV_TERM}: ${WMV_HELP}`}</InfoTip>
-            </p>
-          )}
-          <button type="button" className={styles.disclosure} aria-expanded={open} aria-controls={id} onClick={() => setOpen((v) => !v)}>
-            {open ? 'Hide retailers' : 'Show retailers'}<Caret />
-          </button>
-        </div>
+        <button type="button" className={styles.networkToggle} aria-expanded={open} aria-controls={id} onClick={() => setOpen((v) => !v)}>
+          <span className={styles.networkIntro}>
+            <span className={styles.networkEyebrow}>Retailer network</span>
+            <span id={`${id}-title`} className={styles.networkTitle}>
+              {available} units from {plural(retailers, 'retailer')} · from {unitPrice(lowest)}
+            </span>
+          </span>
+          <Caret />
+        </button>
+        {wholesaleMarketValue !== undefined && (
+          <p className={styles.networkMarket}>
+            Market value <b>{unitPrice(wholesaleMarketValue)}</b>
+            <InfoTip term={WMV_TERM}>{`${WMV_TERM}: ${WMV_HELP}`}</InfoTip>
+          </p>
+        )}
       </div>
       {open && (
         <div id={id} className={styles.networkBody}>

@@ -69,6 +69,8 @@ export type OrderLineView = {
   need?: number
   /** The supplier's case pack or minimum, when it changed the quantity. */
   orderRule?: OrderRule
+  /** Units kept as a cushion within the target (target = expected sales + safety stock). */
+  safetyStock?: number
   unitCost: number
   state: LineState
   /** How well the supplier can fill this line right now. */

@@ -114,7 +114,7 @@ function build(): CatalogProduct[] {
           onHand: line.onHand, onOrder: line.onOrder,
           perWeek: line.weeklySales.length ? Math.round((line.weeklySales.reduce((a, b) => a + b, 0) / line.weeklySales.length) * 10) / 10 : undefined,
           recommended: line.quantity > 0
-            ? { quantity: line.quantity, need: line.need, rule: line.orderRule, orderId: order.id, lineId: line.id, reason: line.reason, confidence: line.confidence }
+            ? { quantity: line.quantity, need: line.need, rule: line.orderRule, safetyStock: line.safetyStock, orderId: order.id, lineId: line.id, reason: line.reason, confidence: line.confidence }
             : undefined,
         },
         orderLines: [{ orderId: order.id, lineId: line.id, quantity: line.quantity }],

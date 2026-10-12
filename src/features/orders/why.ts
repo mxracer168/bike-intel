@@ -28,6 +28,9 @@ export type Calculation = {
   expectedDemand: number
   onHand: number
   onOrder: number
+  /** The target's parts: what we expect to sell before the next restock, plus the cushion. */
+  expectedSales: number
+  safetyStock: number
   /** Target − on hand − on order. */
   need: number
   /** The need, after the supplier's case pack or minimum. */
@@ -64,6 +67,8 @@ export function calculation(line: OrderLineView): Calculation {
     expectedDemand,
     onHand: line.onHand,
     onOrder: line.onOrder,
+    safetyStock: Math.min(line.safetyStock ?? 0, expectedDemand),
+    expectedSales: expectedDemand - Math.min(line.safetyStock ?? 0, expectedDemand),
     need,
     recommended: line.quantity,
     rule: line.need !== undefined && line.need !== line.quantity ? line.orderRule : undefined,

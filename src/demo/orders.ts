@@ -324,6 +324,7 @@ northline.intelligenceQuestionId = 'demo-cedar-ridge'
  */
 northline.context = { cadenceDays: 12, typicalOrder: 3950 }
 cascade.lines = cascade.lines.map((l) => ({ ...l, supplierSku: demoSku(cascade.supplier, l.product, l.variant) }))
+for (const o of [northline, summit, cascade]) o.lines = o.lines.map(withSafetyStock)
 cascade.context = { cadenceDays: 30, typicalOrder: 260, pricesUpdatedDaysAgo: 9 }
 
 /**
@@ -348,6 +349,17 @@ export function demoHandoff(value: string | string[] | undefined): HandoffView |
 }
 
 export const demoOrders: ProposedOrderView[] = [northline, summit, cascade]
+
+/**
+ * EXAMPLE safety stock: about a week of sales, at least one unit, and never
+ * the whole target (target = expected sales + safety stock).
+ */
+function withSafetyStock(line: OrderLineView): OrderLineView {
+  const target = (line.need ?? line.quantity) + line.onHand + line.onOrder
+  const perWeek = average(line.weeklySales)
+  const safetyStock = target >= 2 ? Math.min(target - 1, Math.max(1, Math.round(perWeek))) : 0
+  return { ...line, safetyStock }
+}
 
 /**
  * EXAMPLE cash outlook for the order header's cash impact: the store's

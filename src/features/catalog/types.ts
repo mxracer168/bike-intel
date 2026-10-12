@@ -40,7 +40,7 @@ export type CatalogVariant = {
     perWeek?: number
     /** A recommendation for this Variant, from a proposed order. */
     /** Quantity is the need after the supplier's case pack or minimum (rule), when one applies. */
-    recommended?: { quantity: number; need?: number; rule?: OrderRule; orderId: string; lineId: string; reason: string; confidence: string }
+    recommended?: { quantity: number; need?: number; rule?: OrderRule; safetyStock?: number; orderId: string; lineId: string; reason: string; confidence: string }
   }
   /** The proposed order lines for this option (its suggested quantity there, even 0). */
   orderLines?: { orderId: string; lineId: string; quantity: number }[]

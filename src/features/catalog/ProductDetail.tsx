@@ -224,9 +224,8 @@ function BuyCard({ product, variant, orders }: { product: CatalogProduct; varian
               <div id="buy-why" className={styles.buyFormula}>
                 <Formula compact tone="dark" data={{
                   target: (rec.need ?? rec.quantity) + variant.own.onHand + variant.own.onOrder,
+                  safetyStock: rec.safetyStock ?? 0,
                   onHand: variant.own.onHand, onOrder: variant.own.onOrder, recommendation: rec.quantity, rule: rec.rule,
-                  supplierName: shortName(Object.values(orders).find((o) => o.orderId === rec.orderId)?.supplierName ?? best.offer.supplierName),
-                  targetNote: variant.own.perWeek !== undefined ? `about ${variant.own.perWeek} sold a week` : 'from your recent sales',
                   perWeek: variant.own.perWeek,
                 }} />
               </div>

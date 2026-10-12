@@ -1,8 +1,8 @@
 /*
  * The recommendation formula (Figma reference): four steps read left to
  * right, Target − Current = Need → Order, the order in blue; the chosen
- * step's evidence below. Light inside an order line; dark and compact inside
- * the catalog's buying card.
+ * step's evidence below, as figures, tables and bars rather than sentences.
+ * Light inside an order line; dark and compact in the catalog's buying card.
  */
 .formula { display: flex; flex-direction: column; gap: var(--sp-3); }
 .steps { display: flex; align-items: stretch; gap: 6px; }
@@ -26,46 +26,90 @@
 .step[data-adjusted] .stepDetail { color: var(--accent-hover); font-weight: 600; }
 
 .panel { padding: var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--canvas); }
+
+/* a + b = c */
+.sum { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--sp-2); }
+.sumPart { display: contents; }
+.sumOp { text-align: center; color: var(--ink-faint); }
+.sumItem { min-width: 0; display: flex; flex-direction: column; }
+.sumItem b { font-size: 18px; line-height: 26px; font-weight: 600; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
+.sumItem b[data-total] { color: var(--accent-hover); }
+.sumItem span { font-size: 12px; line-height: 16px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sumBox { padding: var(--sp-3); border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
+
+/* Target: the equation and its figures, beside recent demand. */
 .targetGrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
-@media (min-width: 1100px) { .targetGrid { grid-template-columns: minmax(16rem, .85fr) minmax(0, 1.15fr); } }
-.evidence { display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; }
-.sentence { font-size: 14px; line-height: 22px; color: var(--ink-2); }
-.sentence b { font-weight: 600; color: var(--ink-strong); }
-.metrics { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3) 20px; padding-top: var(--sp-3); border-top: 1px solid var(--line); }
+@media (min-width: 1024px) { .targetGrid { grid-template-columns: minmax(16rem, .85fr) minmax(0, 1.15fr); } }
+.targetLeft { min-width: 0; display: flex; flex-direction: column; gap: var(--sp-4); }
+.metrics { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3) 20px; padding-top: var(--sp-4); border-top: 1px solid var(--line); }
 .metric dt { font-size: 12px; line-height: 16px; color: var(--ink-3); }
 .metric dd { margin: 2px 0 0; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
-.chart { min-width: 0; padding: var(--sp-3) var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
-.chartTitle { margin-bottom: var(--sp-2); font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink-2); }
+.demand { min-width: 0; display: flex; flex-direction: column; padding: var(--sp-3) var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
+.demandHead { display: flex; justify-content: space-between; gap: var(--sp-3); }
+.demandHead > span { display: flex; flex-direction: column; }
+.demandHead b { font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink-2); }
+.demandHead span span { font-size: 12px; line-height: 16px; color: var(--ink-3); }
+.demandTotal { text-align: right; }
+.demandTotal b { font-size: 14px; line-height: 20px; color: var(--ink-strong); }
+.bars { display: flex; align-items: flex-end; gap: 6px; height: 96px; margin-top: var(--sp-3); border-bottom: 1px solid var(--line); }
+.barCol { flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; }
+.barCol i { display: block; width: 100%; border-radius: 3px 3px 0 0; background: var(--accent-muted); }
+.barCol i[data-recent] { background: var(--dot-info); }
+.barDates { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; line-height: 16px; color: var(--ink-3); }
 
-.sum { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2) var(--sp-3); font-size: 14px; color: var(--ink-3); }
-.sum b { font-size: 20px; font-weight: 600; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
-.sum > span[aria-hidden] { color: var(--ink-faint); }
-.blue, .sum b.blue { color: var(--accent-hover); }
+/* Current: on hand by location, and what's on order. */
+.currentGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.tableHead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--sp-2); }
+.tableHead span { font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.tableHead b { font-size: 14px; font-weight: 600; color: var(--ink-strong); }
+.table { width: 100%; border-collapse: separate; border-spacing: 0; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); font-size: 14px; }
+.table th { padding: var(--sp-2) var(--sp-3); background: var(--canvas); font-size: 12px; font-weight: 400; color: var(--ink-3); text-align: left; }
+.table td { padding: var(--sp-2) var(--sp-3); border-top: 1px solid var(--subtle); color: var(--ink-2); }
+.table th:last-child, .table td:last-child { text-align: right; }
+.table td:last-child { font-weight: 600; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
+.empty { min-height: 72px; display: grid; place-items: center; border: 1px dashed var(--line-strong); border-radius: var(--r-md); font-size: 14px; color: var(--ink-3); }
 
-.bar { display: flex; height: 14px; overflow: hidden; border-radius: 999px; background: var(--sunken); }
+/* Need: how long stock lasts, and the uncovered gap. */
+.need { display: flex; flex-direction: column; gap: var(--sp-3); }
+.needHead { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--sp-4); }
+.needHead > span { display: flex; flex-direction: column; }
+.needHead > span:first-child b { font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink-strong); }
+.needHead span span { font-size: 12px; line-height: 16px; color: var(--ink-3); }
+.needRight { text-align: right; }
+.needRight b { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink-2); }
+.bar { display: flex; height: 16px; overflow: hidden; border-radius: 999px; background: var(--sunken); }
 .bar i { display: block; height: 100%; }
 .barHand { background: var(--ink-3); }
 .barIncoming { background: var(--accent-muted); }
-.barGap { background: var(--accent-line); background-image: repeating-linear-gradient(135deg, transparent 0 4px, var(--accent-soft) 4px 8px); }
+.barGap { background: var(--accent-line); }
 .legend { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3); }
+.legend .metric:nth-child(2) dd { color: var(--accent-hover); }
 .legend .metric:last-child { text-align: right; }
 .legend .metric:last-child dd { color: var(--accent-hover); }
 
-.flow { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--sp-3) 20px; padding: 4px 0; }
-.flowStep { display: flex; flex-direction: column; align-items: center; }
+/* Order: need → the supplier's rule → the order; then the supplier's stock in a few words. */
+.orderEvidence { display: flex; flex-direction: column; gap: var(--sp-3); }
+.supply {
+  align-self: center; display: inline-flex; align-items: center; gap: 6px; padding: 4px var(--sp-3);
+  border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 12px; line-height: 18px; color: var(--ink-2);
+}
+.supply b { font-weight: 600; color: var(--ink-strong); }
+.supplyDot { width: 6px; height: 6px; border-radius: 50%; background: var(--dot-good); }
+.supply[data-attention] { border-color: var(--con-line); background: var(--con-wash); }
+.supply[data-attention] b { color: var(--con); }
+.supply[data-attention] .supplyDot { background: var(--dot-caution); }
+.flow { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 4px 0; }
+.flowStep { display: flex; flex-direction: column; align-items: center; text-align: center; }
 .flowStep b { font-size: 24px; line-height: 32px; font-weight: 600; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
-.flowStep b.blue { color: var(--accent-hover); }
+.flowStep b.blue, .blue { color: var(--accent-hover); }
 .flowLabel { font-size: 12px; line-height: 16px; color: var(--ink-3); }
 .flowArrow { font-size: 18px; color: var(--ink-faint); }
 .rule {
-  display: flex; flex-direction: column; align-items: center; padding: var(--sp-2) var(--sp-3);
+  display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--sp-2) var(--sp-3);
   border: 1px solid var(--accent-line); border-radius: var(--r-sm); background: var(--accent-soft);
 }
+.rule .flowLabel { color: var(--ink-2); }
 .rule b { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--accent-hover); }
-.supply { display: flex; flex-wrap: wrap; gap: 0 6px; padding-top: var(--sp-3); border-top: 1px solid var(--line); font-size: 14px; line-height: 22px; color: var(--ink-2); }
-.supply b { font-weight: 600; color: var(--ink-strong); }
-.supply b.attention { color: var(--con); }
-.supplyNote { flex-basis: 100%; font-size: 12px; line-height: 18px; color: var(--ink-3); }
 
 /* Compact: the catalog's buying card. */
 .compact .steps { gap: 4px; }
@@ -75,14 +119,16 @@
 .compact .stepLabel { letter-spacing: 0; text-transform: none; font-weight: 500; font-size: 12px; }
 .compact .stepValue { font-size: 18px; line-height: 24px; }
 .compact .panel { padding: var(--sp-3); }
-.compact .metrics { grid-template-columns: 1fr 1fr; }
-.compact .flow { flex-wrap: nowrap; gap: var(--sp-2); justify-content: space-between; }
+.compact .sum { gap: 4px; }
+.compact .sumItem { align-items: center; text-align: center; }
+.compact .sumItem b { font-size: 16px; line-height: 22px; }
+.compact .flow { gap: var(--sp-2); justify-content: space-between; }
 .compact .flowStep b { font-size: 18px; line-height: 24px; }
 .compact .rule { padding: 4px var(--sp-2); }
 .compact .flowArrow { font-size: 14px; }
 
 /* Dark: on the inverse surface. */
-[data-tone='dark'] .op { color: var(--inverse-3); }
+[data-tone='dark'] .op, [data-tone='dark'] .sumOp, [data-tone='dark'] .flowArrow { color: var(--inverse-3); }
 [data-tone='dark'] .step { border-color: var(--inverse-track); background: var(--inverse-control); }
 [data-tone='dark'] .step:hover { border-color: var(--signal-edge-soft); }
 [data-tone='dark'] .step[aria-pressed='true'] { border-color: var(--signal-edge-soft); background: var(--nav-current); box-shadow: none; }
@@ -90,24 +136,23 @@
 [data-tone='dark'] .stepValue { color: var(--on-inverse); }
 [data-tone='dark'] .step[data-order] .stepLabel, [data-tone='dark'] .step[data-order] .stepValue { color: var(--inverse-link); }
 [data-tone='dark'] .panel { border-color: var(--inverse-track); background: var(--inverse-control); }
-[data-tone='dark'] .sentence, [data-tone='dark'] .sum, [data-tone='dark'] .flowLabel, [data-tone='dark'] .metric dt { color: var(--inverse-2); }
-[data-tone='dark'] .sentence b, [data-tone='dark'] .sum b, [data-tone='dark'] .flowStep b, [data-tone='dark'] .metric dd { color: var(--on-inverse); }
-[data-tone='dark'] .blue, [data-tone='dark'] .sum b.blue, [data-tone='dark'] .flowStep b.blue, [data-tone='dark'] .legend .metric:last-child dd { color: var(--inverse-link); }
-[data-tone='dark'] .metrics { border-top-color: var(--inverse-track); }
+[data-tone='dark'] .sumItem b, [data-tone='dark'] .flowStep b, [data-tone='dark'] .metric dd { color: var(--on-inverse); }
+[data-tone='dark'] .sumItem span, [data-tone='dark'] .flowLabel, [data-tone='dark'] .metric dt { color: var(--inverse-2); }
+[data-tone='dark'] .sumItem b[data-total], [data-tone='dark'] .flowStep b.blue, [data-tone='dark'] .legend .metric:nth-child(n+2) dd { color: var(--inverse-link); }
 [data-tone='dark'] .bar { background: var(--inverse-track); }
 [data-tone='dark'] .barHand { background: var(--inverse-2); }
 [data-tone='dark'] .barIncoming { background: var(--inverse-link); }
-[data-tone='dark'] .barGap { background: var(--nav-current); background-image: none; }
+[data-tone='dark'] .barGap { background: var(--nav-current); }
 [data-tone='dark'] .rule { border-color: var(--signal-edge-soft); background: var(--nav-current); }
 [data-tone='dark'] .rule b { color: var(--inverse-link); }
-[data-tone='dark'] .flowArrow { color: var(--inverse-3); }
 
 @media (max-width: 640px) {
   .formula:not(.compact) .steps { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
   .formula:not(.compact) .stepWrap { display: contents; }
   .formula:not(.compact) .op { display: none; }
-  .flow { flex-wrap: nowrap; gap: var(--sp-2); justify-content: space-between; }
-  .flowStep { text-align: center; }
+  .currentGrid { grid-template-columns: minmax(0, 1fr); }
+  .stepDetail, .sumItem span { white-space: normal; }
+  .flow { gap: var(--sp-2); justify-content: space-between; }
   .flowStep b { font-size: 20px; line-height: 28px; }
-  .rule { padding: 4px var(--sp-2); text-align: center; }
+  .rule { padding: 4px var(--sp-2); }
 }
