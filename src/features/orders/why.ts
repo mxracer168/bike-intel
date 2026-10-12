@@ -1,5 +1,5 @@
 import { average } from '@/domain/language/plain'
-import type { OrderLineView, OrderRule, SupplierCondition } from './types'
+import type { OrderLineView, OrderRule, SupplierCondition, SupplierStock } from './types'
 
 /**
  * "Why N?": the answer, the reason, then the evidence. Everything here is
@@ -129,7 +129,16 @@ export type SupplierView = {
   note: string
 }
 
-const units = (n: number) => `${n} available`
+/**
+ * A supplier's stock as a number, never a vague word: the exact count when
+ * the supplier reports one ("48 available", "3 left" when limited), its floor
+ * when it only reports a threshold ("25+ available"), otherwise null.
+ */
+export function stockWords(stock: SupplierStock | undefined, status?: SupplierCondition['status']): string | null {
+  if (stock?.total !== undefined) return status === 'limited' ? `${stock.total} left` : `${stock.total} available`
+  if (stock?.atLeast !== undefined) return `${stock.atLeast}+ available`
+  return null
+}
 
 export function supplierView(line: OrderLineView, leadTimeDays: number): SupplierView {
   const s = line.supplier
@@ -146,9 +155,9 @@ export function supplierView(line: OrderLineView, leadTimeDays: number): Supplie
         : `${s.status === 'out' ? 'None in stock' : 'Delayed'}. ${s.note}.`,
     }
   }
-  const quantity = stock?.total !== undefined ? units(stock.total) : stock?.atLeast !== undefined ? `${stock.atLeast}+ available` : null
+  const quantity = stockWords(stock)
   if (s.status === 'limited') {
-    return { value: stock?.total !== undefined ? `${stock.total} left` : s.note, attention: true, warehouses, note: 'Only a few left.' }
+    return { value: stockWords(stock, 'limited') ?? s.note, attention: true, warehouses, note: 'Only a few left.' }
   }
   return {
     value: quantity ?? 'In stock',

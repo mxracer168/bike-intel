@@ -55,7 +55,11 @@ Nothing is repeated between the summary and the rest of the screen.
 detail: stock by warehouse when the supplier reports it, otherwise the best
 the supplier gives (a total, a threshold, or in stock without a quantity),
 and for an out-of-stock item, when it's expected back and how long until it
-could be on the shelf. Never more specific than the source.
+could be on the shelf. Never more specific than the source, and never a
+vague word ("Plenty"): the exact count when the supplier reports one, its
+floor ("25+") when it only reports a threshold. Every availability line
+(order lines and Catalog offers) is worded from the same stock figures by
+`stockWords()`, so the text and the number can't disagree.
 
 **Adding context about this item.** The explanation offers a way into the
 intelligence conversation already about this item, so what the retailer

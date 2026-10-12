@@ -5,7 +5,7 @@ import type { OrderLineView } from '@/features/orders/types'
 const line = (over: Partial<OrderLineView> = {}): OrderLineView => ({
   id: 'l1', product: 'Tire', onHand: 0, onOrder: 0, quantity: 3, unitCost: 50, state: 'ok',
   supplier: { status: 'available', note: 'Available' }, reason: 'You have none left.',
-  weeklySales: [1, 2, 1, 1, 0, 1, 1, 1, 0, 1, 2, 1], confidence: 'medium', availability: 'Plenty',
+  weeklySales: [1, 2, 1, 1, 0, 1, 1, 1, 0, 1, 2, 1], confidence: 'medium', availability: '25+ available',
   assumptions: [], alternatives: [], ...over,
 })
 

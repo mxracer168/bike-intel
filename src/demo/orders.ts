@@ -5,6 +5,7 @@
  * the same numbers.
  */
 import { demoSku } from './sku'
+import { stockWords } from '@/features/orders/why'
 import { average, describeCover } from '@/domain/language/plain'
 import type { Confidence, HandoffView, LineState, NetworkListing, OrderLineView, ProposedOrderView } from '@/features/orders/types'
 
@@ -113,9 +114,8 @@ function build(plan: Plan): ProposedOrderView {
       weeklySales,
       confidence,
       season: item.season,
-      availability: stock > quantity * 3
-        ? `Plenty · ${plan.warehouse} warehouse`
-        : `${stock} left · ${plan.warehouse} warehouse`,
+      // Filled in from the supplier's stock below, so the words and the number agree.
+      availability: '',
       assumptions: [
         `Delivery in about ${plan.leadTimeDays} days`,
         `Enough to last about ${plan.coverWeeks} weeks after it arrives`,
@@ -132,13 +132,12 @@ function build(plan: Plan): ProposedOrderView {
     const stock = line.supplier.status === 'limited'
       ? Number(/\d+/.exec(line.supplier.note)?.[0] ?? 2)
       : Math.round(line.quantity * (4 + ((i * 37) % 9)))
-    return {
-      ...line,
-      supplier: {
-        ...line.supplier,
-        stock: plan.warehouses ? { total: stock, warehouses: byWarehouse(stock, plan.warehouses) } : { total: stock },
-      },
+    const supplier = {
+      ...line.supplier,
+      stock: plan.warehouses ? { total: stock, warehouses: byWarehouse(stock, plan.warehouses) } : { total: stock },
     }
+    const where = plan.warehouses ? `across ${plan.warehouses.length} warehouses` : `${plan.warehouse} warehouse`
+    return { ...line, supplier, availability: line.availability || `${stockWords(supplier.stock, supplier.status)} · ${where}` }
   })
   return {
     id: plan.id,
@@ -311,7 +310,7 @@ const cascade: ProposedOrderView = {
       state: 'ok', supplier: { status: 'available', note: 'Available', stock: { atLeast: 25 } },
       reason: reasonFor(onHand, onOrder, perWeek), weeklySales: [...sales], confidence: 'high',
       season: winter,
-      availability: 'Plenty · Tacoma warehouse',
+      availability: '25+ available · Tacoma warehouse',
       assumptions: ['Delivery in about 4 days', 'Enough for the next few wheel builds', 'Based on your last 12 weeks of sales'],
       alternatives: [],
     }

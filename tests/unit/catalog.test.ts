@@ -158,7 +158,7 @@ describe('best source for one option', () => {
   })
 
   it('describes stock from the status when the supplier can’t supply', () => {
-    expect(stockLabel(offer('n', 1, { status: 'out', availability: 'Plenty · Reno warehouse' })).text).toBe('Out of stock')
+    expect(stockLabel(offer('n', 1, { status: 'out', availability: '25+ available · Reno warehouse' })).text).toBe('Out of stock')
     expect(stockLabel(offer('n', 1, { status: 'limited', availability: '3 left' })).text).toBe('3 left')
   })
 })

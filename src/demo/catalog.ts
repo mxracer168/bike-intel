@@ -55,14 +55,15 @@ const slug = (s: string) => s.toLowerCase().replace(/’/g, '').replace(/[^a-z0-
 
 /** Second suppliers for a few products, only to show comparison (cost relative to the usual offer). */
 const ILLUSTRATIVE: { product: string; supplier: string; costFactor: number; status: CatalogOffer['status']; availability: string }[] = [
-  { product: 'Maxxis Minion DHF', supplier: 'Cascade Components', costFactor: 0.97, status: 'limited', availability: 'Low stock' },
-  { product: 'Maxxis Rekon', supplier: 'Summit Parts Supply', costFactor: 1.04, status: 'available', availability: 'In stock' },
-  { product: 'Maxxis Assegai', supplier: 'Summit Parts Supply', costFactor: 1.03, status: 'available', availability: 'In stock' },
-  { product: 'Continental Grand Prix 5000 S TR', supplier: 'Cascade Components', costFactor: 0.98, status: 'available', availability: 'In stock' },
-  { product: 'Schwalbe inner tube', supplier: 'Cascade Components', costFactor: 0.95, status: 'available', availability: 'In stock' },
-  { product: 'KMC chain', supplier: 'Summit Parts Supply', costFactor: 1.05, status: 'available', availability: 'In stock' },
+  // Stock as each supplier reports it: an exact count, or Cascade's "25+".
+  { product: 'Maxxis Minion DHF', supplier: 'Cascade Components', costFactor: 0.97, status: 'limited', availability: '4 left · Tacoma warehouse' },
+  { product: 'Maxxis Rekon', supplier: 'Summit Parts Supply', costFactor: 1.04, status: 'available', availability: '36 available · Denver warehouse' },
+  { product: 'Maxxis Assegai', supplier: 'Summit Parts Supply', costFactor: 1.03, status: 'available', availability: '22 available · Denver warehouse' },
+  { product: 'Continental Grand Prix 5000 S TR', supplier: 'Cascade Components', costFactor: 0.98, status: 'available', availability: '25+ available · Tacoma warehouse' },
+  { product: 'Schwalbe inner tube', supplier: 'Cascade Components', costFactor: 0.95, status: 'available', availability: '25+ available · Tacoma warehouse' },
+  { product: 'KMC chain', supplier: 'Summit Parts Supply', costFactor: 1.05, status: 'available', availability: '64 available · Denver warehouse' },
   // The demo's many-sources product: Summit (usual), Northline and Cascade.
-  { product: 'Cane Creek 40 headset', supplier: 'Northline Distribution', costFactor: 0.97, status: 'available', availability: 'Plenty · Reno warehouse' },
+  { product: 'Cane Creek 40 headset', supplier: 'Northline Distribution', costFactor: 0.97, status: 'available', availability: '48 available · across 3 warehouses' },
   { product: 'Cane Creek 40 headset', supplier: 'Cascade Components', costFactor: 1.05, status: 'limited', availability: '3 left · Tacoma warehouse' },
   { product: 'Shimano B01S resin disc brake pads', supplier: 'Cascade Components', costFactor: 1.02, status: 'delayed', availability: 'Back in about 2 weeks' },
 ]
@@ -105,7 +106,7 @@ function build(): CatalogProduct[] {
       const p = product(line.product, inv?.brand, inv?.category)
       const offer: CatalogOffer = {
         supplierId: supplierId(order.supplier), supplierName: order.supplier, sku: line.supplierSku, unitCost: line.unitCost, pack: 1,
-        currency: order.currency, status: line.supplier.status, availability: line.availability,
+        currency: order.currency, status: line.supplier.status, availability: line.availability || undefined,
         usual: (usualSupplier.get(line.product) ?? order.supplier) === order.supplier,
       }
       const variant: CatalogVariant = {

@@ -84,3 +84,23 @@ describe('cash impact', () => {
     expect(tight.position).toBeGreaterThan(cashImpact(cash, 4_824).position)
   })
 })
+
+describe('supplier stock in numbers', () => {
+  it('says an exact count, a floor, or nothing; never a vague word', async () => {
+    const { stockWords } = await import('@/features/orders/why')
+    expect(stockWords({ total: 48 })).toBe('48 available')
+    expect(stockWords({ total: 3 }, 'limited')).toBe('3 left')
+    expect(stockWords({ atLeast: 25 })).toBe('25+ available')
+    expect(stockWords(undefined)).toBeNull()
+  })
+
+  it('describes every example line and offer with a number when the supplier has stock', async () => {
+    const { demoCatalog } = await import('@/demo/catalog')
+    const texts = [
+      ...demoOrders.flatMap((o) => o.lines.filter((l) => l.supplier.status === 'available' || l.supplier.status === 'limited').map((l) => l.availability)),
+      ...demoCatalog.flatMap((p) => p.variants.flatMap((v) => v.offers)).filter((o) => o.status === 'available' || o.status === 'limited').map((o) => o.availability ?? ''),
+    ]
+    expect(texts.length).toBeGreaterThan(100)
+    for (const t of texts) expect(t).toMatch(/^\d+\+? (available|left) · /)
+  })
+})
