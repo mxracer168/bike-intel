@@ -8,7 +8,7 @@ import { Icon } from '@/ui/Icon'
 import { ProductImage } from './ProductImage'
 import { activeFilters, discover, sortLabels, toggle, type Facet, type FacetKey, type Filters, type ProductSummary, type SortKey } from './search'
 import type { CatalogProduct } from './types'
-import { CATALOG_VIEW_COOKIE, catalogQuery, type CatalogState } from './url'
+import { CATALOG_SESSION_COOKIE, CATALOG_VIEW_COOKIE, catalogQuery, saveCatalogState, type CatalogState } from './url'
 import styles from './Catalog.module.css'
 
 /**
@@ -39,9 +39,12 @@ export function CatalogBrowser({ products, initial, supplierId }: {
   const productHref = (id: string) => `/catalog/${encodeURIComponent(id)}${supplierId ? `?supplier=${encodeURIComponent(supplierId)}` : ''}`
 
   // Keep the address in step, without a navigation, so Back returns here as it was.
+  // …and in a session cookie, so the breadcrumb or the menu brings them back too.
   useEffect(() => {
     const next = `${window.location.pathname}${catalogQuery({ query, filters, sort, view }, { supplier: supplierId })}`
     if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(window.history.state, '', next)
+    const current = document.cookie.split('; ').find((c) => c.startsWith(`${CATALOG_SESSION_COOKIE}=`))?.slice(CATALOG_SESSION_COOKIE.length + 1)
+    document.cookie = `${CATALOG_SESSION_COOKIE}=${saveCatalogState(current, supplierId ?? '', { query, filters, sort, view })}; path=/; samesite=lax`
   }, [query, filters, sort, view, supplierId])
 
   const onToggle = (key: FacetKey, value: string) => setFilters((f) => toggle(f, key, value))

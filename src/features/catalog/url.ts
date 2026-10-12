@@ -50,3 +50,53 @@ export function catalogQuery(state: CatalogState, keep: Record<string, string | 
   const s = p.toString()
   return s ? `?${s}` : ''
 }
+
+/**
+ * Search, filters and sort, kept for the browser session (a cookie without
+ * an expiry), one entry per catalog: '' for the whole Catalog, a supplier id
+ * for that supplier's. Opening a catalog whose address doesn't say (the
+ * breadcrumb, the menu) brings them back. The view is remembered longer
+ * (CATALOG_VIEW_COOKIE); signing out clears these.
+ */
+export const CATALOG_SESSION_COOKIE = 'bi_catalog_state'
+const NOT_STATE = new Set(['supplier', 'view', 'option'])
+const MAX_SCOPES = 12
+
+/** Whether the address itself says what to show (a search, a filter or a sort). */
+export function hasCatalogState(params: Params): boolean {
+  return Object.keys(params).some((k) => !NOT_STATE.has(k))
+}
+
+function parseSaved(cookie: string | undefined): Record<string, string> {
+  if (!cookie) return {}
+  try {
+    const v = JSON.parse(decodeURIComponent(cookie)) as unknown
+    return v && typeof v === 'object' && !Array.isArray(v)
+      ? Object.fromEntries(Object.entries(v as Record<string, unknown>).filter(([, q]) => typeof q === 'string')) as Record<string, string>
+      : {}
+  } catch {
+    return {}
+  }
+}
+
+/** The saved search, filters and sort for one catalog, as address parameters. */
+export function savedCatalogParams(cookie: string | undefined, scope = ''): Params {
+  const qs = parseSaved(cookie)[scope]
+  if (!qs) return {}
+  const out: Params = {}
+  for (const [k, v] of new URLSearchParams(qs)) {
+    if (NOT_STATE.has(k)) continue
+    const prev = out[k]
+    out[k] = prev === undefined ? v : Array.isArray(prev) ? [...prev, v] : [prev, v]
+  }
+  return out
+}
+
+/** The cookie value after saving one catalog's state (an empty state removes its entry). */
+export function saveCatalogState(cookie: string | undefined, scope: string, state: CatalogState): string {
+  const saved = parseSaved(cookie)
+  const qs = catalogQuery({ ...state, view: 'grid' }).replace(/^\?/, '')
+  delete saved[scope]
+  const next = qs ? { [scope]: qs, ...saved } : saved
+  return encodeURIComponent(JSON.stringify(Object.fromEntries(Object.entries(next).slice(0, MAX_SCOPES))))
+}

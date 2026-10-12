@@ -5,7 +5,7 @@ import { activeFilters, discover, toggle } from '@/features/catalog/search'
 import { confirmLabel, current, destinations, itemKey, placements } from '@/features/catalog/ordering'
 import { bestSource, stockLabel } from '@/features/catalog/sourcing'
 import type { CatalogOffer, CatalogProduct, CatalogVariant } from '@/features/catalog/types'
-import { catalogQuery, readCatalogState } from '@/features/catalog/url'
+import { catalogQuery, hasCatalogState, readCatalogState, saveCatalogState, savedCatalogParams } from '@/features/catalog/url'
 import { buildPlan } from '@/features/today/plan'
 import type { OrderSummary } from '@/features/orders/types'
 
@@ -263,5 +263,30 @@ describe('supplier SKUs (example data)', () => {
   it('finds a product by its supplier SKU', () => {
     const sku = demoCatalog[0]!.variants[0]!.offers[0]!.sku!
     expect(discover(demoCatalog, { query: sku, filters: {}, sort: 'best' }).results[0]!.product.id).toBe(demoCatalog[0]!.id)
+  })
+})
+
+describe('catalog search and filters for the session', () => {
+  const tires = { query: 'dhf', filters: { category: ['Tires'], brand: ['Maxxis', 'WTB'] }, sort: 'price' as const, view: 'list' as const }
+
+  it('saves each catalog separately and brings it back without the view', () => {
+    let cookie = saveCatalogState(undefined, '', tires)
+    cookie = saveCatalogState(cookie, 'demo-northline', { query: '', filters: { brand: ['KMC'] }, sort: 'best', view: 'grid' })
+    expect(readCatalogState(savedCatalogParams(cookie, ''))).toEqual({ ...tires, view: 'grid' })
+    expect(readCatalogState(savedCatalogParams(cookie, 'demo-northline')).filters).toEqual({ brand: ['KMC'] })
+    expect(savedCatalogParams(cookie, 'demo-cascade')).toEqual({})
+  })
+
+  it('forgets a catalog once everything is cleared, and survives a bad cookie', () => {
+    const cookie = saveCatalogState(saveCatalogState(undefined, '', tires), '', { query: '', filters: {}, sort: 'best', view: 'grid' })
+    expect(savedCatalogParams(cookie, '')).toEqual({})
+    expect(savedCatalogParams('%7Bnot json', '')).toEqual({})
+  })
+
+  it('uses the session only when the address says nothing itself', () => {
+    expect(hasCatalogState({})).toBe(false)
+    expect(hasCatalogState({ supplier: 'demo-northline', view: 'list' })).toBe(false)
+    expect(hasCatalogState({ category: 'Tires' })).toBe(true)
+    expect(hasCatalogState({ q: 'chain' })).toBe(true)
   })
 })

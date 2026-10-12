@@ -1,5 +1,6 @@
 'use server'
 
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { publicEnv } from '@/lib/env'
@@ -7,6 +8,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from '@/domain/auth/password'
 import { validate } from '@/domain/validation'
 import { errorState, readFields, type FormState } from '@/server/forms'
+import { CATALOG_SESSION_COOKIE } from '@/features/catalog/url'
 
 const credentialsSchema = z.object({
   email: z.email('Enter a valid email address.').trim().toLowerCase(),
@@ -63,5 +65,8 @@ export async function signInAction(_prev: FormState, formData: FormData): Promis
 export async function signOutAction() {
   const db = await createSupabaseServerClient()
   await db.auth.signOut()
+  // Session-only preferences end with the session (the catalog's search and filters).
+  const jar = await cookies()
+  jar.delete(CATALOG_SESSION_COOKIE)
   redirect('/sign-in')
 }

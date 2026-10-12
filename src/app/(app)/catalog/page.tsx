@@ -6,7 +6,7 @@ import { demoCatalog, demoSupplierName, demoSupplierOrder } from '@/demo/catalog
 import { isDemoPreviewEnabled } from '@/demo/config'
 import { formatMoney } from '@/domain/language/plain'
 import { CatalogBrowser } from '@/features/catalog/CatalogBrowser'
-import { CATALOG_VIEW_COOKIE, readCatalogState } from '@/features/catalog/url'
+import { CATALOG_SESSION_COOKIE, CATALOG_VIEW_COOKIE, hasCatalogState, readCatalogState, savedCatalogParams } from '@/features/catalog/url'
 import { summarizeOrder } from '@/features/orders/summarize'
 import { Placeholder } from '@/features/placeholder/Placeholder'
 import { requireOrganization } from '@/server/session'
@@ -67,7 +67,18 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
           </Link>
         )}
       </header>
-      <CatalogBrowser products={demoCatalog} initial={readCatalogState(params, (await cookies()).get(CATALOG_VIEW_COOKIE)?.value)} supplierId={supplier} />
+      <CatalogBrowser products={demoCatalog} initial={await initialState(params, supplier)} supplierId={supplier} />
     </Page>
   )
+}
+
+/**
+ * What the catalog opens on: the address when it says, otherwise this
+ * session's search, filters and sort for this catalog (the breadcrumb and the
+ * menu link carry none), with the remembered list or grid view.
+ */
+async function initialState(params: SearchParams, supplier?: string) {
+  const jar = await cookies()
+  const fromSession = hasCatalogState(params) ? {} : savedCatalogParams(jar.get(CATALOG_SESSION_COOKIE)?.value, supplier ?? '')
+  return readCatalogState({ ...fromSession, ...params }, jar.get(CATALOG_VIEW_COOKIE)?.value)
 }

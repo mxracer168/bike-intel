@@ -207,6 +207,12 @@ product's options and who can supply them (`docs/catalog.md`).
 | Add to order tray | A side tray: destinations (each supplier's proposed order, an order started from the Catalog, or a new order), quantity, "Take it off the {supplier} order" when moving a recommendation, "Why N", the estimated line total and one confirm button that says what it does. |
 
 Search, filters, sort, view and the selected option live in the address.
+- **Search, filters and sort** are also kept for the browser session
+  (`bi_catalog_state`, no expiry, cleared on sign-out), one entry per
+  catalog: the whole Catalog and each supplier's. Coming back by the
+  breadcrumb or the Catalog menu link restores them, unless the address
+  says something itself.
+- **The list or grid view** is remembered for a year (`bi_catalog_view`).
 Only images matched to the exact product are shown, on a light ground; the
 placeholder is decorative.
 
