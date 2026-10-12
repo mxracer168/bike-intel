@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { demoOrderContexts, demoSupplierName, findDemoProduct } from '@/demo/catalog'
 import { isDemoPreviewEnabled } from '@/demo/config'
 import { ProductDetail } from '@/features/catalog/ProductDetail'
+import { completeWeekStarts } from '@/features/orders/why'
 import { requireOrganization } from '@/server/session'
 import { Page } from '@/ui/Layout'
 
@@ -24,7 +25,7 @@ export default async function ProductPage({ params, searchParams }: Params) {
   const supplierName = typeof supplier === 'string' ? demoSupplierName(supplier) : null
   return (
     <Page>
-      <ProductDetail product={product} orders={demoOrderContexts()} initialOption={typeof option === 'string' ? option : undefined}
+      <ProductDetail product={product} orders={demoOrderContexts()} weekStarts={completeWeekStarts(12, new Date())} initialOption={typeof option === 'string' ? option : undefined}
         backHref={supplierName ? `/catalog?supplier=${encodeURIComponent(supplier as string)}` : '/catalog'}
         backLabel={supplierName ? `${supplierName} Catalog` : 'Catalog'} />
     </Page>

@@ -2,9 +2,11 @@
  * The recommendation formula (Figma reference): four steps read left to
  * right, Target − Current = Need → Order, the order in blue; the chosen
  * step's evidence below, as figures, tables and bars rather than sentences.
- * Light inside an order line; dark and compact in the catalog's buying card.
+ * Light inside an order line; dark in the catalog's buying card. Layout
+ * follows the formula's own width (container queries), so the same evidence
+ * reads well in a wide order line and in the narrow card.
  */
-.formula { display: flex; flex-direction: column; gap: var(--sp-3); }
+.formula { container-type: inline-size; display: flex; flex-direction: column; gap: var(--sp-3); }
 .steps { display: flex; align-items: stretch; gap: 6px; }
 .stepWrap { flex: 1; min-width: 0; display: flex; align-items: stretch; gap: 6px; }
 .op { align-self: center; padding: 0 2px; font-size: 18px; font-weight: 500; color: var(--ink-faint); }
@@ -35,11 +37,12 @@
 .sumItem b { font-size: 18px; line-height: 26px; font-weight: 600; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
 .sumItem b[data-total] { color: var(--accent-hover); }
 .sumItem span { font-size: 12px; line-height: 16px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sumItem .sumNote { color: var(--ink-faint); }
 .sumBox { padding: var(--sp-3); border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
 
 /* Target: the equation and its figures, beside recent demand. */
 .targetGrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
-@media (min-width: 1024px) { .targetGrid { grid-template-columns: minmax(16rem, .85fr) minmax(0, 1.15fr); } }
+@container (min-width: 44rem) { .targetGrid { grid-template-columns: minmax(16rem, .85fr) minmax(0, 1.15fr); } }
 .targetLeft { min-width: 0; display: flex; flex-direction: column; gap: var(--sp-4); }
 .metrics { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3) 20px; padding-top: var(--sp-4); border-top: 1px solid var(--line); }
 .metric dt { font-size: 12px; line-height: 16px; color: var(--ink-3); }
@@ -94,7 +97,7 @@
   border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 12px; line-height: 18px; color: var(--ink-2);
 }
 .supply b { font-weight: 600; color: var(--ink-strong); }
-.supplyDot { width: 6px; height: 6px; border-radius: 50%; background: var(--dot-good); }
+.supplyDot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--dot-good); }
 .supply[data-attention] { border-color: var(--con-line); background: var(--con-wash); }
 .supply[data-attention] b { color: var(--con); }
 .supply[data-attention] .supplyDot { background: var(--dot-caution); }
@@ -111,22 +114,6 @@
 .rule .flowLabel { color: var(--ink-2); }
 .rule b { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--accent-hover); }
 
-/* Compact: the catalog's buying card. */
-.compact .steps { gap: 4px; }
-.compact .stepWrap { gap: 4px; }
-.compact .op { font-size: 14px; padding: 0; }
-.compact .step { align-items: center; padding: var(--sp-2) 4px; text-align: center; }
-.compact .stepLabel { letter-spacing: 0; text-transform: none; font-weight: 500; font-size: 12px; }
-.compact .stepValue { font-size: 18px; line-height: 24px; }
-.compact .panel { padding: var(--sp-3); }
-.compact .sum { gap: 4px; }
-.compact .sumItem { align-items: center; text-align: center; }
-.compact .sumItem b { font-size: 16px; line-height: 22px; }
-.compact .flow { gap: var(--sp-2); justify-content: space-between; }
-.compact .flowStep b { font-size: 18px; line-height: 24px; }
-.compact .rule { padding: 4px var(--sp-2); }
-.compact .flowArrow { font-size: 14px; }
-
 /* Dark: on the inverse surface. */
 [data-tone='dark'] .op, [data-tone='dark'] .sumOp, [data-tone='dark'] .flowArrow { color: var(--inverse-3); }
 [data-tone='dark'] .step { border-color: var(--inverse-track); background: var(--inverse-control); }
@@ -142,17 +129,48 @@
 [data-tone='dark'] .bar { background: var(--inverse-track); }
 [data-tone='dark'] .barHand { background: var(--inverse-2); }
 [data-tone='dark'] .barIncoming { background: var(--inverse-link); }
-[data-tone='dark'] .barGap { background: var(--nav-current); }
+[data-tone='dark'] .barGap { background: var(--signal-rail-glow); }
 [data-tone='dark'] .rule { border-color: var(--signal-edge-soft); background: var(--nav-current); }
 [data-tone='dark'] .rule b { color: var(--inverse-link); }
 
-@media (max-width: 640px) {
-  .formula:not(.compact) .steps { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
-  .formula:not(.compact) .stepWrap { display: contents; }
-  .formula:not(.compact) .op { display: none; }
-  .currentGrid { grid-template-columns: minmax(0, 1fr); }
-  .stepDetail, .sumItem span { white-space: normal; }
+[data-tone='dark'] .sumBox, [data-tone='dark'] .demand, [data-tone='dark'] .table { border-color: var(--inverse-track); background: var(--nav-shade-1); }
+[data-tone='dark'] .sumItem .sumNote, [data-tone='dark'] .demandHead span span, [data-tone='dark'] .barDates, [data-tone='dark'] .needHead span span { color: var(--inverse-3); }
+[data-tone='dark'] .demandHead b, [data-tone='dark'] .needRight b { color: var(--inverse-2); }
+[data-tone='dark'] .demandTotal b, [data-tone='dark'] .needHead > span:first-child b, [data-tone='dark'] .tableHead b { color: var(--on-inverse); }
+[data-tone='dark'] .bars { border-color: var(--inverse-track); }
+[data-tone='dark'] .barCol i { background: var(--nav-sub); }
+[data-tone='dark'] .barCol i[data-recent] { background: var(--inverse-fill); }
+[data-tone='dark'] .metrics { border-color: var(--inverse-track); }
+[data-tone='dark'] .tableHead span { color: var(--inverse-2); }
+[data-tone='dark'] .table th { background: var(--nav-hover); color: var(--inverse-3); }
+[data-tone='dark'] .table td { border-color: var(--inverse-track); color: var(--inverse-2); }
+[data-tone='dark'] .table td:last-child { color: var(--on-inverse); }
+[data-tone='dark'] .empty { border-color: var(--inverse-track); color: var(--inverse-3); }
+[data-tone='dark'] .supply { border-color: var(--inverse-track); background: var(--nav-shade-1); color: var(--inverse-2); }
+[data-tone='dark'] .supply b { color: var(--on-inverse); }
+
+/* Narrow (the buying card, a phone): values first, the step names in sentence case, no detail line. */
+@container (max-width: 34rem) {
+  .steps, .stepWrap { gap: 4px; }
+  .op { font-size: 14px; padding: 0; }
+  .step { align-items: center; gap: 0; padding: var(--sp-2) 4px; text-align: center; }
+  .stepLabel { letter-spacing: 0; text-transform: none; font-weight: 500; font-size: 12px; }
+  .stepDetail { display: none; }
+  .panel { padding: var(--sp-3); }
+  .currentGrid { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+  .sum { gap: 4px; }
+  .sumItem span { white-space: normal; }
   .flow { gap: var(--sp-2); justify-content: space-between; }
+  .flowStep, .rule { flex: 1 1 0; min-width: 0; }
   .flowStep b { font-size: 20px; line-height: 28px; }
+  .flowArrow { flex: none; }
+  .supply { align-self: stretch; justify-content: center; border-radius: var(--r-md); text-align: center; }
   .rule { padding: 4px var(--sp-2); }
+  .needHead > span:first-child b { font-size: 20px; line-height: 28px; }
+  .legend .metric dd { font-size: 13px; white-space: nowrap; }
+}
+@container (max-width: 12rem) {
+  .steps { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
+  .stepWrap { display: contents; }
+  .op { display: none; }
 }

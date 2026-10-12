@@ -16,6 +16,7 @@ import { readAttributes } from '@/features/catalog/attributes'
 import type { OrderContexts } from '@/features/catalog/sourcing'
 import type { CatalogImage, CatalogOffer, CatalogProduct, CatalogVariant } from '@/features/catalog/types'
 import { summarizeOrder } from '@/features/orders/summarize'
+import { lineFormula } from '@/features/orders/formula'
 import { demoInventory } from './inventory'
 import { demoSku } from './sku'
 import { demoOrders } from './orders'
@@ -118,7 +119,7 @@ function build(): CatalogProduct[] {
           onHand: line.onHand, onOrder: line.onOrder,
           perWeek: line.weeklySales.length ? Math.round((line.weeklySales.reduce((a, b) => a + b, 0) / line.weeklySales.length) * 10) / 10 : undefined,
           recommended: line.quantity > 0
-            ? { quantity: line.quantity, need: line.need, rule: line.orderRule, safetyStock: line.safetyStock, orderId: order.id, lineId: line.id, reason: line.reason, confidence: line.confidence }
+            ? { quantity: line.quantity, need: line.need, rule: line.orderRule, safetyStock: line.safetyStock, orderId: order.id, lineId: line.id, reason: line.reason, confidence: line.confidence, formula: lineFormula(line, order) }
             : undefined,
         },
         orderLines: [{ orderId: order.id, lineId: line.id, quantity: line.quantity }],

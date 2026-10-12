@@ -1,4 +1,5 @@
 import type { NetworkListing, OrderRule, SupplierStatus } from '@/features/orders/types'
+import type { FormulaData } from '@/features/recommendations/Formula'
 
 /**
  * Presentation shapes for the Catalog (docs/catalog.md). Product → Variant →
@@ -40,7 +41,11 @@ export type CatalogVariant = {
     perWeek?: number
     /** A recommendation for this Variant, from a proposed order. */
     /** Quantity is the need after the supplier's case pack or minimum (rule), when one applies. */
-    recommended?: { quantity: number; need?: number; rule?: OrderRule; safetyStock?: number; orderId: string; lineId: string; reason: string; confidence: string }
+    recommended?: {
+      quantity: number; need?: number; rule?: OrderRule; safetyStock?: number; orderId: string; lineId: string; reason: string; confidence: string
+      /** The formula's figures, read the same way as the order line's (orders/formula.ts); week dates are added by the page. */
+      formula?: FormulaData
+    }
   }
   /** The proposed order lines for this option (its suggested quantity there, even 0). */
   orderLines?: { orderId: string; lineId: string; quantity: number }[]

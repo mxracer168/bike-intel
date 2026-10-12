@@ -13,13 +13,14 @@ import { ExampleMarker } from '@/ui/Example'
 import { Icon } from '@/ui/Icon'
 import { InfoTip } from '@/ui/InfoTip'
 import { confirmLabel, current, destinations, itemKey, placements, type Destination } from './ordering'
-import { Formula } from '@/features/recommendations/Formula'
+import { Formula, type FormulaData } from '@/features/recommendations/Formula'
+import { ConfidenceMark, type ConfidenceLevel } from '@/ui/Confidence'
 import { ProductImage } from './ProductImage'
 import { bestSource, orderNote, perUnit, shortName, stockLabel, type OrderContexts } from './sourcing'
 import type { CatalogProduct, CatalogVariant } from './types'
 import styles from './Catalog.module.css'
 
-const CONFIDENCE: Record<string, string> = { high: 'High confidence', medium: 'Medium confidence', low: 'Low confidence' }
+const isConfidence = (c: string): c is ConfidenceLevel => c === 'high' || c === 'medium' || c === 'low'
 
 /**
  * One product (Figma reference: Product Detail). The left column is the
@@ -30,10 +31,12 @@ const CONFIDENCE: Record<string, string> = { high: 'High confidence', medium: 'M
  * supplier (the side tray). A recommendation is for one option (a proposed
  * order line), so it says which.
  */
-export function ProductDetail({ product, initialOption, orders, backHref, backLabel }: {
+export function ProductDetail({ product, initialOption, orders, backHref, backLabel, weekStarts }: {
   product: CatalogProduct
   initialOption?: string
   orders: OrderContexts
+  /** Mondays of the weeks in the recommendation's sales history, for the demand chart. */
+  weekStarts?: string[]
   backHref: string
   backLabel: string
 }) {
@@ -105,7 +108,7 @@ export function ProductDetail({ product, initialOption, orders, backHref, backLa
         </div>
 
         <aside className={styles.side} aria-label="Buying">
-          <BuyCard key={variant.id} product={product} variant={variant} orders={orders} />
+          <BuyCard key={variant.id} product={product} variant={variant} orders={orders} weekStarts={weekStarts} />
           {otherRecs.length > 0 && (
             <section className={styles.similar} aria-labelledby="similar-title">
               <h2 id="similar-title" className={styles.similarTitle}>Other recommended options</h2>
@@ -184,54 +187,33 @@ function Lightbox({ image, name, onClose }: { image: NonNullable<CatalogProduct[
  * recommendation, and the way into an order. Every add goes through the tray,
  * where the destination (or another supplier) is chosen and confirmed.
  */
-function BuyCard({ product, variant, orders }: { product: CatalogProduct; variant: CatalogVariant; orders: OrderContexts }) {
+function BuyCard({ product, variant, orders, weekStarts }: { product: CatalogProduct; variant: CatalogVariant; orders: OrderContexts; weekStarts?: string[] }) {
   const drafts = useDrafts()
   const rec = variant.own.recommended
   const best = bestSource(variant, orders)
   const [quantity, setQuantity] = useState(rec?.quantity ?? 1)
   const [tray, setTray] = useState<null | 'best' | 'choose'>(null)
-  const [why, setWhy] = useState(false)
   if (!best) return null
   const dests = destinations(product.id, variant, orders, drafts)
   const target = dests.find((d) => d.offer.supplierId === best.offer.supplierId)!
   const where = placements(dests)
   const who = shortName(best.offer.supplierName)
   const stock = [`${variant.own.onHand} on hand`, variant.own.onOrder > 0 ? `${variant.own.onOrder} incoming` : 'none incoming'].join(' · ')
-  const freight = target.kind === 'new' ? 'Would start a new order'
-    : target.freightGap !== undefined ? `${formatMoney(Math.ceil(target.freightGap), best.offer.currency)} to free freight` : 'Ships free'
+  // The order line's own figures when we have them, so both screens explain it the same way.
+  const formula: FormulaData | undefined = rec && (rec.formula ? { ...rec.formula, weekStarts } : {
+    target: (rec.need ?? rec.quantity) + variant.own.onHand + variant.own.onOrder, safetyStock: rec.safetyStock ?? 0,
+    onHand: variant.own.onHand, onOrder: variant.own.onOrder, recommendation: rec.quantity, rule: rec.rule, perWeek: variant.own.perWeek,
+  })
   const already = current(target) === quantity
 
   return (
     <section className={styles.buy} aria-labelledby="buy-title">
       <div className={styles.buyMain}>
         <p className={styles.recEyebrow}>Buying recommendation{product.variants.length > 1 && <> · {variant.label}</>}</p>
-        <h2 id="buy-title" className={styles.buyTitle}>
-          {rec ? `Order ${rec.quantity} from ${who}.` : 'Choose an order quantity.'}
-        </h2>
-        <p className={styles.recBody}>
-          {rec ? rec.reason : `You have ${stock.replace(' · ', ' and ')}. Nothing is recommended for this option right now.`}
-        </p>
-        <p className={styles.buyFacts}>
-          {rec && <span className={styles.confidence}>{CONFIDENCE[rec.confidence] ?? rec.confidence}</span>}
-          <span>{unitPrice(perUnit(best.offer), best.offer.currency)} each · {freight}</span>
-        </p>
-        {rec && (
-          <>
-            <button type="button" className={styles.buyWhy} aria-expanded={why} aria-controls="buy-why" onClick={() => setWhy((v) => !v)}>
-              Why {rec.quantity}?<Icon name="chevron-down" size={14} />
-            </button>
-            {why && (
-              <div id="buy-why" className={styles.buyFormula}>
-                <Formula compact tone="dark" data={{
-                  target: (rec.need ?? rec.quantity) + variant.own.onHand + variant.own.onOrder,
-                  safetyStock: rec.safetyStock ?? 0,
-                  onHand: variant.own.onHand, onOrder: variant.own.onOrder, recommendation: rec.quantity, rule: rec.rule,
-                  perWeek: variant.own.perWeek,
-                }} />
-              </div>
-            )}
-          </>
-        )}
+        <h2 id="buy-title" className={styles.buyTitle}>{rec ? `Order ${rec.quantity}` : 'Choose an order quantity'}</h2>
+        {rec && isConfidence(rec.confidence) && <p className={styles.buyConfidence}><ConfidenceMark level={rec.confidence} tone="dark" /></p>}
+        {!rec && <p className={styles.recBody}>{stock}. Nothing is recommended for this option right now.</p>}
+        {formula && <div className={styles.buyFormula}><Formula tone="dark" data={formula} /></div>}
       </div>
 
       <div className={styles.buyAct}>
@@ -259,7 +241,7 @@ function BuyCard({ product, variant, orders }: { product: CatalogProduct; varian
         )}
         {where.length > 0 && (
           <p className={styles.buyWhere}>
-            In your orders: {where.map((p, i) => (
+            Current {where.length === 1 ? 'order' : 'orders'}: {where.map((p, i) => (
               <span key={p.orderId}>{i > 0 && ' · '}<Link href={`/orders/${p.orderId}`}>{shortName(p.supplierName)} {p.quantity}</Link></span>
             ))}
           </p>

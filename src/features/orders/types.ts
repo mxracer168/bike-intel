@@ -71,6 +71,8 @@ export type OrderLineView = {
   orderRule?: OrderRule
   /** Units kept as a cushion within the target (target = expected sales + safety stock). */
   safetyStock?: number
+  /** The open purchase orders behind onOrder, when known. */
+  incoming?: IncomingPo[]
   unitCost: number
   state: LineState
   /** How well the supplier can fill this line right now. */
@@ -96,6 +98,9 @@ export type OrderLineView = {
   /** The platform's Wholesale Market Value per unit, the benchmark for network prices. Example data only. */
   wholesaleMarketValue?: number
 }
+
+/** One open purchase order covering part of a line's on-order quantity. */
+export type IncomingPo = { po: string; quantity: number; arrivesInDays?: number }
 
 export type ProposedOrderView = {
   id: string

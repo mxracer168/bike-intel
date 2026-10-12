@@ -3,3 +3,9 @@
 .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--line-strong); }
 .dots i.on { background: var(--ink-2); }
 .low .dots i.on { background: var(--con); }
+
+/* On the inverse surface (the Catalog's buying card): the words in a quiet pill. */
+.conf[data-tone='dark'] { gap: 10px; color: var(--inverse-link); }
+.conf[data-tone='dark'] .dots i { background: var(--inverse-track); }
+.conf[data-tone='dark'] .dots i.on { background: var(--inverse-fill); }
+.conf[data-tone='dark'].low .dots i.on { background: var(--dot-caution); }

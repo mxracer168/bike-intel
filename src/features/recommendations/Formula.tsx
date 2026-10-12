@@ -2,7 +2,7 @@
 
 import { useId, useState } from 'react'
 import { oneDecimal } from '@/features/orders/why'
-import type { OrderRule } from '@/features/orders/types'
+import type { IncomingPo, OrderRule } from '@/features/orders/types'
 import styles from './Formula.module.css'
 
 /**
@@ -11,6 +11,9 @@ import styles from './Formula.module.css'
  * opening its evidence as figures, tables and bars. Current and need are
  * derived here, in one place, so the arithmetic can't drift; the order is
  * shown apart from the need because a case pack or minimum can change it.
+ * The same component, with the same figures (orders/formula.ts), explains a
+ * recommendation in an order line and in the Catalog's buying card; its
+ * layout follows the width it's given, not the page.
  */
 export type FormulaData = {
   /** What we expect them to need before the next chance to restock: expected sales + safety stock. */
@@ -29,6 +32,8 @@ export type FormulaData = {
   weekStarts?: string[]
   /** The supplier's stock for this item, in a few words ("Out of stock"), flagged when it can't fill the order. */
   supply?: { supplier: string; value: string; attention?: boolean; arrivesInDays?: number }
+  /** The open purchase orders behind onOrder, when known. */
+  incoming?: IncomingPo[]
   /** Where the stock on hand is ("All locations" when not broken down). */
   locations?: { name: string; quantity: number }[]
 }
@@ -44,7 +49,7 @@ export function adjustment(data: Pick<FormulaData, 'target' | 'onHand' | 'onOrde
 const ruleShort = (rule?: OrderRule) =>
   !rule ? 'Adjusted' : rule.kind === 'case' ? `Case of ${rule.size}` : `Minimum ${rule.quantity}`
 
-export function Formula({ data, compact = false, tone = 'light' }: { data: FormulaData; compact?: boolean; tone?: 'light' | 'dark' }) {
+export function Formula({ data, tone = 'light' }: { data: FormulaData; tone?: 'light' | 'dark' }) {
   const { current, need, adjusted } = adjustment(data)
   // When the supplier's rule changed the quantity, open on that: it's the part people ask about.
   const [step, setStep] = useState<Step>(adjusted ? 'order' : 'target')
@@ -57,7 +62,7 @@ export function Formula({ data, compact = false, tone = 'light' }: { data: Formu
   ]
   const ops = ['−', '=', '→']
   return (
-    <div className={[styles.formula, compact && styles.compact].filter(Boolean).join(' ')} data-tone={tone}>
+    <div className={styles.formula} data-tone={tone}>
       <div className={styles.steps} role="group"
         aria-label={`Target ${data.target} minus current ${current} equals need ${need}${adjusted ? `, adjusted to ${data.recommendation} (${ruleShort(data.rule).toLowerCase()})` : ''}: order ${data.recommendation}`}>
         {steps.map((s, i) => (
@@ -68,31 +73,32 @@ export function Formula({ data, compact = false, tone = 'light' }: { data: Formu
               onClick={() => setStep(s.key)}>
               <span className={styles.stepLabel}>{s.label}</span>
               <span className={styles.stepValue}>{s.value}</span>
-              {!compact && <span className={styles.stepDetail}>{s.detail}</span>}
+              <span className={styles.stepDetail}>{s.detail}</span>
             </button>
           </span>
         ))}
       </div>
       <div id={panel} className={styles.panel} aria-live="polite">
-        {step === 'target' && (compact ? <Sum parts={[[data.target - data.safetyStock, 'Expected sales'], [data.safetyStock, 'Safety'], [data.target, 'Target']]} /> : <TargetEvidence data={data} />)}
-        {step === 'current' && (compact ? <Sum parts={[[data.onHand, 'On hand'], [data.onOrder, 'On order'], [current, 'Current']]} /> : <CurrentEvidence data={data} />)}
-        {step === 'need' && <NeedEvidence data={data} need={need} compact={compact} />}
-        {step === 'order' && <OrderFlow data={data} need={need} adjusted={adjusted} compact={compact} />}
+        {step === 'target' && <TargetEvidence data={data} />}
+        {step === 'current' && <CurrentEvidence data={data} />}
+        {step === 'need' && <NeedEvidence data={data} need={need} />}
+        {step === 'order' && <OrderFlow data={data} need={need} adjusted={adjusted} />}
       </div>
     </div>
   )
 }
 
-/** a + b = c, the total in blue. */
-function Sum({ parts }: { parts: [number, string][] }) {
+/** a + b = c, the total in blue; each part may carry a short note ("4 weeks"). */
+function Sum({ parts }: { parts: [number, string, string?][] }) {
   return (
     <div className={styles.sum}>
-      {parts.map(([value, label], i) => (
+      {parts.map(([value, label, note], i) => (
         <span key={label} className={styles.sumPart}>
           {i > 0 && <span className={styles.sumOp} aria-hidden="true">{i === 1 ? '+' : '='}</span>}
           <span className={styles.sumItem}>
             <b data-total={i === parts.length - 1 || undefined}>{value}</b>
             <span>{label}</span>
+            {note && <span className={styles.sumNote}>{note}</span>}
           </span>
         </span>
       ))}
@@ -108,7 +114,9 @@ const shortDate = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateStri
 
 function TargetEvidence({ data }: { data: FormulaData }) {
   const expected = data.target - data.safetyStock
-  const weeks = data.perWeek && data.perWeek > 0 ? Math.max(1, Math.round(expected / data.perWeek)) : undefined
+  const rate = data.perWeek && data.perWeek > 0 ? data.perWeek : undefined
+  const weeks = rate ? Math.max(1, Math.round(expected / rate)) : undefined
+  const cushion = rate && data.safetyStock > 0 ? Math.max(1, Math.round(data.safetyStock / rate)) : undefined
   const sales = data.weeklySales ?? []
   const max = Math.max(1, ...sales)
   const sold = sales.reduce((a, b) => a + b, 0)
@@ -116,7 +124,11 @@ function TargetEvidence({ data }: { data: FormulaData }) {
   return (
     <div className={styles.targetGrid}>
       <div className={styles.targetLeft}>
-        <div className={styles.sumBox}><Sum parts={[[expected, 'Expected sales'], [data.safetyStock, 'Safety stock'], [data.target, 'Target']]} /></div>
+        <div className={styles.sumBox}><Sum parts={[
+          [expected, 'Expected sales', weeks !== undefined ? `${weeks} ${weeks === 1 ? 'week' : 'weeks'}` : undefined],
+          [data.safetyStock, 'Safety stock', cushion !== undefined ? `≈ ${cushion} ${cushion === 1 ? 'week' : 'weeks'}` : undefined],
+          [data.target, 'Target'],
+        ]} /></div>
         <dl className={styles.metrics}>
           {data.perWeek !== undefined && <Metric label="Demand rate" value={`${oneDecimal(data.perWeek)} / week`} />}
           {weeks !== undefined && <Metric label="Coverage" value={`${weeks} ${weeks === 1 ? 'week' : 'weeks'}`} />}
@@ -162,7 +174,14 @@ function CurrentEvidence({ data }: { data: FormulaData }) {
       </div>
       <div>
         <p className={styles.tableHead}><span>On order</span><b>{data.onOrder}</b></p>
-        {data.onOrder > 0 ? (
+        {data.onOrder > 0 && data.incoming?.length ? (
+          <table className={styles.table}>
+            <thead><tr><th scope="col">PO</th><th scope="col">Arrives</th><th scope="col">Qty</th></tr></thead>
+            <tbody>{data.incoming.map((po) => (
+              <tr key={po.po}><td>{po.po}</td><td>{po.arrivesInDays !== undefined ? `~${po.arrivesInDays} days` : '—'}</td><td>{po.quantity}</td></tr>
+            ))}</tbody>
+          </table>
+        ) : data.onOrder > 0 ? (
           <table className={styles.table}>
             <thead><tr><th scope="col">Open purchase orders</th><th scope="col">Qty</th></tr></thead>
             <tbody><tr><td>Already ordered</td><td>{data.onOrder}</td></tr></tbody>
@@ -173,7 +192,7 @@ function CurrentEvidence({ data }: { data: FormulaData }) {
   )
 }
 
-function NeedEvidence({ data, need, compact }: { data: FormulaData; need: number; compact: boolean }) {
+function NeedEvidence({ data, need }: { data: FormulaData; need: number }) {
   const total = Math.max(1, data.target)
   const pct = (n: number) => `${Math.min(100, (n / total) * 100)}%`
   const rate = data.perWeek && data.perWeek > 0 ? data.perWeek : undefined
@@ -181,7 +200,7 @@ function NeedEvidence({ data, need, compact }: { data: FormulaData; need: number
   const coverage = rate ? Math.max(1, Math.round((data.target - data.safetyStock) / rate)) : undefined
   return (
     <div className={styles.need}>
-      {!compact && rate && (
+      {rate && (
         <div className={styles.needHead}>
           <span><b>{oneDecimal(data.onHand / rate)} weeks</b><span>on hand lasts</span></span>
           {coverage !== undefined && <span className={styles.needRight}><b>{coverage} {coverage === 1 ? 'week' : 'weeks'} + safety</b><span>target coverage</span></span>}
@@ -201,7 +220,7 @@ function NeedEvidence({ data, need, compact }: { data: FormulaData; need: number
   )
 }
 
-function OrderFlow({ data, need, adjusted, compact }: { data: FormulaData; need: number; adjusted: boolean; compact: boolean }) {
+function OrderFlow({ data, need, adjusted }: { data: FormulaData; need: number; adjusted: boolean }) {
   const rule = data.rule
   return (
     <div className={styles.orderEvidence}>
@@ -211,18 +230,18 @@ function OrderFlow({ data, need, adjusted, compact }: { data: FormulaData; need:
       {adjusted && (
         <>
           <span className={styles.rule}>
-            <span className={styles.flowLabel}>{rule?.kind === 'minimum' ? (compact ? 'Minimum' : 'Minimum order') : rule?.kind === 'case' ? 'Case pack' : 'Adjustment'}</span>
+            <span className={styles.flowLabel}>{rule?.kind === 'minimum' ? 'Minimum order' : rule?.kind === 'case' ? 'Case pack' : 'Adjustment'}</span>
             <b>{rule?.kind === 'minimum' ? `${rule.quantity} units` : rule?.kind === 'case' ? `${rule.size} per case` : `${data.recommendation - need > 0 ? '+' : ''}${data.recommendation - need} units`}</b>
           </span>
           <span className={styles.flowArrow} aria-hidden="true">→</span>
         </>
       )}
-      <span className={styles.flowStep}><span className={styles.flowLabel}>{compact ? 'Order' : 'Recommended order'}</span><b className={styles.blue}>{data.recommendation}</b></span>
+      <span className={styles.flowStep}><span className={styles.flowLabel}>Recommended order</span><b className={styles.blue}>{data.recommendation}</b></span>
     </div>
-    {data.supply && !compact && (
+    {data.supply && (
       <p className={styles.supply} data-attention={data.supply.attention || undefined}>
         <span className={styles.supplyDot} aria-hidden="true" />
-        {data.supply.supplier} · <b>{data.supply.value}</b>{data.supply.arrivesInDays !== undefined && <> · arrives in about {data.supply.arrivesInDays} days</>}
+        <span>{data.supply.supplier} · <b>{data.supply.value}</b>{data.supply.arrivesInDays !== undefined && <> · arrives in about {data.supply.arrivesInDays} days</>}</span>
       </p>
     )}
     </div>

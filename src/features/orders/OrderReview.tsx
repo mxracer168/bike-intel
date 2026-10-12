@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Fragment, useEffect, useState, useSyncExternalStore } from 'react'
-import { average, plural } from '@/domain/language/plain'
+import { plural } from '@/domain/language/plain'
 import { ProductImage } from '@/features/catalog/ProductImage'
 import type { CatalogImage } from '@/features/catalog/types'
 import { Formula } from '@/features/recommendations/Formula'
@@ -21,7 +21,7 @@ import { ActionBar, HandoffStatus, OrderGlance, OrderHeader, SubmitDialog, type 
 import { addedTotal, setAddedQuantity, setLineQuantity, useDrafts, type AddedItem } from './drafts'
 import { lineTotal, orderTotal, sortForReview } from './summarize'
 import type { NetworkListing, OrderLineView, ProposedOrderView } from './types'
-import { calculation, seasonView, supplierView } from './why'
+import { lineFormula } from './formula'
 import { SortHeader } from '@/ui/SortHeader'
 import { nextSort, sortRows, type SortState, type SortValue } from '@/ui/sorting'
 import styles from './OrderReview.module.css'
@@ -63,9 +63,6 @@ function Recommendation({ line, quantity, setQuantity, order, weekStarts, locked
   locked?: boolean
 }) {
   const intelligence = useIntelligence()
-  const calc = calculation(line)
-  const season = seasonView(line)
-  const sup = supplierView(line, order.leadTimeDays)
   const label = [line.product, line.variant].filter(Boolean).join(' ')
   const match = networkMatch(line.network, quantity)
   return (
@@ -91,18 +88,7 @@ function Recommendation({ line, quantity, setQuantity, order, weekStarts, locked
           )}
         </div>
 
-        <Formula data={{
-          target: calc.expectedDemand, safetyStock: calc.safetyStock, onHand: calc.onHand, onOrder: calc.onOrder,
-          recommendation: calc.recommended, rule: calc.rule,
-          perWeek: average(line.weeklySales), leadTimeDays: order.leadTimeDays, trend: season?.value,
-          weeklySales: line.weeklySales, weekStarts,
-          supply: {
-            supplier: order.supplier.split(' ')[0] ?? order.supplier,
-            value: line.supplier.status === 'out' ? `Out of stock · ${sup.value}` : sup.value,
-            attention: sup.attention,
-            arrivesInDays: line.supplier.status === 'out' || line.supplier.status === 'delayed' ? undefined : order.leadTimeDays,
-          },
-        }} />
+        <Formula data={lineFormula(line, order, weekStarts)} />
 
         {match.kind !== 'none' && (
           <NetworkPanel id={`${line.id}-network`} match={match} wholesaleMarketValue={line.wholesaleMarketValue}

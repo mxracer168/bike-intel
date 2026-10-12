@@ -280,6 +280,7 @@ const summit = build({
             supplier: { status: 'limited', note: '4 left' }, reason: 'Summit shows only 4 left, fewer than you’d usually want.' },
     // The demo's many-sources product: three suppliers (Catalog) and four retailers in the network.
     'Cane Creek 40 headset · IS42/ZS44': { state: 'ok',
+      weeklySales: [0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1],
       wholesaleMarketValue: 62,
       network: [listing('trailhead', 3, 'cc40', 54), listing('river', 2, 'cc40', 57.5), listing('palmetto', 4, 'cc40', 59), listing('upstate', 1, 'cc40', 62)] },
   },
@@ -327,7 +328,7 @@ northline.intelligenceQuestionId = 'demo-cedar-ridge'
  */
 northline.context = { cadenceDays: 12, typicalOrder: 3950 }
 cascade.lines = cascade.lines.map((l) => ({ ...l, supplierSku: demoSku(cascade.supplier, l.product, l.variant) }))
-for (const o of [northline, summit, cascade]) o.lines = o.lines.map(withSafetyStock)
+for (const o of [northline, summit, cascade]) o.lines = o.lines.map(withSafetyStock).map((l, i) => withIncoming(l, i, o.leadTimeDays))
 cascade.context = { cadenceDays: 30, typicalOrder: 260, pricesUpdatedDaysAgo: 9 }
 
 /**
@@ -362,6 +363,20 @@ function withSafetyStock(line: OrderLineView): OrderLineView {
   const perWeek = average(line.weeklySales)
   const safetyStock = target >= 2 ? Math.min(target - 1, Math.max(1, Math.round(perWeek))) : 0
   return { ...line, safetyStock }
+}
+
+/**
+ * EXAMPLE open purchase orders behind each line's on-order quantity: one PO,
+ * or two when more than a couple are coming, arriving within the lead time.
+ */
+function withIncoming(line: OrderLineView, index: number, leadTimeDays: number): OrderLineView {
+  if (line.onOrder <= 0) return line
+  const po = (n: number) => `PO-${4180 + ((index * 7 + n * 3 + line.id.length) % 90)}`
+  const soon = Math.max(2, Math.round(leadTimeDays / 2))
+  const incoming = line.onOrder > 2
+    ? [{ po: po(0), quantity: Math.ceil(line.onOrder / 2), arrivesInDays: soon }, { po: po(1), quantity: Math.floor(line.onOrder / 2), arrivesInDays: soon + 7 }]
+    : [{ po: po(0), quantity: line.onOrder, arrivesInDays: soon }]
+  return { ...line, incoming }
 }
 
 /**

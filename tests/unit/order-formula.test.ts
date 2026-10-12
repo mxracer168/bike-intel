@@ -104,3 +104,28 @@ describe('supplier stock in numbers', () => {
     for (const t of texts) expect(t).toMatch(/^\d+\+? (available|left) · /)
   })
 })
+
+describe('one explanation, two screens', () => {
+  it('gives the Catalog buying card the order line’s own formula figures', async () => {
+    const { demoCatalog } = await import('@/demo/catalog')
+    const { lineFormula } = await import('@/features/orders/formula')
+    let checked = 0
+    for (const product of demoCatalog) for (const variant of product.variants) {
+      const rec = variant.own.recommended
+      if (!rec) continue
+      const order = demoOrders.find((o) => o.id === rec.orderId)!
+      const line = order.lines.find((l) => l.id === rec.lineId)!
+      expect(rec.formula).toEqual(lineFormula(line, order))
+      expect(rec.formula!.recommendation).toBe(rec.quantity)
+      checked++
+    }
+    expect(checked).toBeGreaterThan(10)
+  })
+
+  it('accounts for every unit on order with its open purchase orders', () => {
+    for (const o of demoOrders) for (const l of o.lines) {
+      if (l.onOrder > 0) expect(l.incoming?.reduce((a, p) => a + p.quantity, 0)).toBe(l.onOrder)
+      else expect(l.incoming).toBeUndefined()
+    }
+  })
+})
