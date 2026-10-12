@@ -70,7 +70,7 @@ function Recommendation({ line, quantity, setQuantity, order, weekStarts, locked
       <div className={styles.recMain}>
         <div className={styles.recHead}>
           <div className={styles.recMeta}>
-            <ConfidenceMark level={line.confidence} />
+            <ConfidenceMark level={line.confidence} tone="dark" />
             <span className={styles.recDot} aria-hidden="true">·</span>
             <span><Changed value={quantity}>{cost(lineTotal(line, quantity), order.currency)}</Changed> commitment</span>
             {!locked && quantity !== line.quantity && (
@@ -88,7 +88,7 @@ function Recommendation({ line, quantity, setQuantity, order, weekStarts, locked
           )}
         </div>
 
-        <Formula data={lineFormula(line, order, weekStarts)} />
+        <Formula tone="dark" data={lineFormula(line, order, weekStarts)} />
 
         {match.kind !== 'none' && (
           <NetworkPanel id={`${line.id}-network`} match={match} wholesaleMarketValue={line.wholesaleMarketValue}

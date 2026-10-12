@@ -76,18 +76,22 @@
 .textButton:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---------- The recommendation: one quiet row, then the formula (features/recommendations/Formula) ---------- */
+/* Dark, like the Catalog's buying card: the dark ground marks where buying intelligence is at work. */
 .rec {
-  container-type: inline-size; overflow: hidden; cursor: auto;
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-xl); box-shadow: var(--sh-1);
+  container-type: inline-size; position: relative; isolation: isolate; overflow: hidden; cursor: auto;
+  background: var(--inverse); color: var(--on-inverse); border: 1px solid var(--nav-edge); border-radius: var(--r-xl); box-shadow: var(--sh-hero);
 }
+.rec::before { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(circle at 0% 0%, var(--nav-glow-1), transparent 55%); }
 .recMain { display: flex; flex-direction: column; gap: 20px; padding: var(--sp-5); }
 .recHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3); }
-.recMeta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 500; color: var(--ink-2); }
-.recDot { color: var(--ink-faint); }
+.recMeta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 500; color: var(--inverse-2); }
+.recDot { color: var(--inverse-3); }
+.rec .textButton { color: var(--inverse-link); }
+.rec .textButton:focus-visible, .addContext:focus-visible, .rec .networkToggle:focus-visible { outline: 2px solid var(--inverse-link); outline-offset: 2px; box-shadow: none; border-radius: var(--r-sm); }
 /* A quiet way into the conversation, already about this item. */
 .addContext {
   display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none;
-  font-size: var(--fs-meta); font-weight: 600; color: var(--accent-hover); cursor: pointer;
+  font-size: var(--fs-meta); font-weight: 600; color: var(--inverse-link); cursor: pointer;
 }
 .addContext:hover { text-decoration: underline; text-underline-offset: 3px; }
 
@@ -109,6 +113,18 @@
 .networkMarket { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--ink-2); }
 .networkMarket b { color: var(--ink-strong); font-weight: 600; font-variant-numeric: tabular-nums; }
 .networkBody { border-top: 1px solid var(--accent-line); background: var(--surface); padding: 0 var(--sp-5); }
+/* On the dark recommendation: the row in the formula's dark tone; the retailers, once opened, on a light inset. */
+.rec .networkPanel { border-color: var(--inverse-track); background: var(--inverse-control); }
+.rec .networkStrong { border-color: var(--signal-edge-soft); background: var(--nav-current); box-shadow: none; }
+.rec .networkToggle { color: var(--inverse-2); }
+.rec .networkEyebrow { color: var(--inverse-eyebrow); }
+.rec .networkTitle, .rec .networkMarket b { color: var(--on-inverse); }
+.rec .networkMarket { color: var(--inverse-2); }
+.rec .networkMarket button { color: var(--inverse-3); }
+.rec .networkMarket button:hover, .rec .networkMarket button[aria-expanded='true'] { color: var(--on-inverse); }
+.rec .networkBody { margin: 0 var(--sp-2) var(--sp-2); border: 0; border-radius: var(--r-md); color: var(--ink); }
+.rec .networkBody .textButton { color: var(--accent); }
+.rec .networkBody .textButton:focus-visible { outline: 2px solid var(--accent); }
 .networkGroup { font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); padding: var(--sp-3) 0 2px; }
 .networkList { list-style: none; display: flex; flex-direction: column; }
 .networkRow {

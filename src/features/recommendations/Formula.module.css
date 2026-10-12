@@ -70,6 +70,8 @@
 .table th { padding: var(--sp-2) var(--sp-3); background: var(--canvas); font-size: 12px; font-weight: 400; color: var(--ink-3); text-align: left; }
 .table td { padding: var(--sp-2) var(--sp-3); border-top: 1px solid var(--subtle); color: var(--ink-2); }
 .table th:last-child, .table td:last-child { text-align: right; }
+/* Nested in an order table: its own rules only (no outer row borders). */
+.formula .table th, .formula .table td { border-bottom: 0; }
 .table td:last-child { font-weight: 600; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
 .empty { min-height: 72px; display: grid; place-items: center; border: 1px dashed var(--line-strong); border-radius: var(--r-md); font-size: 14px; color: var(--ink-3); }
 
@@ -122,6 +124,8 @@
 [data-tone='dark'] .step[aria-expanded='true'] { border-color: var(--signal-edge-soft); background: var(--nav-current); box-shadow: none; }
 [data-tone='dark'] .stepLabel { color: var(--inverse-2); }
 [data-tone='dark'] .stepValue { color: var(--on-inverse); }
+[data-tone='dark'] .stepDetail { color: var(--inverse-3); }
+[data-tone='dark'] .step[data-adjusted] .stepDetail { color: var(--inverse-link); }
 [data-tone='dark'] .step[data-order] .stepLabel, [data-tone='dark'] .step[data-order] .stepValue { color: var(--inverse-link); }
 [data-tone='dark'] .panel { border-color: var(--inverse-track); background: var(--inverse-control); }
 [data-tone='dark'] .sumItem b, [data-tone='dark'] .flowStep b, [data-tone='dark'] .metric dd { color: var(--on-inverse); }
