@@ -1,14 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { formatMoney, plural } from '@/domain/language/plain'
 import { Button } from '@/ui/Button'
 import { Changed } from '@/ui/Changed'
 import { Icon } from '@/ui/Icon'
 import { exactMoney, orderGlance, priceNote, type Comparison } from './context'
 import { handoffPlan, orderFile, submissionMethodLabel, type HandoffPlan, type HandoffSide } from './handoff'
-import type { ProposedOrderView, SupplierOrderMethod } from './types'
+import { cashImpact, weekLabel } from './cash'
+import type { CashOutlook, ProposedOrderView, SupplierOrderMethod } from './types'
 import styles from './OrderHeader.module.css'
 
 /**
@@ -75,10 +76,10 @@ export function OrderHeader({ order, backHref, total, lineCount, progress, onPro
 }
 
 /**
- * The order-level intelligence, between the header and the lines: the exact
- * total against the typical order, the free-freight gap, and how often this
- * supplier is ordered from. Each fact appears only when it's known; the
- * total leads, the freight gap (which can change what to add) comes next.
+ * The order-level intelligence, between the header and the lines (Figma
+ * reference): the exact total against the typical order, the free-freight
+ * gap, how often this supplier is ordered from, and what paying for it does
+ * to cash. Each fact appears only when it's known; the total leads.
  */
 export function OrderGlance({ order, total, lineCount, progress }: {
   order: ProposedOrderView; total: number; lineCount: number; progress: OrderProgress
@@ -86,6 +87,7 @@ export function OrderGlance({ order, total, lineCount, progress }: {
   const glance = orderGlance(order, total)
   const prices = priceNote(order)
   const money = (n: number) => formatMoney(Math.ceil(n), order.currency)
+  const cadence = glance.typical?.cadenceDays ?? order.context?.cadenceDays
   return (
     <section className={styles.glance} aria-label="This order at a glance">
       <dl className={styles.metrics}>
@@ -95,8 +97,8 @@ export function OrderGlance({ order, total, lineCount, progress }: {
             <b className={styles.value}><Changed value={total}>{exactMoney(total, order.currency)}</Changed></b>
             <span>
               {plural(lineCount, 'line')} · <span className={progress.status === 'draft' ? undefined : styles.done}>{statusLabel[progress.status]}</span>
-              {glance.typical && <> · <Trend c={glance.typical.comparison} /></>}
             </span>
+            {glance.typical && <span>Typical order {money(glance.typical.amount)} · <Trend c={glance.typical.comparison} /></span>}
             {prices && <span className={styles.prices}><Icon name="alert" size={14} /> {prices}</span>}
           </dd>
         </div>
@@ -112,17 +114,71 @@ export function OrderGlance({ order, total, lineCount, progress }: {
             </dd>
           </div>
         )}
-        {glance.typical && (
+        {cadence !== undefined && (
           <div className={styles.metric}>
-            <dt>Typical order</dt>
+            <dt>Order rhythm</dt>
             <dd>
-              <b className={styles.valueMid}>{money(glance.typical.amount)}</b>
-              <span>{glance.typical.cadenceDays !== undefined ? `Every ~${glance.typical.cadenceDays} days` : 'To this supplier'}</span>
+              <b className={styles.valueMid}>Every ~{cadence} days</b>
+              <span>How often you order from {order.supplier.split(' ')[0]}</span>
             </dd>
           </div>
         )}
+        {order.context?.cash && <CashImpactMetric cash={order.context.cash} total={total} currency={order.currency} />}
       </dl>
     </section>
+  )
+}
+
+/**
+ * Cash impact (Figma reference): where cash lands after paying for this
+ * order, on a comfortable-to-tight scale, and on request the sentence and
+ * the projected balance before and after. Example data only (the outlook).
+ */
+function CashImpactMetric({ cash, total, currency }: { cash: CashOutlook; total: number; currency: string }) {
+  const [open, setOpen] = useState(false)
+  const id = useId()
+  const impact = cashImpact(cash, total, currency)
+  const all = [...impact.before, ...impact.after, impact.floor]
+  const lo = Math.min(...all) * 0.9
+  const hi = Math.max(...all) * 1.04
+  const x = (i: number) => 4 + (i / (impact.before.length - 1)) * 232
+  const y = (v: number) => 66 - ((v - lo) / (hi - lo)) * 60
+  const path = (vals: number[]) => vals.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ')
+  return (
+    <div className={[styles.metric, styles.cash].join(' ')}>
+      <dt className={styles.cashHead}>
+        <span>Cash impact</span>
+        <button type="button" className={styles.cashToggle} aria-expanded={open} aria-controls={id}
+          aria-label={open ? 'Hide cash impact details' : 'Show cash impact details'} onClick={() => setOpen((v) => !v)}>
+          <Icon name="chevron-down" size={16} />
+        </button>
+      </dt>
+      <dd>
+        <b className={styles.cashState} data-state={impact.state}><Changed value={impact.state}>{impact.state}</Changed></b>
+        <span className={styles.cashScale} role="img" aria-label={`${impact.state}: after this order, the lowest week is ${formatMoney(Math.abs(impact.headroom), currency)} ${impact.headroom >= 0 ? 'above' : 'below'} your normal operating range`}>
+          <i style={{ left: `${impact.position}%` }} />
+        </span>
+        <span className={styles.cashEnds} aria-hidden="true"><span>Comfortable</span><span>Tight</span></span>
+        {open && (
+          <span id={id} className={styles.cashMore}>
+            <span className={styles.cashSentence}>{impact.sentence}</span>
+            <svg className={styles.cashChart} viewBox="0 0 240 70" role="img"
+              aria-label={`Projected cash for ${impact.before.length} weeks from ${weekLabel(cash.startsOn, 0)}, before and after this order`}>
+              <line x1="4" x2="236" y1={y(impact.floor)} y2={y(impact.floor)} className={styles.cashFloor} />
+              <path d={path(impact.before)} className={styles.cashBefore} />
+              <path d={path(impact.after)} className={styles.cashAfter} />
+              <circle cx={x(impact.lowestWeek)} cy={y(impact.after[impact.lowestWeek]!)} r="3" className={styles.cashLow} />
+            </svg>
+            <span className={styles.cashLegend}>
+              <span><i className={styles.keyAfter} />After order</span>
+              <span><i className={styles.keyBefore} />Before order</span>
+              <span><i className={styles.keyFloor} />Operating floor</span>
+            </span>
+            <span className={styles.cashNote}>{weekLabel(cash.startsOn, 0)} – {weekLabel(cash.startsOn, impact.before.length - 1)} · paid the week of {weekLabel(cash.startsOn, cash.paysInWeek)}</span>
+          </span>
+        )}
+      </dd>
+    </div>
   )
 }
 

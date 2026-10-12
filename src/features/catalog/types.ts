@@ -1,4 +1,4 @@
-import type { NetworkListing, SupplierStatus } from '@/features/orders/types'
+import type { NetworkListing, OrderRule, SupplierStatus } from '@/features/orders/types'
 
 /**
  * Presentation shapes for the Catalog (docs/catalog.md). Product → Variant →
@@ -39,7 +39,8 @@ export type CatalogVariant = {
     onOrder: number
     perWeek?: number
     /** A recommendation for this Variant, from a proposed order. */
-    recommended?: { quantity: number; orderId: string; lineId: string; reason: string; confidence: string }
+    /** Quantity is the need after the supplier's case pack or minimum (rule), when one applies. */
+    recommended?: { quantity: number; need?: number; rule?: OrderRule; orderId: string; lineId: string; reason: string; confidence: string }
   }
   /** The proposed order lines for this option (its suggested quantity there, even 0). */
   orderLines?: { orderId: string; lineId: string; quantity: number }[]

@@ -13,6 +13,7 @@ import { ExampleMarker } from '@/ui/Example'
 import { Icon } from '@/ui/Icon'
 import { InfoTip } from '@/ui/InfoTip'
 import { confirmLabel, current, destinations, itemKey, placements, type Destination } from './ordering'
+import { Formula } from '@/features/recommendations/Formula'
 import { ProductImage } from './ProductImage'
 import { bestSource, orderNote, perUnit, shortName, stockLabel, type OrderContexts } from './sourcing'
 import type { CatalogProduct, CatalogVariant } from './types'
@@ -155,6 +156,7 @@ function BuyCard({ product, variant, orders }: { product: CatalogProduct; varian
   const best = bestSource(variant, orders)
   const [quantity, setQuantity] = useState(rec?.quantity ?? 1)
   const [tray, setTray] = useState<null | 'best' | 'choose'>(null)
+  const [why, setWhy] = useState(false)
   if (!best) return null
   const dests = destinations(product.id, variant, orders, drafts)
   const target = dests.find((d) => d.offer.supplierId === best.offer.supplierId)!
@@ -179,6 +181,24 @@ function BuyCard({ product, variant, orders }: { product: CatalogProduct; varian
           {rec && <span className={styles.confidence}>{CONFIDENCE[rec.confidence] ?? rec.confidence}</span>}
           <span>{unitPrice(perUnit(best.offer), best.offer.currency)} each · {freight}</span>
         </p>
+        {rec && (
+          <>
+            <button type="button" className={styles.buyWhy} aria-expanded={why} aria-controls="buy-why" onClick={() => setWhy((v) => !v)}>
+              Why {rec.quantity}?<Icon name="chevron-down" size={14} />
+            </button>
+            {why && (
+              <div id="buy-why" className={styles.buyFormula}>
+                <Formula compact tone="dark" data={{
+                  target: (rec.need ?? rec.quantity) + variant.own.onHand + variant.own.onOrder,
+                  onHand: variant.own.onHand, onOrder: variant.own.onOrder, recommendation: rec.quantity, rule: rec.rule,
+                  supplierName: shortName(Object.values(orders).find((o) => o.orderId === rec.orderId)?.supplierName ?? best.offer.supplierName),
+                  targetNote: variant.own.perWeek !== undefined ? `about ${variant.own.perWeek} sold a week` : 'from your recent sales',
+                  perWeek: variant.own.perWeek,
+                }} />
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <div className={styles.buyAct}>

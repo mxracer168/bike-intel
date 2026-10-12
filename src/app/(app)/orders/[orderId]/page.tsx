@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { isDemoPreviewEnabled } from '@/demo/config'
-import { demoHandoff, findDemoOrder } from '@/demo/orders'
+import { demoProductImage } from '@/demo/catalog'
+import { demoHandoff, findDemoOrder, withDemoCash } from '@/demo/orders'
 import { OrderReview } from '@/features/orders/OrderReview'
 import { StartedOrder } from '@/features/orders/StartedOrder'
-import { completeWeekStarts } from '@/features/orders/why'
+import { completeWeekStarts, currentWeekStart } from '@/features/orders/why'
 import { requireOrganization } from '@/server/session'
 import { Page } from '@/ui/Layout'
 
@@ -24,11 +25,12 @@ export default async function OrderPage({ params, searchParams }: {
   // Example review only: ?handoff=a|b|c|d shows each combination of supplier and POS connections.
   const { handoff: handoffParam, line } = await searchParams
   const handoff = demoHandoff(handoffParam)
-  const order = handoff ? { ...found, handoff } : found
+  const order = withDemoCash(handoff ? { ...found, handoff } : found, currentWeekStart(new Date()))
+  const images = Object.fromEntries(order.lines.map((l) => [l.id, demoProductImage(l.product)]))
 
   return (
     <Page>
-      <OrderReview order={order} openLine={typeof line === 'string' ? line : undefined} example weekStarts={completeWeekStarts(12, new Date())} backHref="/orders" />
+      <OrderReview order={order} images={images} openLine={typeof line === 'string' ? line : undefined} example weekStarts={completeWeekStarts(12, new Date())} backHref="/orders" />
     </Page>
   )
 }

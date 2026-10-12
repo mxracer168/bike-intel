@@ -1,9 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { Fragment, useEffect, useId, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { Fragment, useEffect, useState, useSyncExternalStore } from 'react'
 import { average } from '@/domain/language/plain'
-import { WeeklySalesChart } from '@/features/recommendations/WeeklySalesChart'
+import { ProductImage } from '@/features/catalog/ProductImage'
+import type { CatalogImage } from '@/features/catalog/types'
+import { Formula } from '@/features/recommendations/Formula'
 import { AnchoredQuestion } from '@/features/intelligence/AnchoredQuestion'
 import { useIntelligence } from '@/features/intelligence/IntelligencePanel'
 import { PriceVsMarket, ReputationLine } from '@/features/network/NetworkBits'
@@ -19,7 +21,7 @@ import { ActionBar, HandoffStatus, OrderGlance, OrderHeader, SubmitDialog, type 
 import { addedTotal, setAddedQuantity, setLineQuantity, useDrafts, type AddedItem } from './drafts'
 import { lineTotal, orderTotal, sortForReview } from './summarize'
 import type { NetworkListing, OrderLineView, ProposedOrderView } from './types'
-import { calculation, explanation, nextStep, oneDecimal, seasonView, supplierView } from './why'
+import { calculation, explanation, nextStep, seasonView, supplierView } from './why'
 import { SortHeader } from '@/ui/SortHeader'
 import { nextSort, sortRows, type SortState, type SortValue } from '@/ui/sorting'
 import styles from './OrderReview.module.css'
@@ -49,51 +51,13 @@ function cost(amount: number, currency: string) {
 }
 
 /**
- * One piece of evidence behind a recommendation: a name, what it covers, the
- * value, and (when there's more to say) the detail on request. Evidence steps
- * back: quiet rows under the answer.
- */
-function Evidence({ title, sub, value, graphic, children }: {
-  title: string; sub: string; value: ReactNode; graphic?: ReactNode; children?: ReactNode
-}) {
-  const [open, setOpen] = useState(false)
-  const id = useId()
-  const head = (
-    <>
-      <span className={styles.evidenceName}>
-        <span className={styles.evidenceTitle}>{title}</span>
-        <span className={styles.evidenceSub}>{sub}</span>
-      </span>
-      <span className={styles.evidenceGraphic}>{graphic}</span>
-      <span className={styles.evidenceValue}>{value}</span>
-    </>
-  )
-  if (!children) return <div className={styles.evidence}><div className={styles.evidenceHead}>{head}<span className={styles.evidenceCaret} /></div></div>
-  return (
-    <div className={styles.evidence}>
-      <button type="button" className={styles.evidenceHead} aria-expanded={open} aria-controls={id} onClick={() => setOpen((v) => !v)}>
-        {head}<span className={styles.evidenceCaret}><Icon name="chevron-down" size={14} /></span>
-      </button>
-      {open && <div id={id} className={[styles.evidenceBody, motion.reveal].join(' ')}>{children}</div>}
-    </div>
-  )
-}
-
-/** Twelve weeks as tiny bars: the shape of demand at a glance. */
-function Spark({ weeks }: { weeks: number[] }) {
-  const max = Math.max(1, ...weeks)
-  return (
-    <span className={styles.spark} aria-hidden="true">
-      {weeks.map((n, i) => <i key={i} style={{ height: `${Math.max(2, (n / max) * 22)}px` }} />)}
-    </span>
-  )
-}
-
-/**
- * An opened line, as one recommendation: the answer (order N), the reason in
- * a paragraph, how the quantity covers expected demand, other retailers when
- * they have it, then the evidence behind it, each piece on request, and the
- * recommended next step (docs/recommendations.md).
+ * An opened line (Figma reference: the recommendation formula). The
+ * confidence, what this line commits and Add context; the reason in one
+ * paragraph; then how we got to the quantity, Target − Current = Need →
+ * Order, each step with its evidence (demand, stock, the gap, the supplier's
+ * case pack or minimum and its stock); other retailers when they have it;
+ * and the recommended next step (docs/recommendations.md). Changing the
+ * quantity changes the commitment and totals, never the formula.
  */
 function Recommendation({ line, quantity, setQuantity, order, weekStarts, locked }: {
   line: OrderLineView; quantity: number; setQuantity: (n: number) => void; order: ProposedOrderView; weekStarts?: string[]
@@ -105,85 +69,47 @@ function Recommendation({ line, quantity, setQuantity, order, weekStarts, locked
   const avg = average(line.weeklySales)
   const sup = supplierView(line, order.leadTimeDays)
   const season = seasonView(line)
-  const salesId = `${line.id}-sales`
+  const who = supplierShortName(order.supplier)
   const label = [line.product, line.variant].filter(Boolean).join(' ')
   const match = networkMatch(line.network, quantity)
-  const share = (n: number) => `${calc.expectedDemand > 0 ? (n / calc.expectedDemand) * 100 : 0}%`
+  const weeks = avg > 0 ? Math.max(1, Math.round(calc.expectedDemand / avg)) : 0
   return (
     <section className={[styles.rec, motion.reveal, motion.surface].join(' ')} aria-labelledby={`${line.id}-why`}>
       <div className={styles.recMain}>
         <div className={styles.recHead}>
-          <div>
-            <p className={styles.recEyebrow}>Recommendation</p>
-            <h2 id={`${line.id}-why`} className={styles.recTitle}>Order {line.quantity}</h2>
-          </div>
           <div className={styles.recMeta}>
             <ConfidenceMark level={line.confidence} />
             <span className={styles.recDot} aria-hidden="true">·</span>
-            <span><Changed value={quantity}>{cost(lineTotal(line, quantity), order.currency)}</Changed> at {quantity}</span>
-            {intelligence && (
-              <button type="button" className={styles.addContext} aria-haspopup="dialog"
-                onClick={() => intelligence.open({ about: { label, productId: line.productId } })}>
-                <Icon name="plus" size={14} />Add context
-              </button>
-            )}
+            <span><Changed value={quantity}>{cost(lineTotal(line, quantity), order.currency)}</Changed> commitment</span>
           </div>
+          {intelligence && (
+            <button type="button" className={styles.addContext} aria-haspopup="dialog"
+              onClick={() => intelligence.open({ about: { label, productId: line.productId } })}>
+              <Icon name="plus" size={14} />Add context
+            </button>
+          )}
         </div>
 
-        <p className={styles.explanation}>{explanation(line)}</p>
+        <p className={styles.explanation}>{explanation(line, who)}</p>
 
-        <section className={styles.coverage} aria-label="How we got there">
-          <div className={styles.coverageHead}>
-            <p>
-              <span className={styles.coverageLabel}>Expected demand before your next chance to restock</span>
-              <span className={styles.coverageValue}>{calc.expectedDemand} {calc.expectedDemand === 1 ? 'unit' : 'units'}</span>
-            </p>
-            <p className={styles.coverageNote}>{calc.demandNote}</p>
+        <section className={styles.how} aria-labelledby={`${line.id}-why`}>
+          <div className={styles.howHead}>
+            <h2 id={`${line.id}-why`} className={styles.howTitle}>How we got to {line.quantity}</h2>
+            <p className={styles.howLead}>Your inventory plan through the next restock. Choose a step to see what&rsquo;s behind it.</p>
           </div>
-          <span className={styles.coverageBar} aria-hidden="true">
-            {calc.onHand > 0 && <i className={styles.barHand} style={{ width: share(calc.onHand) }} />}
-            {calc.onOrder > 0 && <i className={styles.barOrdered} style={{ width: share(calc.onOrder) }} />}
-            {calc.recommended > 0 && <i className={styles.barOrder} style={{ width: share(calc.recommended) }} />}
-          </span>
-          <dl className={styles.coverageParts}>
-            <div><dt>On hand</dt><dd>{calc.onHand} covered</dd></div>
-            <div><dt>Already ordered</dt><dd>{calc.onOrder} incoming</dd></div>
-            <div className={styles.coverageOrder}><dt>Recommended</dt><dd>{calc.recommended} to order</dd></div>
-          </dl>
+          <Formula data={{
+            target: calc.expectedDemand, onHand: calc.onHand, onOrder: calc.onOrder, recommendation: calc.recommended,
+            rule: calc.rule, supplierName: who, targetNote: calc.demandNote,
+            perWeek: avg, coverageWeeks: weeks, leadTimeDays: order.leadTimeDays, trend: season?.value,
+            weeklySales: line.weeklySales, weekStarts,
+            supply: { value: sup.value, note: sup.warehouses.length > 0 ? sup.warehouses.map((w) => `${w.name} ${w.available}`).join(' · ') : sup.note, attention: sup.attention },
+          }} />
         </section>
 
         {match.kind !== 'none' && (
           <NetworkPanel id={`${line.id}-network`} match={match} wholesaleMarketValue={line.wholesaleMarketValue}
             strong={supplierShort(line.supplier.status)} />
         )}
-
-        <div className={styles.evidenceList}>
-          <Evidence title="Demand" sub={`Last ${line.weeklySales.length} weeks, excluding the current week`}
-            graphic={<Spark weeks={line.weeklySales} />} value={`${oneDecimal(avg)} / week`}>
-            <section aria-labelledby={salesId}>
-              <div className={styles.salesHead}>
-                <h3 id={salesId}>Recent weekly sales</h3>
-                <span className={styles.salesAvg}>{line.weeklySales.length}-week average: <b>{oneDecimal(avg)}</b> per week</span>
-              </div>
-              <WeeklySalesChart weeklySales={line.weeklySales} weekStarts={weekStarts} titleId={salesId} />
-            </section>
-          </Evidence>
-          <Evidence title="Supply" sub={`${supplierShortName(order.supplier)} availability and expected delivery`}
-            value={<><b className={sup.attention ? styles.attention : undefined}>{sup.value}</b> · about {order.leadTimeDays} days</>}>
-            <div className={styles.supplierDetail}>
-              {sup.warehouses.length > 0 ? (
-                <ul>{sup.warehouses.map((w) => <li key={w.name}><span>{w.name}</span><span>{w.available}</span></li>)}</ul>
-              ) : <p>{sup.note}</p>}
-              <p>Delivery usually takes about {order.leadTimeDays} days after the order is placed.</p>
-            </div>
-          </Evidence>
-          {season && (
-            <Evidence title="Seasonal trend" sub={season.detail} value={season.value}>
-              <p className={styles.evidenceText}>{season.sentence}</p>
-            </Evidence>
-          )}
-          <Evidence title="Confidence" sub="How strongly the evidence supports this quantity" value={<ConfidenceMark level={line.confidence} />} />
-        </div>
 
         {line.alternatives.length > 0 && (
           <section className={styles.notes}>
@@ -196,7 +122,7 @@ function Recommendation({ line, quantity, setQuantity, order, weekStarts, locked
       <footer className={styles.recFoot}>
         <div>
           <h3 className={styles.recFootLabel}>Recommended next step</h3>
-          <p>{nextStep(line, supplierShortName(order.supplier), order.orderBy)}</p>
+          <p>{nextStep(line, who, order.orderBy)}</p>
           {!locked && quantity !== line.quantity && (
             <p className={styles.changed}>
               You changed this to {quantity}.{' '}
@@ -260,7 +186,7 @@ function NetworkPanel({ id, match, wholesaleMarketValue, strong }: {
     <section className={[styles.networkPanel, strong && styles.networkStrong].filter(Boolean).join(' ')} aria-labelledby={`${id}-title`}>
       <div className={styles.networkHead}>
         <div className={styles.networkIntro}>
-          <p className={styles.networkEyebrow}>Other retailers</p>
+          <p className={styles.networkEyebrow}>Retailer network</p>
           <h3 id={`${id}-title`} className={styles.networkTitle}>{networkSignal(match)}</h3>
           <p className={styles.networkLead}>{available} available from retailers in the network, if you want to replace or add to part of this supplier order.</p>
         </div>
@@ -343,8 +269,10 @@ function FilterTab({ current, onClick, label, count }: { current: boolean; onCli
  * and line cost). Built to scan hundreds of lines; each reason opens in
  * place. Quantities change locally only.
  */
-export function OrderReview({ order, backHref, weekStarts, example, openLine }: {
+export function OrderReview({ order, backHref, weekStarts, example, openLine, images = {} }: {
   order: ProposedOrderView; backHref?: string; example?: boolean
+  /** Product thumbnails by line id (a placeholder when none is matched). */
+  images?: Record<string, CatalogImage | null>
   /** A line to open on arrival (from search or a notification). */
   openLine?: string
   /** Start dates of the complete weeks in each line's weekly sales, oldest first. */
@@ -442,12 +370,15 @@ export function OrderReview({ order, backHref, weekStarts, example, openLine }: 
                       <th scope="row" className={styles.product}>
                         <button type="button" className={styles.lineButton} aria-expanded={isOpen}
                           aria-controls={`${line.id}-detail`} onClick={(e) => { e.stopPropagation(); toggle(line.id) }}>
+                          <span className={styles.thumb}><ProductImage image={images[line.id] ?? null} size="row" /></span>
+                          <span className={styles.lineText}>
                           <span className={styles.lineName}>
                             {line.product}
                             {line.variant && <>{' '}<span className={styles.variant}>{line.variant}</span></>}
                           </span>
                           <span className={styles.lineSub}>
                             <span className={styles.why}>{isOpen ? 'Hide reasoning' : `Why ${line.quantity}?`}<Caret /></span>
+                          </span>
                           </span>
                         </button>
                       </th>
@@ -456,7 +387,8 @@ export function OrderReview({ order, backHref, weekStarts, example, openLine }: 
                       <td className={[styles.num, styles.qty].join(' ')} onClick={(e) => e.stopPropagation()}>
                         {locked
                           ? <span className={styles.lockedQty}>{q}</span>
-                          : <QuantityStepper compact value={q} onChange={(n) => setQty(line.id, n)} label={`Quantity for ${line.product}${line.variant ? ` ${line.variant}` : ''}`} />}
+                          : <QuantityStepper compact value={q} onChange={(n) => setQty(line.id, n)} step={line.orderRule?.kind === 'case' ? line.orderRule.size : 1}
+                            label={`Quantity for ${line.product}${line.variant ? ` ${line.variant}` : ''}${line.orderRule?.kind === 'case' ? `, in cases of ${line.orderRule.size}` : ''}`} />}
                         {q !== line.quantity && <span className={styles.was}>was {line.quantity}</span>}
                       </td>
                       <td className={[styles.num, styles.muted, styles.wide, styles.mid].join(' ')}>{line.unitCost > 0 ? cost(line.unitCost, order.currency) : <span className={styles.none}>–</span>}</td>

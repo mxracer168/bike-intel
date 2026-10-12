@@ -208,7 +208,8 @@ const northline = build({
       alternatives: ['Wait for Northline’s restock around October 20 and order then.'],
       wholesaleMarketValue: 25.5,
       network: [listing('trailhead', 12, 'x11', 23), listing('palmetto', 9, 'x11', 25.5), listing('river', 2, 'x11', 27)] },
-    'Shimano B01S resin disc brake pads · Pair': { state: 'ok', quantity: 6,
+    // Ordering rules for demos: a case pack (need 5 → 6) and, on the first line, a minimum (need 2 → 3).
+    'Shimano B01S resin disc brake pads · Pair': { state: 'ok', need: 5, orderRule: { kind: 'case', size: 6 }, quantity: 6,
       supplier: { status: 'available', note: 'Available' },
       wholesaleMarketValue: 10.2,
       network: [listing('palmetto', 10, 'b01s', 9.5), listing('river', 6, 'b01s', 10.2), listing('trailhead', 8, 'b01s', 9.8), listing('midtown', 2, 'b01s', 10.2), listing('upstate', 1, 'b01s', 11)], onHand: 2, onOrder: 0, confidence: 'high', weeklySales: [1, 2, 1, 3, 2, 2, 3, 2, 3, 2, 2, 3],
@@ -217,7 +218,7 @@ const northline = build({
     'Maxxis Minion DHF · 29 × 2.5 WT EXO+': { state: 'review', quantity: 4,
             wholesaleMarketValue: 61, network: [listing('midtown', 2, 'dhf', 61), listing('upstate', 1, 'dhf', 55), listing('lowcountry', 3, 'dhf', 58)], onHand: 1, onOrder: 0, weeklySales: [0, 1, 1, 0, 1, 2, 1, 1, 2, 1, 1, 2],
       reason: 'You sold 5 last October, more than your usual pace, so we added a little for fall.' },
-    'Park Tool CT-3.3 chain tool': { state: 'question', quantity: 2, newToStore: true,
+    'Park Tool CT-3.3 chain tool': { state: 'question', need: 2, orderRule: { kind: 'minimum', quantity: 3 }, quantity: 3, newToStore: true,
       supplier: { status: 'available', note: 'Available' }, onHand: 0, onOrder: 0, weeklySales: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
       reason: 'This is new to your store, so we started small.',
       question: { prompt: 'Do you plan to keep chain tools on the shelf, or order them for customers as needed?', choices: ['Keep on the shelf', 'Order as needed'] } },
@@ -344,6 +345,22 @@ export function demoHandoff(value: string | string[] | undefined): HandoffView |
 }
 
 export const demoOrders: ProposedOrderView[] = [northline, summit, cascade]
+
+/**
+ * EXAMPLE cash outlook for the order header's cash impact: the store's
+ * expected weekly balance without these orders (a dip at the end of October
+ * as fall bills land), its normal operating floor, and the week each
+ * supplier is paid on its terms (Northline Net 30, Summit Net 15, Cascade on
+ * delivery). Dates are filled in from the current week.
+ */
+const CASH_WEEKS = [42_000, 38_500, 35_200, 31_800, 27_400, 29_800, 33_100, 36_500, 34_000, 31_200, 30_500, 33_800]
+const PAYS_IN_WEEK: Record<string, number> = { northline: 4, summit: 2, cascade: 1 }
+
+export function withDemoCash(order: ProposedOrderView, startsOn: string): ProposedOrderView {
+  const paysInWeek = PAYS_IN_WEEK[order.id]
+  if (paysInWeek === undefined) return order
+  return { ...order, context: { ...order.context, cash: { startsOn, weeks: CASH_WEEKS, floor: 18_000, paysInWeek } } }
+}
 
 export function findDemoOrder(id: string): ProposedOrderView | undefined {
   return demoOrders.find((o) => o.id === id)

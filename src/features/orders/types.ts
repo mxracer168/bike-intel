@@ -47,6 +47,12 @@ export type SupplierStock = {
   warehouses?: { name: string; available: number }[]
 }
 
+/**
+ * How the supplier sells it, when that changes the quantity: in cases (order
+ * a multiple of the case) or with a minimum order quantity.
+ */
+export type OrderRule = { kind: 'case'; size: number } | { kind: 'minimum'; quantity: number }
+
 export type OrderLineView = {
   id: string
   /** The canonical product, when known (example lines have none). */
@@ -55,8 +61,12 @@ export type OrderLineView = {
   variant?: string
   onHand: number
   onOrder: number
-  /** Suggested quantity, in ordering units. */
+  /** Suggested quantity, in ordering units: the need, adjusted by the supplier's ordering rule. */
   quantity: number
+  /** Units needed before the ordering rule; absent when nothing adjusted it (need = quantity). */
+  need?: number
+  /** The supplier's case pack or minimum, when it changed the quantity. */
+  orderRule?: OrderRule
   unitCost: number
   state: LineState
   /** How well the supplier can fill this line right now. */
@@ -112,7 +122,16 @@ export type OrderContextView = {
   typicalOrder?: number
   /** Days since the supplier's prices on this order were last updated. */
   pricesUpdatedDaysAgo?: number
+  /** The retailer's cash outlook, to show what paying for this order does (example data only). */
+  cash?: CashOutlook
 }
+
+/**
+ * Expected weekly cash balance without this order, from the week starting
+ * `startsOn`; the floor of the normal operating range; and the week (index)
+ * the order is paid in, from its terms.
+ */
+export type CashOutlook = { startsOn: string; weeks: number[]; floor: number; paysInWeek: number }
 
 /** How an order reaches the supplier. Same values as `purchase_order.submission_method` (less 'entered_in_pos'). */
 export type SupplierOrderMethod = 'supplier_api' | 'email' | 'export' | 'other'

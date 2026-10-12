@@ -1,5 +1,5 @@
 import { average } from '@/domain/language/plain'
-import type { OrderLineView, SupplierCondition } from './types'
+import type { OrderLineView, OrderRule, SupplierCondition } from './types'
 
 /**
  * "Why N?": the answer, the reason, then the evidence. Everything here is
@@ -24,29 +24,49 @@ export function paceWords(perWeek: number): string {
 export const oneDecimal = (n: number) => (Math.round(n * 10) / 10).toFixed(1)
 
 export type Calculation = {
+  /** The target: what we expect them to need before the next chance to restock. */
   expectedDemand: number
   onHand: number
   onOrder: number
+  /** Target − on hand − on order. */
+  need: number
+  /** The need, after the supplier's case pack or minimum. */
   recommended: number
+  rule?: OrderRule
   /** "~1 per week for the next 3 weeks", when there's a pace to go by. */
   demandNote: string
 }
 
+/** The quantity to order for a need under a supplier's rule: a whole number of cases, or at least the minimum. */
+export function applyRule(need: number, rule?: OrderRule): number {
+  if (!rule || need <= 0) return need
+  return rule.kind === 'case' ? Math.ceil(need / rule.size) * rule.size : Math.max(need, rule.quantity)
+}
+
+/** "Sold in cases of 6", "Minimum order 3". */
+export function ruleLabel(rule: OrderRule): string {
+  return rule.kind === 'case' ? `Sold in cases of ${rule.size}` : `Minimum order ${rule.quantity}`
+}
+
 /**
- * Expected demand − on hand − already ordered = recommended. Expected demand
- * is what the recommendation covered, so the arithmetic always reconciles
- * with the quantity shown.
+ * Target − current (on hand + already ordered) = need → recommended, where
+ * the recommendation is the need after the supplier's case pack or minimum.
+ * The target is what the recommendation covered, so the arithmetic always
+ * reconciles with the quantity shown.
  */
 export function calculation(line: OrderLineView): Calculation {
   const perWeek = average(line.weeklySales)
-  const expectedDemand = line.quantity + line.onHand + line.onOrder
+  const need = line.need ?? line.quantity
+  const expectedDemand = need + line.onHand + line.onOrder
   const weeks = perWeek > 0 ? Math.max(1, Math.round(expectedDemand / perWeek)) : 0
   const pace = perWeek >= 0.75 ? `~${Math.round(perWeek)} per week` : 'Under 1 per week'
   return {
     expectedDemand,
     onHand: line.onHand,
     onOrder: line.onOrder,
+    need,
     recommended: line.quantity,
+    rule: line.need !== undefined && line.need !== line.quantity ? line.orderRule : undefined,
     demandNote: weeks > 0 ? `${pace} for the next ${weeks} ${weeks === 1 ? 'week' : 'weeks'}` : 'A small starting quantity',
   }
 }
@@ -57,7 +77,7 @@ export function calculation(line: OrderLineView): Calculation {
  * to the store) is said inside the sentence; any other unusual reason
  * follows in the same paragraph.
  */
-export function explanation(line: OrderLineView): string {
+export function explanation(line: OrderLineView, supplier = 'The supplier'): string {
   const perWeek = average(line.weeklySales)
   const sold = line.weeklySales.reduce((a, b) => a + b, 0)
   const selling = perWeek >= 0.25
@@ -65,16 +85,19 @@ export function explanation(line: OrderLineView): string {
     : sold > 0 ? `You’ve sold ${sold} in the last ${line.weeklySales.length} weeks` : 'This hasn’t sold recently'
   const onHand = line.onHand > 0 ? `have ${line.onHand} on hand` : 'have none on hand'
   const onOrder = line.onOrder > 0 ? `have ${line.onOrder} on order` : 'don’t have anything on order'
-  const { expectedDemand } = calculation(line)
+  const { expectedDemand, need, rule } = calculation(line)
   const stocked = line.onHand + line.onOrder > 0
   const expect = stocked
-    ? `expect you to need about ${expectedDemand} before your next chance to restock, so we suggest ${line.quantity} more`
-    : `expect you to need ${line.quantity} before your next chance to restock`
-  const need = line.newToStore
+    ? `expect you to need about ${expectedDemand} before your next chance to restock, so ${rule ? `${need} more would cover it` : `we suggest ${line.quantity} more`}`
+    : `expect you to need ${need} before your next chance to restock`
+  const adjusted = rule && (rule.kind === 'case'
+    ? `${supplier} sells these in cases of ${rule.size}, so we rounded up to ${line.quantity}.`
+    : `${supplier}’s minimum order is ${rule.quantity}, so we suggest ${line.quantity}.`)
+  const needSentence = line.newToStore
     ? `Because this item is new to your store, we started small and ${expect}.`
     : `We ${expect}.`
   const extra = extraReason(line)
-  return [`${selling}, ${onHand}, and ${onOrder}.`, need, extra].filter(Boolean).join(' ')
+  return [`${selling}, ${onHand}, and ${onOrder}.`, needSentence, adjusted, extra].filter(Boolean).join(' ')
 }
 
 /**
@@ -165,6 +188,13 @@ export function nextStep(line: OrderLineView, supplier: string, orderBy?: string
  * Start dates of the last `count` complete weeks (Mondays, oldest first),
  * as ISO dates. The current, unfinished week is left out.
  */
+/** The Monday that starts this week, as an ISO date. */
+export function currentWeekStart(today: Date): string {
+  const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()))
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7))
+  return d.toISOString().slice(0, 10)
+}
+
 export function completeWeekStarts(count: number, today: Date): string[] {
   const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()))
   const sinceMonday = (d.getUTCDay() + 6) % 7

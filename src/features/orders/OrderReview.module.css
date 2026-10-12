@@ -27,7 +27,7 @@
 .cQty { width: 132px; }
 .cUnit { width: 112px; }
 .cCost { width: 120px; }
-.table th, .table td { text-align: left; padding: 14px var(--sp-4); border-bottom: 1px solid var(--bar-line); vertical-align: middle; }
+.table th, .table td { text-align: left; padding: var(--sp-4); border-bottom: 1px solid var(--bar-line); vertical-align: middle; }
 .table th:first-child, .table td:first-child { padding-left: 20px; }
 .table th:last-child, .table td:last-child { padding-right: 20px; }
 .table thead th {
@@ -43,14 +43,18 @@
 
 .product { font-weight: 400; }
 .lineButton {
-  display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 0; border: 0; background: none; font: inherit; color: var(--ink);
+  display: flex; align-items: flex-start; gap: var(--sp-3); width: 100%; padding: 0; border: 0; background: none; font: inherit; color: var(--ink);
   text-align: left; cursor: pointer;
 }
+/* A product thumbnail (Figma reference): the matched image on a light tile, or a quiet placeholder. */
+.thumb { flex: none; }
+.thumb > span { width: 56px; height: 56px; border-radius: var(--r-md); }
+.lineText { min-width: 0; display: flex; flex-direction: column; gap: 4px; padding-top: 2px; }
 .lineButton:focus-visible { box-shadow: var(--focus-ring); border-radius: 2px; }
 .lineName { font-weight: 500; color: var(--ink-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .variant { font-weight: 400; color: var(--ink-3); }
 .lineSub { display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--sp-3); font-size: var(--fs-meta); line-height: var(--lh-meta); }
-.why { display: inline-flex; align-items: center; gap: 2px; font-weight: 600; color: var(--accent-hover); }
+.why { display: inline-flex; align-items: center; gap: 2px; margin-top: 4px; font-weight: 600; color: var(--accent-hover); }
 .qty { white-space: nowrap; }
 .qty > * { vertical-align: middle; }
 .was { display: block; margin-top: 2px; font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); }
@@ -69,18 +73,13 @@
 .textButton { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; }
 .textButton:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-/* ---------- The recommendation: answer, reason, how it covers demand, then evidence ---------- */
+/* ---------- The recommendation: confidence and commitment, the reason, how we got to the quantity ---------- */
 .rec {
   container-type: inline-size; overflow: hidden; cursor: auto;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-xl); box-shadow: var(--sh-1);
 }
-.recMain { display: flex; flex-direction: column; gap: var(--sp-6); padding: var(--sp-6); }
-.recHead { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--sp-4); }
-.recEyebrow {
-  font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600; letter-spacing: var(--tracking-meta);
-  text-transform: uppercase; color: var(--accent);
-}
-.recTitle { margin-top: var(--sp-2); font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.025em; color: var(--ink-strong); }
+.recMain { display: flex; flex-direction: column; gap: 20px; padding: var(--sp-5); }
+.recHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3); }
 .recMeta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 500; color: var(--ink-2); }
 .recDot { color: var(--ink-faint); }
 /* A quiet way into the conversation, already about this item. */
@@ -89,57 +88,14 @@
   font-size: var(--fs-meta); font-weight: 600; color: var(--accent-hover); cursor: pointer;
 }
 .addContext:hover { text-decoration: underline; text-underline-offset: 3px; }
-.explanation { margin-top: calc(-1 * var(--sp-2)); max-width: 72ch; font-size: 14px; line-height: 24px; color: var(--ink-2); }
+.explanation { margin-top: calc(-1 * var(--sp-2)); max-width: 80ch; font-size: 14px; line-height: 24px; color: var(--ink-2); }
 
-/* How the quantity covers expected demand: on hand, already ordered, to order. */
-.coverage { display: flex; flex-direction: column; gap: var(--sp-4); }
-.coverageHead { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 4px var(--sp-4); }
-.coverageLabel { display: block; font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 500; color: var(--ink-3); }
-.coverageValue { display: block; margin-top: 4px; font-size: 20px; line-height: 28px; font-weight: 600; color: var(--ink-strong); }
-.coverageNote { font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); }
-.coverageBar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--subtle); }
-.coverageBar i { display: block; height: 100%; }
-.barHand { background: var(--ink-faint); }
-.barOrdered { background: var(--line-strong); }
-.barOrder { background: var(--dot-info); }
-.coverageParts { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-4); }
-.coverageParts dt { font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); }
-.coverageParts dd { margin: 4px 0 0; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink); }
-.coverageOrder dt { color: var(--accent); }
-.coverageOrder dd { color: var(--accent-hover); }
+/* How we got to the quantity: the formula (features/recommendations/Formula). */
+.how { display: flex; flex-direction: column; gap: var(--sp-3); }
+.howTitle { font-size: 16px; line-height: 24px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink-strong); }
+.howLead { font-size: var(--fs-meta); line-height: 18px; color: var(--ink-3); }
 
-/* Evidence: quiet rows, each opening in place. */
-.evidenceList { border-block: 1px solid var(--line); }
-.evidence + .evidence { border-top: 1px solid var(--line); }
-.evidenceHead {
-  width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto auto 16px; align-items: center; gap: var(--sp-5);
-  padding: 18px 0; border: 0; background: none; font: inherit; color: inherit; text-align: left;
-}
-button.evidenceHead { cursor: pointer; }
-button.evidenceHead:hover .evidenceTitle { color: var(--accent-hover); }
-.evidenceName { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.evidenceTitle { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink-strong); }
-.evidenceSub { font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--ink-3); }
-.evidenceValue { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink-2); text-align: right; white-space: nowrap; }
-.evidenceValue b { font-weight: 500; }
-.evidenceGraphic { display: inline-flex; }
-.evidenceCaret { display: inline-flex; color: var(--ink-3); transition: transform var(--t-fast) var(--ease); }
-.evidenceHead[aria-expanded='true'] .evidenceGraphic { display: inline-flex; }
-.evidenceCaret { transform: rotate(180deg); }
-.evidenceBody { padding: var(--sp-4) 0 var(--sp-5); border-top: 1px solid var(--subtle); }
-.evidenceText { font-size: 14px; line-height: 24px; color: var(--ink-2); }
-.spark { display: inline-flex; align-items: flex-end; gap: 2px; height: 22px; }
-.spark i { display: block; width: 4px; border-radius: 1px; background: var(--accent-muted); }
-
-.salesHead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--sp-3); margin-bottom: var(--sp-3); }
-.salesHead h3 { font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 500; color: var(--ink-3); }
-.salesAvg { margin-left: auto; font-size: var(--fs-meta); color: var(--ink-2); font-variant-numeric: tabular-nums; }
-.salesAvg b { color: var(--ink); font-weight: 600; }
-.supplierDetail { display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 22px; color: var(--ink-2); }
-.supplierDetail ul { list-style: none; display: flex; flex-direction: column; max-width: 360px; }
-.supplierDetail li { display: flex; justify-content: space-between; gap: var(--sp-3); padding: 2px 0; font-variant-numeric: tabular-nums; }
-.supplierDetail li span:last-child { color: var(--ink); }
-.attention { color: var(--con) !important; }
+.howHead { display: flex; flex-direction: column; gap: 2px; }
 
 .notes { display: flex; flex-direction: column; gap: 6px; }
 .notes ul { padding-left: 18px; color: var(--ink-2); font-size: 14px; line-height: 22px; display: flex; flex-direction: column; gap: 2px; }
@@ -161,13 +117,13 @@ button.evidenceHead:hover .evidenceTitle { color: var(--accent-hover); }
 /* ---------- Other retailers: closed until asked for ---------- */
 .networkPanel { container-type: inline-size; border: 1px solid var(--accent-line); border-radius: var(--r-lg); background: var(--accent-wash); overflow: hidden; }
 .networkStrong { border-color: var(--accent-muted); box-shadow: var(--sh-1); }
-.networkHead { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--sp-4); padding: 20px var(--sp-5); }
+.networkHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-4); padding: 14px var(--sp-4); }
 .networkIntro { max-width: 36rem; }
 .networkEyebrow {
   font-size: var(--fs-meta); line-height: var(--lh-meta); font-weight: 600; letter-spacing: var(--tracking-meta);
   text-transform: uppercase; color: var(--accent-hover);
 }
-.networkTitle { margin-top: var(--sp-2); font-size: 16px; line-height: 24px; font-weight: 600; letter-spacing: -0.015em; color: var(--ink-strong); }
+.networkTitle { margin-top: 4px; font-size: 14px; line-height: 24px; font-weight: 600; letter-spacing: -0.015em; color: var(--ink-strong); }
 .networkLead { margin-top: 4px; font-size: 14px; line-height: 22px; color: var(--ink-2); }
 .networkSide { display: flex; flex-direction: column; align-items: flex-end; gap: var(--sp-3); }
 .networkMarket { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--ink-2); }
@@ -202,11 +158,6 @@ button.evidenceHead:hover .evidenceTitle { color: var(--accent-hover); }
 @container (max-width: 560px) {
   .recMain { padding: var(--sp-5) var(--sp-4); gap: var(--sp-5); }
   .recFoot { padding: var(--sp-4); }
-  .coverageParts { grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
-  .coverageParts > div { display: flex; justify-content: space-between; }
-  .coverageParts dd { margin: 0; }
-  .evidenceHead { grid-template-columns: minmax(0, 1fr) auto 16px; gap: var(--sp-3); }
-  .spark { display: none; }
   .networkSide { align-items: flex-start; }
 }
 

@@ -113,7 +113,7 @@ function build(): CatalogProduct[] {
           onHand: line.onHand, onOrder: line.onOrder,
           perWeek: line.weeklySales.length ? Math.round((line.weeklySales.reduce((a, b) => a + b, 0) / line.weeklySales.length) * 10) / 10 : undefined,
           recommended: line.quantity > 0
-            ? { quantity: line.quantity, orderId: order.id, lineId: line.id, reason: line.reason, confidence: line.confidence }
+            ? { quantity: line.quantity, need: line.need, rule: line.orderRule, orderId: order.id, lineId: line.id, reason: line.reason, confidence: line.confidence }
             : undefined,
         },
         orderLines: [{ orderId: order.id, lineId: line.id, quantity: line.quantity }],
@@ -161,6 +161,11 @@ function build(): CatalogProduct[] {
 }
 
 export const demoCatalog: CatalogProduct[] = build()
+
+/** A product's image by name, for thumbnails outside the Catalog (order lines). */
+export function demoProductImage(name: string): CatalogImage | null {
+  return demoCatalog.find((p) => p.name === name)?.image ?? null
+}
 
 export function findDemoProduct(id: string): CatalogProduct | null {
   return demoCatalog.find((p) => p.id === id) ?? null

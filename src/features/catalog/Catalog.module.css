@@ -369,6 +369,14 @@
 .recBody { margin-top: var(--sp-2); font-size: 14px; line-height: 24px; color: var(--inverse-2); }
 .buyFacts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); margin-top: var(--sp-4); font-size: 12px; line-height: 16px; color: var(--inverse-3); }
 .confidence { padding: 4px 10px; border-radius: 999px; background: var(--inverse-control); color: var(--dot-good); font-size: 11px; font-weight: 600; }
+.buyWhy {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: var(--sp-4); padding: 0; border: 0; background: none;
+  font: inherit; font-size: 12px; font-weight: 600; color: var(--inverse-link); cursor: pointer;
+}
+.buyWhy svg { transition: transform var(--motion-fast) var(--ease-standard); }
+.buyWhy[aria-expanded='true'] svg { transform: rotate(180deg); }
+.buyWhy:focus-visible { outline: 2px solid var(--inverse-link); outline-offset: 2px; border-radius: 4px; }
+.buyFormula { margin-top: var(--sp-3); }
 .buyAct { padding: 20px; border-top: 1px solid var(--inverse-track); background: var(--inverse-control); }
 .buyQtyHead { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
 .buyQtyHead > span:first-child { display: flex; flex-direction: column; gap: 2px; }

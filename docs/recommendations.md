@@ -8,11 +8,42 @@ chart. Every explanation follows the same order:
    how fast it sells, what's on hand, what's already on order, and what we
    expect them to need before they can restock. A reason that changed the
    quantity is said inside that paragraph ("Because this item is new to your
-   store, we started small…"); a reason that didn't isn't shown. Then the
-   arithmetic in one line: expected demand − on hand − already ordered =
-   recommended. The arithmetic always reconciles with the quantity shown.
-3. **Evidence**: recent weekly sales, which confirm the reason and never
-   replace it.
+   store, we started small…"); a reason that didn't isn't shown.
+3. **How we got there**: one formula everywhere (orders and the Catalog),
+   **Target − Current = Need → Order**:
+   - the target is what we expect them to need before the next chance to
+     restock;
+   - current is on hand plus already ordered;
+   - the need is the gap;
+   - the order is the need after the supplier's ordering rule.
+
+   Each step opens its evidence:
+   - Target: demand rate, coverage, lead time, seasonal trend and the
+     weekly sales chart;
+   - Current: on hand + incoming;
+   - Need: what's on hand lasts, and the uncovered gap;
+   - Order: the need, the rule and the recommended order, with the
+     supplier's stock and delivery.
+
+   The arithmetic is derived in one place and always reconciles with the
+   quantity shown. Changing the quantity changes the commitment and
+   totals, never the formula.
+
+**Ordering rules.** When the supplier sells in cases (order a multiple of the
+case) or has a minimum order quantity, the recommended order can differ from
+the need:
+- The line keeps both: `need`, and `orderRule` (`{ kind: 'case', size }` or
+  `{ kind: 'minimum', quantity }`), with `quantity = applyRule(need, rule)`
+  (`features/orders/why.ts`).
+- The paragraph says why ("Northline sells these in cases of 6, so we
+  rounded up to 6").
+- The Order step shows Need → Case pack / Minimum → Order, and the formula
+  opens on that step.
+- A case line's quantity stepper moves a case at a time.
+
+The example Northline order opens on such a line for demos: the chain tool's
+need of 2 becomes 3 under Northline's minimum. The B01S brake pads show a
+case pack: a need of 5 becomes 6.
 
 Beside it, a compact summary of what was weighed (sales pace, supplier
 availability, delivery, seasonal trend, confidence), each said once.
