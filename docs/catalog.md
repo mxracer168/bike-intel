@@ -1007,8 +1007,9 @@ What the screens hold to:
       and never crosses types. The type is read from each store title; for
       our own product, from its name or else its catalog category.
     - These are recorded as approximate, labelled "Approximate demo match"
-      on the review sheet (with the store's title and page), and captioned
-      as a similar product's image on Product Detail.
+      on the review sheet (with the store's title and page), and marked
+      "Similar product" on the image on Product Detail. The image's source
+      stays in the manifest and on the review sheet, not on the page.
     - An exact image is never replaced by an approximate one, and an
       approximate one gets a strict retry on every run.
   - `overrides.json` hides a wrong match or supplies an image URL.

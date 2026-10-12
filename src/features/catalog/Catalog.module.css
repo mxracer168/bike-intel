@@ -223,7 +223,7 @@
 .image_card { aspect-ratio: 3 / 2; width: 100%; border-bottom: 1px solid var(--subtle); }
 .image_card img { padding: var(--sp-3); transition: transform 500ms var(--ease-standard); }
 .card:hover .image_card img { transform: scale(1.03); }
-.image_hero { aspect-ratio: 4 / 3; width: 100%; border-radius: var(--r-xl); border: 1px solid var(--line); background: var(--surface); }
+.image_hero { aspect-ratio: 1 / 1; width: 100%; border-radius: var(--r-xl); border: 1px solid var(--line); background: var(--surface); }
 .image_hero img { padding: var(--sp-5); }
 
 /* ---------- Filter dialog (narrower working areas) ---------- */
@@ -316,9 +316,34 @@
 @container detail (min-width: 640px) {
   .intro { grid-template-columns: minmax(240px, .85fr) minmax(280px, 1.15fr); align-items: start; }
 }
-.gallery { margin: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
-.provenance { font-size: 12px; line-height: 16px; color: var(--ink-3); }
-.provenance a { color: inherit; }
+.gallery { margin: 0; position: relative; }
+.galleryButton { position: relative; display: block; width: 100%; padding: 0; border: 0; border-radius: var(--r-xl); background: none; cursor: zoom-in; }
+.galleryButton:focus-visible { box-shadow: var(--focus-ring); }
+.galleryButton img { transition: transform 500ms var(--ease-standard); }
+.galleryButton:hover img { transform: scale(1.02); }
+.galleryHint {
+  position: absolute; right: var(--sp-3); bottom: var(--sp-3); padding: 6px var(--sp-3); border-radius: var(--r-sm);
+  background: var(--inverse); color: var(--on-inverse); font-size: 12px; font-weight: 600;
+  opacity: 0; transition: opacity var(--motion-fast) var(--ease-standard);
+}
+.galleryButton:hover .galleryHint, .galleryButton:focus-visible .galleryHint { opacity: .85; }
+.galleryNote {
+  position: absolute; left: var(--sp-3); top: var(--sp-3); padding: 2px var(--sp-2); border-radius: 999px;
+  background: var(--con-soft); color: var(--con); font-size: 11px; font-weight: 600;
+}
+.lightbox {
+  width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; padding: var(--sp-6);
+  border: 0; background: var(--inverse); color: var(--on-inverse);
+}
+.lightbox[open] { display: grid; place-items: center; }
+.lightbox::backdrop { background: var(--inverse); }
+.lightboxImage { max-width: calc(100vw - 7rem); max-height: calc(100dvh - 6rem); object-fit: contain; border-radius: var(--r-lg); background: var(--surface); }
+.lightboxClose {
+  position: absolute; top: var(--sp-5); right: var(--sp-5); width: 44px; height: 44px; display: grid; place-items: center;
+  border: 0; border-radius: var(--r-md); background: var(--inverse-control); color: var(--on-inverse); cursor: pointer;
+}
+.lightboxClose:hover { background: var(--inverse-track); }
+.lightboxClose:focus-visible { outline: 2px solid var(--inverse-link); outline-offset: 2px; }
 .summary { min-width: 0; display: flex; flex-direction: column; padding-top: 4px; }
 .detailEyebrow {
   display: flex; align-items: center; gap: var(--sp-2);

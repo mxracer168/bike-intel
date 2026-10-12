@@ -62,14 +62,7 @@ export function ProductDetail({ product, initialOption, orders, backHref, backLa
       <div className={styles.detailGrid}>
         <div className={styles.detailTop}>
           <div className={styles.intro}>
-            <figure className={styles.gallery}>
-              <ProductImage image={product.image} size="hero" />
-              <figcaption className={styles.provenance}>
-                {product.image
-                  ? <>{product.image.approximate ? 'Similar product image (approximate demo match)' : 'Image'}: <a href={product.image.source.url} target="_blank" rel="noreferrer">{product.image.source.name}</a></>
-                  : 'No product image matched yet'}
-              </figcaption>
-            </figure>
+            <Gallery image={product.image} name={product.name} />
             <div className={styles.summary}>
               <p className={styles.detailEyebrow}>{product.brand} · {product.category}{product.example && <ExampleMarker quiet />}</p>
               <h1 className={styles.detailTitle}>{product.name}</h1>
@@ -141,6 +134,47 @@ export function ProductDetail({ product, initialOption, orders, backHref, backLa
         </div>
       </div>
     </div>
+  )
+}
+
+/**
+ * The product image, square (Figma reference). An image opens in a lightbox
+ * to see it larger; the placeholder stays still. An approximate example
+ * image says so on the image.
+ */
+function Gallery({ image, name }: { image: CatalogProduct['image']; name: string }) {
+  const [open, setOpen] = useState(false)
+  const button = useRef<HTMLButtonElement>(null)
+  if (!image) return <div className={styles.gallery}><ProductImage image={null} size="hero" /></div>
+  // Back to the image when the lightbox closes, so the keyboard keeps its place.
+  const close = () => { setOpen(false); requestAnimationFrame(() => button.current?.focus()) }
+  return (
+    <div className={styles.gallery}>
+      <button ref={button} type="button" className={styles.galleryButton} aria-haspopup="dialog" aria-label={`View larger image of ${name}`} onClick={() => setOpen(true)}>
+        <ProductImage image={image} size="hero" />
+        {image.approximate && <span className={styles.galleryNote}>Similar product</span>}
+        <span className={styles.galleryHint} aria-hidden="true">View larger</span>
+      </button>
+      {open && <Lightbox image={image} name={name} onClose={close} />}
+    </div>
+  )
+}
+
+/** The image as large as the screen allows, on a dark ground (Figma reference: the gallery lightbox). */
+function Lightbox({ image, name, onClose }: { image: NonNullable<CatalogProduct['image']>; name: string; onClose: () => void }) {
+  const ref = useRef<HTMLDialogElement>(null)
+  useEffect(() => {
+    const d = ref.current
+    d?.showModal()
+    return () => d?.close()
+  }, [])
+  return (
+    <dialog ref={ref} className={styles.lightbox} aria-label={`${name}: image`} onCancel={onClose}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+      <button type="button" className={styles.lightboxClose} aria-label="Close image" onClick={onClose}><Icon name="close" size={22} /></button>
+      {/* eslint-disable-next-line @next/next/no-img-element -- supplier and manufacturer images come from many hosts */}
+      <img src={image.src} alt={image.alt} className={styles.lightboxImage} />
+    </dialog>
   )
 }
 
