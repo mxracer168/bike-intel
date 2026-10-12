@@ -279,6 +279,10 @@ const summit = build({
       reason: 'You already have more droppers than usual, so we kept this one small.' },
     'Fox fork seal kit · 36 mm': { state: 'review',
             supplier: { status: 'limited', note: '4 left' }, reason: 'Summit shows only 4 left, fewer than you’d usually want.' },
+    // The demo's many-sources product: three suppliers (Catalog) and four retailers in the network.
+    'Cane Creek 40 headset · IS42/ZS44': { state: 'ok',
+      wholesaleMarketValue: 62,
+      network: [listing('trailhead', 3, 'cc40', 54), listing('river', 2, 'cc40', 57.5), listing('palmetto', 4, 'cc40', 59), listing('upstate', 1, 'cc40', 62)] },
   },
 })
 

@@ -954,6 +954,11 @@ per order line or inventory item. A few second-supplier offers exist only
 to show comparison; each is marked `illustrative` and labelled "Example
 comparison".
 
+For demos, the **Cane Creek 40 headset** is the many-sources product:
+- three suppliers: Summit, its usual and proposed order; Northline; and
+  Cascade, low on stock;
+- four retailers in the network, with a Wholesale Market Value.
+
 What the screens hold to:
 - **Recommendation scope.** Example recommendations come from proposed
   order lines, so they are Variant-level (G1). Product Detail says which
@@ -1016,8 +1021,8 @@ What the screens hold to:
   - Without the folder, every product shows the placeholder.
 - **Supplier SKUs.** Each offer carries its supplier's own item number
   (`CatalogOffer.sku`, `OrderLineView.supplierSku`). It appears:
-  - under the supplier in Supplier options, and in that supplier's
-    details as "Supplier SKU";
+  - in a supplier's details in Supplier options, as "Supplier SKU" (not
+    on the main row);
   - in the add-to-order tray;
   - under the product name in order rows and Catalog additions.
 

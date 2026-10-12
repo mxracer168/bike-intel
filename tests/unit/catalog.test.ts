@@ -290,3 +290,14 @@ describe('catalog search and filters for the session', () => {
     expect(hasCatalogState({ q: 'chain' })).toBe(true)
   })
 })
+
+describe('the demo’s many-sources product', () => {
+  it('offers the Cane Creek 40 headset from three suppliers and four retailers', () => {
+    const headset = demoCatalog.find((p) => p.name === 'Cane Creek 40 headset')!
+    const v = headset.variants[0]!
+    expect(v.offers.map((o) => o.supplierName).sort()).toEqual(['Cascade Components', 'Northline Distribution', 'Summit Parts Supply'])
+    expect(v.offers.every((o) => o.sku)).toBe(true)
+    expect(v.network?.listings.filter((l) => l.available > 0)).toHaveLength(4)
+    expect(v.network?.wholesaleMarketValue).toBe(62)
+  })
+})

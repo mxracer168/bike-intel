@@ -470,7 +470,6 @@
 }
 .offerName { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); font-weight: 600; color: var(--ink-strong); }
 .offerWho { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.offerSku { font-size: 12px; line-height: 16px; font-weight: 400; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .bestTag { padding: 2px var(--sp-2); border-radius: 999px; background: var(--accent-line); color: var(--accent-hover); font-size: 11px; line-height: 16px; font-weight: 600; }
 .offerSub { font-size: 12px; line-height: 16px; color: var(--ink-3); font-weight: 400; }
 .offerCell b { font-weight: 600; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
@@ -479,13 +478,14 @@
 .cellLabel { display: none; }
 .offerChevron { display: grid; place-items: center; color: var(--ink-faint); transition: transform var(--motion-fast) var(--ease-standard); }
 .offerButton[aria-expanded='true'] .offerChevron { transform: rotate(180deg); color: var(--accent); }
-.offerDetail { padding: var(--sp-4); background: var(--inverse); border-top: 1px solid var(--nav-edge); }
-.offerDetail dl { overflow: hidden; border: 1px solid var(--inverse-track); border-radius: var(--r-md); }
+/* Static facts about the offer, on light banded rows (the dark surface is kept for intelligence). */
+.offerDetail { padding: var(--sp-3) var(--sp-4) var(--sp-4); background: var(--accent-soft); border-top: 1px solid var(--accent-line); }
+.offerDetail dl { overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
 .offerDetail dl > div { display: flex; justify-content: space-between; gap: var(--sp-5); padding: var(--sp-3) var(--sp-4); font-size: 12px; line-height: 18px; }
-.offerDetail dl > div + div { border-top: 1px solid var(--inverse-track); }
-.offerDetail dl > div:nth-child(even) { background: var(--inverse-control); }
-.offerDetail dt { color: var(--inverse-3); }
-.offerDetail dd { color: var(--inverse-2); text-align: right; }
+.offerDetail dl > div + div { border-top: 1px solid var(--subtle); }
+.offerDetail dl > div:nth-child(even) { background: var(--canvas); }
+.offerDetail dt { color: var(--ink-3); }
+.offerDetail dd { color: var(--ink-strong); font-weight: 500; text-align: right; }
 .offersNote { font-size: 12px; line-height: 18px; color: var(--ink-3); }
 
 .network { overflow: hidden; border: 1px solid var(--accent-line); border-radius: var(--r-lg); background: var(--accent-wash); }

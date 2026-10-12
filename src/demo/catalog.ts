@@ -61,6 +61,9 @@ const ILLUSTRATIVE: { product: string; supplier: string; costFactor: number; sta
   { product: 'Continental Grand Prix 5000 S TR', supplier: 'Cascade Components', costFactor: 0.98, status: 'available', availability: 'In stock' },
   { product: 'Schwalbe inner tube', supplier: 'Cascade Components', costFactor: 0.95, status: 'available', availability: 'In stock' },
   { product: 'KMC chain', supplier: 'Summit Parts Supply', costFactor: 1.05, status: 'available', availability: 'In stock' },
+  // The demo's many-sources product: Summit (usual), Northline and Cascade.
+  { product: 'Cane Creek 40 headset', supplier: 'Northline Distribution', costFactor: 0.97, status: 'available', availability: 'Plenty · Reno warehouse' },
+  { product: 'Cane Creek 40 headset', supplier: 'Cascade Components', costFactor: 1.05, status: 'limited', availability: '3 left · Tacoma warehouse' },
   { product: 'Shimano B01S resin disc brake pads', supplier: 'Cascade Components', costFactor: 1.02, status: 'delayed', availability: 'Back in about 2 weeks' },
 ]
 

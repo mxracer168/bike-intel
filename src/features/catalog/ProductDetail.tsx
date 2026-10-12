@@ -440,7 +440,6 @@ function Offers({ variant, orders, optionLabel }: { variant: CatalogVariant; ord
                     {o.supplierName}
                     {o.supplierId === bestId && <span className={styles.bestTag}>Best source</span>}
                   </span>
-                  {o.sku && <span className={styles.offerSku}><span className="visually-hidden">Supplier </span>SKU {o.sku}</span>}
                 </span>
                 <span className={styles.offerCell}><span className={styles.cellLabel}>Unit price</span><b>{unitPrice(perUnit(o), o.currency)}</b></span>
                 <span className={styles.offerCell} data-tone={stock.tone}><span className={styles.cellLabel}>Available</span>{stock.text.split(' · ')[0]}</span>
