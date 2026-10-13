@@ -138,6 +138,8 @@ function CashImpactMetric({ cash, total, currency }: { cash: CashOutlook; total:
   const [open, setOpen] = useState(false)
   const id = useId()
   const impact = cashImpact(cash, total, currency)
+  const weeks = impact.before.length
+  const [hover, setHover] = useState<number | null>(null)
   const all = [...impact.before, ...impact.after, impact.floor]
   const lo = Math.min(...all) * 0.9
   const hi = Math.max(...all) * 1.04
@@ -162,13 +164,38 @@ function CashImpactMetric({ cash, total, currency }: { cash: CashOutlook; total:
         {open && (
           <span id={id} className={styles.cashMore}>
             <span className={styles.cashSentence}>{impact.sentence}</span>
-            <svg className={styles.cashChart} viewBox="0 0 240 70" role="img"
-              aria-label={`Projected cash for ${impact.before.length} weeks from ${weekLabel(cash.startsOn, 0)}, before and after this order`}>
-              <line x1="4" x2="236" y1={y(impact.floor)} y2={y(impact.floor)} className={styles.cashFloor} />
-              <path d={path(impact.before)} className={styles.cashBefore} />
-              <path d={path(impact.after)} className={styles.cashAfter} />
-              <circle cx={x(impact.lowestWeek)} cy={y(impact.after[impact.lowestWeek]!)} r="3" className={styles.cashLow} />
-            </svg>
+            <span className={styles.cashPlot}>
+              <svg className={styles.cashChart} viewBox="0 0 240 70" role="img"
+                aria-label={`Projected cash for ${impact.before.length} weeks from ${weekLabel(cash.startsOn, 0)}, before and after this order`}
+                onPointerMove={(e) => {
+                  // The week nearest the pointer.
+                  const box = e.currentTarget.getBoundingClientRect()
+                  const at = (((e.clientX - box.left) / box.width) * 240 - 4) / 232
+                  setHover(Math.min(weeks - 1, Math.max(0, Math.round(at * (weeks - 1)))))
+                }}
+                onPointerLeave={() => setHover(null)}>
+                <line x1="4" x2="236" y1={y(impact.floor)} y2={y(impact.floor)} className={styles.cashFloor} />
+                <path d={path(impact.before)} className={styles.cashBefore} />
+                <path d={path(impact.after)} className={styles.cashAfter} />
+                <circle cx={x(impact.lowestWeek)} cy={y(impact.after[impact.lowestWeek]!)} r="3" className={styles.cashLow} />
+                {hover !== null && (
+                  <g aria-hidden="true">
+                    <line x1={x(hover)} x2={x(hover)} y1="2" y2="68" className={styles.cashGuide} />
+                    <circle cx={x(hover)} cy={y(impact.before[hover]!)} r="3" className={styles.cashDotBefore} />
+                    <circle cx={x(hover)} cy={y(impact.after[hover]!)} r="3.5" className={styles.cashLow} />
+                  </g>
+                )}
+              </svg>
+              {hover !== null && (
+                <span className={styles.cashTip} aria-hidden="true"
+                  data-edge={hover < 2 ? 'start' : hover > weeks - 3 ? 'end' : undefined}
+                  style={{ left: `${(x(hover) / 240) * 100}%` }}>
+                  <b>Week of {weekLabel(cash.startsOn, hover)}</b>
+                  <span>After order <b>{formatMoney(impact.after[hover]!, currency)}</b></span>
+                  <span>Before order <b>{formatMoney(impact.before[hover]!, currency)}</b></span>
+                </span>
+              )}
+            </span>
             <span className={styles.cashLegend}>
               <span><i className={styles.keyAfter} />After order</span>
               <span><i className={styles.keyBefore} />Before order</span>

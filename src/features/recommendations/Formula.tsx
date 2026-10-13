@@ -121,6 +121,7 @@ function TargetEvidence({ data }: { data: FormulaData }) {
   const max = Math.max(1, ...sales)
   const sold = sales.reduce((a, b) => a + b, 0)
   const starts = data.weekStarts ?? []
+  const [hover, setHover] = useState<number | null>(null)
   return (
     <div className={styles.targetGrid}>
       <div className={styles.targetLeft}>
@@ -142,13 +143,22 @@ function TargetEvidence({ data }: { data: FormulaData }) {
             <span><b>Recent demand</b><span>Weekly sales · last {sales.length} weeks</span></span>
             <span className={styles.demandTotal}><b>{sold} sold</b><span>{oneDecimal(sold / sales.length)} / week</span></span>
           </div>
-          <div className={styles.bars} role="img"
+          <div className={styles.bars} role="img" data-hovering={hover !== null || undefined} onPointerLeave={() => setHover(null)}
             aria-label={`Weekly sales, last ${sales.length} weeks: ${sales.join(', ')}`}>
             {sales.map((n, i) => (
-              <span key={i} className={styles.barCol} title={`${starts[i] ? `Week of ${shortDate(starts[i]!)}: ` : ''}${n} sold`}>
+              <span key={i} className={styles.barCol} data-hover={hover === i || undefined} onPointerEnter={() => setHover(i)}>
                 <i data-recent={i >= sales.length - 4 || undefined} style={{ height: `${Math.max(5, (n / max) * 100)}%` }} />
               </span>
             ))}
+            {hover !== null && (
+              // The hovered week, above its bar; kept inside the chart at the ends.
+              <span className={styles.barTip} aria-hidden="true"
+                data-edge={hover < 2 ? 'start' : hover > sales.length - 3 ? 'end' : undefined}
+                style={{ left: `${((hover + 0.5) / sales.length) * 100}%`, bottom: `${Math.max(5, (sales[hover]! / max) * 100)}%` }}>
+                <b>{sales[hover]} sold</b>
+                <span>{starts[hover] ? `Week of ${shortDate(starts[hover]!)}` : `${sales.length - hover} ${sales.length - hover === 1 ? 'week' : 'weeks'} ago`}</span>
+              </span>
+            )}
           </div>
           {starts.length === sales.length && (
             <div className={styles.barDates} aria-hidden="true">

@@ -59,6 +59,21 @@
 .barCol { flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; }
 .barCol i { display: block; width: 100%; border-radius: 3px 3px 0 0; background: var(--accent-muted); }
 .barCol i[data-recent] { background: var(--dot-info); }
+/* Hover: the week under the pointer stands out; its count and week above it. */
+.bars { position: relative; }
+.barCol { cursor: default; }
+.bars[data-hovering] .barCol:not([data-hover]) i { opacity: .45; }
+.barCol i { transition: opacity var(--motion-fast) var(--ease-standard); }
+.barTip {
+  position: absolute; z-index: 1; transform: translate(-50%, -8px); pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; padding: 4px var(--sp-2); white-space: nowrap;
+  border-radius: var(--r-sm); background: var(--inverse); color: var(--on-inverse); box-shadow: var(--sh-2);
+  font-size: 12px; line-height: 16px;
+}
+.barTip[data-edge='start'] { transform: translate(-25%, -8px); align-items: flex-start; }
+.barTip[data-edge='end'] { transform: translate(-75%, -8px); align-items: flex-end; }
+.barTip b { font-weight: 600; }
+.barTip span { color: var(--inverse-2); }
 .barDates { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; line-height: 16px; color: var(--ink-3); }
 
 /* Current: on hand by location, and what's on order. */
@@ -145,6 +160,8 @@
 [data-tone='dark'] .bars { border-color: var(--inverse-track); }
 [data-tone='dark'] .barCol i { background: var(--nav-sub); }
 [data-tone='dark'] .barCol i[data-recent] { background: var(--inverse-fill); }
+[data-tone='dark'] .barTip { background: var(--surface); color: var(--ink-strong); }
+[data-tone='dark'] .barTip span { color: var(--ink-3); }
 [data-tone='dark'] .metrics { border-color: var(--inverse-track); }
 [data-tone='dark'] .tableHead span { color: var(--inverse-2); }
 [data-tone='dark'] .table th { background: var(--nav-hover); color: var(--inverse-3); }
