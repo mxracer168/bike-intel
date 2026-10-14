@@ -13,7 +13,7 @@ work against.
 | Owner | Authoritative for |
 |---|---|
 | Retailer POS | Sales, current inventory, purchase history, POS-originated POs |
-| Supplier systems | Supplier inventory, pricing, supplier product data, order status, supplier-published programs |
+| Supplier systems | Supplier inventory, pricing, supplier product data, order status, supplier-published programs, and each retailer account's own catalog visibility, eligibility and restrictions (we read these, never recreate them) |
 | This platform | Canonical product identity, cross-system matching, context, recommendations, intelligence, lineage, supplier preferences, normalized programs, orchestration |
 
 ## Core principles
@@ -579,6 +579,28 @@ In short:
   model (participation, offers, network transactions, reviews) are recorded in
   `network.md`; nothing is in the schema yet. The platform stays outside
   payment and shipping.
+
+## North Star (long horizon, not roadmap)
+
+Capabilities the platform could grow into as the retailer and supplier
+network matures are recorded in [`north-star.md`](north-star.md), apart
+from what is being built now:
+
+1. Retailer-specific supplier integrations: one platform integration per
+   supplier, each retailer authorizing their own account, so they see their
+   own pricing, catalog, availability and restrictions.
+2. Supplier-managed purchasing eligibility: eligible, authorization
+   required, or restricted, by brand or SKU.
+3. Buying Intelligence as an authorization channel: discover, apply,
+   supplier decides, then the supplier becomes a source.
+4. Canonical retailer identity: persistent organization and location IDs
+   with a crosswalk to every supplier and distributor account number.
+5. A reusable retailer business profile for opening accounts, shared by
+   consent.
+
+Two principles from it already bind today's design: the supplier stays
+authoritative for its own entitlements, and eligibility changes sourcing,
+never the assessment of demand.
 
 ## Not built yet (deliberately)
 
