@@ -13,7 +13,7 @@
 
 ## Principles shared by every item
 
-These hold for all five capabilities and override anything below that
+These hold for every capability below and override anything below that
 seems to say otherwise.
 
 - **The supplier stays authoritative for what it owns.** Pricing,
@@ -42,7 +42,7 @@ seems to say otherwise.
   authorization or eligibility process (as Program fit is never influenced by
   sponsorship, `programs.md`).
 
-## How the five fit together
+## How they fit together
 
 ```
 Canonical retailer identity (4)
@@ -58,6 +58,9 @@ Canonical retailer identity (4)
                           ▲
                           └─ Reusable business profile (5)
                                 what an application needs, shared by consent
+                                   ▲
+                                   └─ Standardized application protocol (6)
+                                         what real dealer applications ask for
 
 All of it shapes sourcing (where and whether to buy).
 None of it shapes demand (what the retailer needs).
@@ -209,6 +212,9 @@ the table, is the hard part.
 
 ## 5. Reusable retailer business profile
 
+> Tell us about your business once. Maintain it in one place. Reuse it
+> wherever appropriate.
+
 **Idea.** A retailer maintains, once, the information commonly required to
 open supplier and distributor accounts, and reuses it for each new account
 or authorization application (item 3):
@@ -221,6 +227,17 @@ or authorization application (item 3):
 - financial and credit information;
 - trade references;
 - other credentials a supplier requires.
+
+**Completed progressively, never up front.** Onboarding does not ask for
+every conceivable field. The profile fills in as needs arise: applying to a
+supplier asks only for what that application needs and the profile doesn't
+already hold, and what's given is kept for next time. This follows the
+existing onboarding rule that progress is defined by missing facts
+(`architecture.md`, "Onboarding is defined by missing facts").
+
+**The retailer controls it and chooses what each trading partner gets.**
+Nothing in the profile is shared because it exists; every share is an
+explicit choice for one partner.
 
 **Rules for sensitive information.**
 - **The retailer owns it.** Only owners and admins (or roles they grant)
@@ -249,10 +266,43 @@ details, locations and team, and `document` stores uploaded files under the
 organization's own storage path. None of the consent, sharing, expiry or
 stronger-storage controls above exist.
 
+## 6. Standardized retailer application protocol
+
+**Idea.** Dealer applications across suppliers and distributors ask for
+much of the same information in different forms. A future discovery
+exercise collects as many real applications as practical and analyzes:
+
+- common fields;
+- common documents;
+- supplier-specific requirements;
+- outliers;
+- information that is repeated across applications;
+- vertical-specific requirements (bicycle first; others as the platform
+  grows beyond it).
+
+**What it would produce.** An inventory of fields and documents with how
+often each appears and how each supplier words it, mapped to the business
+profile (item 5). That tells us what the profile must hold, which items
+nearly every supplier needs (worth asking for early), and which are rare
+(asked only when a specific application needs them). If suppliers adopt it,
+the mapping could become a standard application format that a retailer's
+profile fills in for any participating supplier, with each supplier's own
+additions on top.
+
+**Handling the material.** Collected applications are research inputs:
+blank forms where possible; any filled-in example with real retailer data
+is kept outside the repository and never committed, like the supplier file
+awaiting profiling.
+
+**What exists today.** Nothing; the exercise has not started.
+
 ## What would have to be true first
 
 - **Supplier participation.** Items 2 and 3 need suppliers on the platform:
   supplier-side access, which is deliberately not built.
+- **Real applications to study.** Items 5 and 6 depend on the discovery
+  exercise; the profile's structure should come from what suppliers
+  actually ask, not from a guess.
 - **Enough retailers.** Items 2, 3 and 4 are worth a supplier's effort only
   when a meaningful share of its dealers use Buying Intelligence.
 - **Legal and commercial terms** for each supplier integration (what we may

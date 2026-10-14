@@ -595,8 +595,12 @@ from what is being built now:
    supplier decides, then the supplier becomes a source.
 4. Canonical retailer identity: persistent organization and location IDs
    with a crosswalk to every supplier and distributor account number.
-5. A reusable retailer business profile for opening accounts, shared by
-   consent.
+5. A reusable retailer business profile for opening accounts: completed
+   progressively as needs arise, never all at onboarding, and shared with
+   each trading partner only by the retailer's explicit choice.
+6. A standardized retailer application protocol, starting with a discovery
+   exercise across real dealer applications (common and supplier-specific
+   fields and documents, outliers, repetition, vertical requirements).
 
 Two principles from it already bind today's design: the supplier stays
 authoritative for its own entitlements, and eligibility changes sourcing,
