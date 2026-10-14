@@ -216,8 +216,10 @@ const northline = build({
       network: [listing('palmetto', 10, 'b01s', 9.5), listing('river', 6, 'b01s', 10.2), listing('trailhead', 8, 'b01s', 9.8), listing('midtown', 2, 'b01s', 10.2), listing('upstate', 1, 'b01s', 11)], onHand: 2, onOrder: 0, confidence: 'high', weeklySales: [1, 2, 1, 3, 2, 2, 3, 2, 3, 2, 2, 3],
       reason: 'The 2 you have will run out in about a week.',
       alternatives: ['Shimano J05A pads fit the same brakes and cost a little more.'] },
-    'Maxxis Minion DHF · 29 × 2.5 WT EXO+': { state: 'review', quantity: 4,
-            wholesaleMarketValue: 61, network: [listing('midtown', 2, 'dhf', 61), listing('upstate', 1, 'dhf', 55), listing('lowcountry', 3, 'dhf', 58)], onHand: 1, onOrder: 0, weeklySales: [0, 1, 1, 0, 1, 2, 1, 1, 2, 1, 1, 2],
+    // Two open POs of 1 each, so the demo shows on-order stock in Current; the target stays 5 (1 on hand + 2 on order + 2 to order).
+    'Maxxis Minion DHF · 29 × 2.5 WT EXO+': { state: 'review', quantity: 2,
+            wholesaleMarketValue: 61, network: [listing('midtown', 2, 'dhf', 61), listing('upstate', 1, 'dhf', 55), listing('lowcountry', 3, 'dhf', 58)], onHand: 1, onOrder: 2,
+            incoming: [{ po: 'PO-4218', quantity: 1, arrivesInDays: 3 }, { po: 'PO-4231', quantity: 1, arrivesInDays: 9 }], weeklySales: [0, 1, 1, 0, 1, 2, 1, 1, 2, 1, 1, 2],
       reason: 'You sold 5 last October, more than your usual pace, so we added a little for fall.' },
     'Park Tool CT-3.3 chain tool': { state: 'question', need: 2, orderRule: { kind: 'minimum', quantity: 3 }, quantity: 3, newToStore: true,
       supplier: { status: 'available', note: 'Available' }, onHand: 0, onOrder: 0, weeklySales: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
@@ -370,7 +372,7 @@ function withSafetyStock(line: OrderLineView): OrderLineView {
  * or two when more than a couple are coming, arriving within the lead time.
  */
 function withIncoming(line: OrderLineView, index: number, leadTimeDays: number): OrderLineView {
-  if (line.onOrder <= 0) return line
+  if (line.onOrder <= 0 || line.incoming) return line
   const po = (n: number) => `PO-${4180 + ((index * 7 + n * 3 + line.id.length) % 90)}`
   const soon = Math.max(2, Math.round(leadTimeDays / 2))
   const incoming = line.onOrder > 2
